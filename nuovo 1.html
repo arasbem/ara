@@ -1,77 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizzazione e Download dei File</title>
-    <style>
-        body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizzazione e Download dei File</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
 
-        h1 {
-            text-align: center;
-        }
+    h1 {
+      text-align: center;
+    }
 
-        #fileList {
-            list-style: none;
-            padding: 0;
-        }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
 
-        li {
-            margin-bottom: 10px;
-        }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
 
-        a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        a:hover {
-            color: lightgray;
-        }
-    </style>
+    .downloadButton {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Lista dei File</h1>
+  <h1>Lista dei File</h1>
 
-<ul id="fileList"></ul>
+  <table>
+    <thead>
+      <tr>
+        <th>Nome File</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody id="fileList"></tbody>
+  </table>
 
-<script>
+  <script>
     const githubUrl = 'https://api.github.com/repos/arasbem/ara/contents/FILE?ref=main';
 
     async function getFiles() {
-        try {
-            const response = await fetch(githubUrl);
-            const data = await response.json();
+      try {
+        const response = await fetch(githubUrl);
+        const data = await response.json();
 
-            const fileList = document.getElementById('fileList');
-            data.forEach(file => {
-                const listItem = document.createElement('li');
+        const fileList = document.getElementById('fileList');
+        data.forEach(file => {
+          const listItem = document.createElement('tr');
 
-                // Aggiungi un link di download per ciascun file
-                const downloadLink = document.createElement('a');
-                downloadLink.href = file.download_url;
-                downloadLink.textContent = file.name;
-                downloadLink.setAttribute('download', ''); // Imposta l'attributo download per il link
-                listItem.appendChild(downloadLink);
+          // Aggiungi il nome del file
+          const fileName = document.createElement('td');
+          fileName.textContent = file.name;
+          listItem.appendChild(fileName);
 
-                fileList.appendChild(listItem);
-            });
-        } catch (error) {
-            console.error('Errore nel recupero dei file:', error);
-        }
+          // Aggiungi il pulsante di download
+          const downloadButton = document.createElement('td');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = file.download_url;
+          downloadLink.textContent = 'Download';
+          downloadLink.classList.add('downloadButton');
+          downloadButton.appendChild(downloadLink);
+          listItem.appendChild(downloadButton);
+
+          fileList.appendChild(listItem);
+        });
+      } catch (error) {
+        console.error('Errore nel recupero dei file:', error);
+      }
     }
 
     // Chiamata alla funzione per ottenere la lista dei file quando la pagina è completamente caricata
     window.onload = getFiles;
-</script>
+  </script>
 
 </body>
 </html>
