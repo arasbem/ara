@@ -6,7 +6,7 @@
     <title>Visualizzazione e Download dei File</title>
     <style>
         body {
-            background-color: rgba(0, 0, 0, 0.8); /* Cambia l'opacità a seconda delle tue preferenze */
+            background-color: rgba(0, 0, 0, 0.8);
             background-image: url('https://i.gifer.com/133C.gif');
             background-size: cover;
             background-repeat: no-repeat;
@@ -21,13 +21,16 @@
             text-align: center;
         }
 
-        #fileList {
-            list-style: none;
-            padding: 0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
 
-        li {
-            margin-bottom: 10px;
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid white;
         }
 
         a {
@@ -45,7 +48,15 @@
 
 <h1>Lista dei File</h1>
 
-<ul id="fileList"></ul>
+<table>
+    <thead>
+        <tr>
+            <th>Nome del File</th>
+            <th>Download</th>
+        </tr>
+    </thead>
+    <tbody id="fileList"></tbody>
+</table>
 
 <script>
     const githubUrl = 'https://api.github.com/repos/arasbem/ara/contents/FILE?ref=main';
@@ -57,16 +68,19 @@
 
             const fileList = document.getElementById('fileList');
             data.forEach(file => {
-                const listItem = document.createElement('li');
+                const row = fileList.insertRow();
 
-                // Aggiungi un link di download per ciascun file
+                // Aggiungi il nome del file nella prima colonna
+                const fileNameCell = row.insertCell(0);
+                fileNameCell.textContent = file.name;
+
+                // Aggiungi il pulsante di download nella seconda colonna
+                const downloadCell = row.insertCell(1);
                 const downloadLink = document.createElement('a');
                 downloadLink.href = file.download_url;
-                downloadLink.textContent = file.name;
-                downloadLink.setAttribute('download', ''); // Imposta l'attributo download per il link
-                listItem.appendChild(downloadLink);
-
-                fileList.appendChild(listItem);
+                downloadLink.textContent = 'Download';
+                downloadLink.setAttribute('download', '');
+                downloadCell.appendChild(downloadLink);
             });
         } catch (error) {
             console.error('Errore nel recupero dei file:', error);
