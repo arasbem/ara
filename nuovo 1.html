@@ -1,92 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualizzazione e Download dei File</title>
-  <style>
-    body {
-      background-color: black;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzazione e Download dei File</title>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0, 0.8); /* Cambia l'opacità a seconda delle tue preferenze */
+            background-image: url('https://i.gifer.com/133C.gif');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
 
-    h1 {
-      text-align: center;
-    }
+        h1 {
+            text-align: center;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
+        #fileList {
+            list-style: none;
+            padding: 0;
+        }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-    }
+        li {
+            margin-bottom: 10px;
+        }
 
-    .downloadButton {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+        a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: lightgray;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>Lista dei File</h1>
+<h1>Lista dei File</h1>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nome File</th>
-        <th>Download</th>
-      </tr>
-    </thead>
-    <tbody id="fileList"></tbody>
-  </table>
+<ul id="fileList"></ul>
 
-  <script>
+<script>
     const githubUrl = 'https://api.github.com/repos/arasbem/ara/contents/FILE?ref=main';
 
     async function getFiles() {
-      try {
-        const response = await fetch(githubUrl);
-        const data = await response.json();
+        try {
+            const response = await fetch(githubUrl);
+            const data = await response.json();
 
-        const fileList = document.getElementById('fileList');
-        data.forEach(file => {
-          const listItem = document.createElement('tr');
+            const fileList = document.getElementById('fileList');
+            data.forEach(file => {
+                const listItem = document.createElement('li');
 
-          // Aggiungi il nome del file
-          const fileName = document.createElement('td');
-          fileName.textContent = file.name;
-          listItem.appendChild(fileName);
+                // Aggiungi un link di download per ciascun file
+                const downloadLink = document.createElement('a');
+                downloadLink.href = file.download_url;
+                downloadLink.textContent = file.name;
+                downloadLink.setAttribute('download', ''); // Imposta l'attributo download per il link
+                listItem.appendChild(downloadLink);
 
-          // Aggiungi il pulsante di download
-          const downloadButton = document.createElement('td');
-          const downloadLink = document.createElement('a');
-          downloadLink.href = file.download_url;
-          downloadLink.textContent = 'Download';
-          downloadLink.classList.add('downloadButton');
-          downloadButton.appendChild(downloadLink);
-          listItem.appendChild(downloadButton);
-
-          fileList.appendChild(listItem);
-        });
-      } catch (error) {
-        console.error('Errore nel recupero dei file:', error);
-      }
+                fileList.appendChild(listItem);
+            });
+        } catch (error) {
+            console.error('Errore nel recupero dei file:', error);
+        }
     }
 
     // Chiamata alla funzione per ottenere la lista dei file quando la pagina è completamente caricata
     window.onload = getFiles;
-  </script>
+</script>
 
 </body>
 </html>
