@@ -20,6 +20,38 @@
         try {
             const response = await fetch(githubUrl);
             const data = await response.json();
+<script>
+    // URL della tua cartella su GitHub
+    const githubUrl = 'https://api.github.com/repos/arasbem/ara/contents/FILE?ref=main';
+
+    // Funzione per ottenere la lista dei file
+    async function getFiles() {
+        try {
+            const response = await fetch(githubUrl);
+            const data = await response.json();
+
+            // Creazione della lista dei file
+            const fileList = document.getElementById('fileList');
+            data.forEach(file => {
+                const listItem = document.createElement('li');
+
+                // Aggiungi un link di download per ciascun file
+                const downloadLink = document.createElement('a');
+                downloadLink.href = file.download_url;
+                downloadLink.textContent = file.name;
+                downloadLink.setAttribute('download', ''); // Imposta l'attributo download per il link
+                listItem.appendChild(downloadLink);
+
+                fileList.appendChild(listItem);
+            });
+        } catch (error) {
+            console.error('Errore nel recupero dei file:', error);
+        }
+    }
+
+    // Chiamata alla funzione per ottenere la lista dei file
+    getFiles();
+</script>
 
             // Creazione della lista dei file
             const fileList = document.getElementById('fileList');
