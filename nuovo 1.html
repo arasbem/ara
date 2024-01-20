@@ -76,7 +76,7 @@
             border-top-right-radius: 10px;
             border-bottom-right-radius: 10px;
         }
-    </style>
+      </style>
 </head>
 
 <body>
@@ -87,13 +87,12 @@
         <thead>
             <tr>
                 <th>Nome del File</th>
+                <th>Descrizione</th>
                 <th>Download</th>
             </tr>
         </thead>
         <tbody id="fileList"></tbody>
     </table>
-
-    <p><a href="pagina2.html">ALTRO</a></p>
 
     <script>
         const githubUrl = 'https://api.github.com/repos/arasbem/ara/contents/FILE?ref=main';
@@ -111,8 +110,13 @@
                     const fileNameCell = row.insertCell(0);
                     fileNameCell.textContent = file.name;
 
-                    // Aggiungi il pulsante di download nella seconda colonna
-                    const downloadCell = row.insertCell(1);
+                    // Aggiungi la descrizione del file nella seconda colonna
+                    const descriptionCell = row.insertCell(1);
+                    // Inizia la descrizione dalla parte1.rar di ogni file
+                    descriptionCell.textContent = 'Descrizione: part1.rar';
+
+                    // Aggiungi il pulsante di download nella terza colonna
+                    const downloadCell = row.insertCell(2);
                     const downloadLink = document.createElement('a');
                     downloadLink.href = file.download_url;
                     downloadLink.textContent = 'Download';
