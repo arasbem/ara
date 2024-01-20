@@ -4,12 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Repository - Ara Sbem</title>
+    <title>Visualizzazione e Download dei File</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
     <style>
         body {
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #333;
+            background-image: url('https://i.gifer.com/133C.gif');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
@@ -17,24 +21,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        header img {
-            max-width: 100%;
-            height: auto;
+            height: 100vh;
         }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            font-size: 28px;
-            color: #3498db;
             animation: fadeInDown 1s;
         }
 
@@ -42,11 +34,11 @@
             width: 80%;
             margin-top: 20px;
             border-collapse: collapse;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             margin-bottom: 50px;
             animation: slideInUp 1s;
-            overflow: hidden;
         }
 
         th, td {
@@ -56,16 +48,8 @@
         }
 
         th {
-            background-color: #3498db;
+            background-color: #4CAF50;
             color: white;
-        }
-
-        td {
-            background-color: #f9f9f9;
-        }
-
-        td:nth-child(odd) {
-            background-color: #fff;
         }
 
         td a {
@@ -78,7 +62,7 @@
         }
 
         td a:hover {
-            color: #207bb5;
+            color: #555;
             text-decoration: underline;
             animation: rubberBand 0.8s;
         }
@@ -92,29 +76,17 @@
             border-top-right-radius: 10px;
             border-bottom-right-radius: 10px;
         }
-
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #3498db;
-            color: white;
-        }
     </style>
 </head>
 
 <body>
 
-    <header>
-        <img src="your-logo.png" alt="Company Logo">
-    </header>
-
-    <h1 class="animated fadeInDown">File Repository - Ara Sbem</h1>
+    <h1 class="animated fadeInDown">Ara Sbem</h1>
 
     <table class="animated slideInUp">
         <thead>
             <tr>
-                <th>File Name</th>
+                <th>Nome del File</th>
                 <th>Download</th>
             </tr>
         </thead>
@@ -122,12 +94,37 @@
     </table>
 
     <script>
-        // ... (Your existing JavaScript code remains unchanged)
-    </script>
+        const githubUrl = 'https://api.github.com/repos/arasbem/ara/contents/FILE?ref=main';
 
-    <footer>
-        &copy; 2024 Your Company Name. All rights reserved.
-    </footer>
+        async function getFiles() {
+            try {
+                const response = await fetch(githubUrl);
+                const data = await response.json();
+
+                const fileList = document.getElementById('fileList');
+                data.forEach(file => {
+                    const row = fileList.insertRow();
+
+                    // Aggiungi il nome del file nella prima colonna
+                    const fileNameCell = row.insertCell(0);
+                    fileNameCell.textContent = file.name;
+
+                    // Aggiungi il pulsante di download nella seconda colonna
+                    const downloadCell = row.insertCell(1);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = file.download_url;
+                    downloadLink.textContent = 'Download';
+                    downloadLink.setAttribute('download', '');
+                    downloadCell.appendChild(downloadLink);
+                });
+            } catch (error) {
+                console.error('Errore nel recupero dei file:', error);
+            }
+        }
+
+        // Chiamata alla funzione per ottenere la lista dei file quando la pagina è completamente caricata
+        window.onload = getFiles;
+    </script>
 
 </body>
 
