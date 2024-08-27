@@ -13,83 +13,74 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
+            padding: 10px;
+            box-sizing: border-box;
+            color: #333;
         }
         h1 {
-            color: #333;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
         }
-        table {
-            border-collapse: collapse;
+        .data-item {
             width: 100%;
-            max-width: 600px;
-            margin: 20px 0;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        }
-        th, td {
+            padding: 10px;
+            margin-bottom: 10px;
             border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f8f8f8;
-            color: #333;
-            font-weight: bold;
-        }
-        td {
-            color: #555;
+            border-radius: 5px;
+            background-color: #f7f7f7;
+            text-align: center;
+            font-size: 16px;
         }
         .controls {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+            justify-content: space-around;
+            width: 100%;
             margin-top: 20px;
         }
         button, input[type="number"] {
-            padding: 10px 15px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 14px;
             border: 1px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
-        }
-        button {
             background-color: #007BFF;
             color: white;
             transition: background-color 0.3s ease;
+            flex: 1;
+            margin: 0 5px;
+            text-align: center;
         }
         button:hover {
             background-color: #0056b3;
         }
         input[type="number"] {
-            width: 100px;
-            text-align: center;
+            background-color: #fff;
+            color: #333;
+            width: 60px;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Visualizzatore Excel - Permute</h1>
-    <table id="excel-table">
-        <thead>
-            <tr>
-                <!-- Intestazioni delle colonne -->
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Dati delle righe -->
-        </tbody>
-    </table>
+    <h1>Visualizzatore Permute</h1>
+    <div id="data-container">
+        <!-- I dati verranno visualizzati qui -->
+    </div>
     <div class="controls">
-        <button id="prev-row">Riga Precedente</button>
-        <button id="next-row">Riga Successiva</button>
-        <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
-        <button id="search-row">Vai alla riga</button>
+        <button id="prev-row">Precedente</button>
+        <button id="next-row">Successivo</button>
+    </div>
+    <div class="controls">
+        <input type="number" id="row-search" placeholder="Riga" min="1" />
+        <button id="search-row">Vai</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
         let excelData = [];
-        let currentRow = 1; // Partiamo dalla seconda riga per visualizzare i dati
+        let currentRow = 1;
 
         document.addEventListener('DOMContentLoaded', loadExcel);
 
@@ -106,31 +97,20 @@
         }
 
         function displayRow(rowIndex) {
-            if (rowIndex < 1 || rowIndex >= excelData.length) return; // Evita l'intestazione
+            if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
             const row = excelData[rowIndex];
             const headers = excelData[0];
-            const tableHead = document.querySelector('#excel-table thead tr');
-            const tableBody = document.querySelector('#excel-table tbody');
+            const dataContainer = document.getElementById('data-container');
 
-            tableHead.innerHTML = '';
-            tableBody.innerHTML = '';
+            dataContainer.innerHTML = '';
 
-            if (tableHead.children.length === 0) {
-                headers.slice(0, 5).forEach(header => {
-                    const th = document.createElement('th');
-                    th.textContent = header;
-                    tableHead.appendChild(th);
-                });
-            }
-
-            const tr = document.createElement('tr');
-            row.slice(0, 5).forEach(cell => {
-                const td = document.createElement('td');
-                td.textContent = cell;
-                tr.appendChild(td);
+            headers.slice(0, 5).forEach((header, index) => {
+                const dataItem = document.createElement('div');
+                dataItem.className = 'data-item';
+                dataItem.textContent = `${header}: ${row[index] || ''}`;
+                dataContainer.appendChild(dataItem);
             });
-            tableBody.appendChild(tr);
         }
 
         document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
