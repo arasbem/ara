@@ -28,7 +28,7 @@
             width: 100%;
             max-width: 360px;
             padding: 10px;
-            background-color: #111; /* Sfondo dei dati scuro */
+            background-color: #000000; /* Sfondo completamente nero */
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
             margin-bottom: 15px;
@@ -38,12 +38,16 @@
             width: 100%;
             padding: 15px;
             margin: 5px 0;
-            background-color: #222;
+            background-color: #000000; /* Sfondo dei dati completamente nero */
             border-radius: 8px;
             font-size: 1.5rem; /* Ingrandimento del carattere dei dati */
             word-wrap: break-word;
             box-sizing: border-box;
             color: #ffffff; /* Colore del testo dei dati */
+            border-bottom: 1px solid #ffffff; /* Riga sottile orizzontale bianca */
+        }
+        .data-item:last-child {
+            border-bottom: none; /* Rimuovi la riga per l'ultimo elemento */
         }
         .data-item.col-b { color: #ff6666; } /* Rosso per colonna B */
         .data-item.col-c { color: #d2a679; } /* Marrone chiaro per colonna C */
