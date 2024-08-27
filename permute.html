@@ -33,7 +33,6 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
             margin-bottom: 15px;
             text-align: left;
-            overflow-y: auto; /* Permette lo scroll verticale */
         }
         .data-item {
             width: 100%;
@@ -182,8 +181,8 @@
                 dataContainer.appendChild(dataItem);
             });
 
-            // Scrolla automaticamente verso il contenuto dei dati
-            dataContainer.scrollIntoView({behavior: "smooth", block: "start"});
+            // Scrolla verso l'alto dopo aver visualizzato la riga
+            window.scrollTo(0, 0);
         }
 
         document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
