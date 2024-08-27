@@ -42,29 +42,21 @@
 
         .data-item {
             width: 100%;
-            padding: 15px 20px;
+            padding: 15px 20px; /* Maggiore padding per una migliore leggibilità */
             margin: 5px 0;
             background-color: #222;
             border-radius: 10px;
-            font-size: 1.2rem;
-            color: white; /* Carattere bianco */
+            font-size: 1.2rem; /* Carattere ingrandito */
             word-wrap: break-word;
         }
 
         .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 360px;
             margin-top: 20px;
-        }
-
-        .controls .control-group {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
+            max-width: 360px;
         }
 
         .controls button, .controls input[type="number"] {
@@ -89,17 +81,6 @@
             color: white;
             width: 80px;
             text-align: center;
-        }
-
-        .search-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .search-container input[type="number"] {
-            margin-right: 5px;
         }
 
         @media (max-width: 400px) {
@@ -129,11 +110,9 @@
     </div>
     <div class="controls">
         <button id="prev-row">Precedente</button>
-        <div class="control-group">
-            <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
-            <button id="search-row">Vai</button>
-        </div>
         <button id="next-row">Successivo</button>
+        <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+        <button id="search-row">Vai</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
