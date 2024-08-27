@@ -11,7 +11,7 @@
             padding: 10px;
             background-color: #000000; /* Sfondo completamente nero */
             color: #ffffff;
-            font-size: 20px; /* Dimensione del font */
+            font-size: 22px; /* Dimensione del font */
             text-align: center; /* Allinea il testo al centro */
         }
         .container {
@@ -32,18 +32,24 @@
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
             margin-bottom: 15px;
+            text-align: left;
         }
         .data-item {
             width: 100%;
-            padding: 15px 20px;
+            padding: 15px;
             margin: 5px 0;
             background-color: #222;
-            border-radius: 10px;
-            font-size: 1.2rem;
+            border-radius: 8px;
+            font-size: 1.5rem; /* Ingrandimento del carattere dei dati */
             word-wrap: break-word;
             box-sizing: border-box;
-            text-align: left;
+            color: #ffffff; /* Colore del testo dei dati */
         }
+        .data-item.col-b { color: #ff6666; } /* Rosso per colonna B */
+        .data-item.col-c { color: #d2a679; } /* Marrone chiaro per colonna C */
+        .data-item.col-d { color: #66ccff; } /* Azzurro per colonna D */
+        .data-item.col-e { color: #66cc66; } /* Verde per colonna E */
+
         .row-navigation {
             display: flex;
             justify-content: space-between;
@@ -56,9 +62,9 @@
             color: #4CAF50;
             border: 1px solid #4CAF50;
             border-radius: 8px;
-            padding: 14px 18px;
+            padding: 16px 20px;
             margin: 10px;
-            font-size: 20px;
+            font-size: 1.5rem; /* Ingrandimento della dimensione del font dei pulsanti */
             cursor: pointer;
             width: 40%;
         }
@@ -77,20 +83,21 @@
         .search-container input {
             flex: 1;
             margin-right: 5px;
-            padding: 12px;
+            padding: 12px; /* Ridotto rispetto al padding precedente */
             text-align: center;
             background-color: #000000;
             color: #ffffff;
             border: 1px solid #666666;
-            font-size: 20px;
+            font-size: 1.2rem; /* Ridotto rispetto alla dimensione del font precedente */
+            max-width: 100px; /* Ridotto a metà rispetto alla dimensione originale */
         }
         .search-container button {
             background-color: #000000;
             color: #4CAF50;
             border: 1px solid #4CAF50;
             border-radius: 8px;
-            padding: 14px 18px;
-            font-size: 20px;
+            padding: 16px 20px;
+            font-size: 1.5rem; /* Ingrandimento della dimensione del font del pulsante */
             cursor: pointer;
             width: 100px;
         }
@@ -100,24 +107,23 @@
         }
         @media (max-width: 360px) {
             body {
-                font-size: 18px;
+                font-size: 20px; /* Riduzione della dimensione del font per schermi piccoli */
             }
             .data-item {
-                font-size: 1rem;
+                font-size: 1.2rem; /* Riduzione della dimensione del font dei dati */
             }
             .row-navigation button, .search-container button {
-                font-size: 18px;
-                padding: 12px 16px;
+                font-size: 1.2rem;
+                padding: 14px 18px; /* Riduzione del padding per i pulsanti */
             }
             .search-container input {
-                font-size: 18px;
+                font-size: 1.2rem; /* Riduzione della dimensione del font per l'input */
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Permute 2.0</h1>
         <div class="data-container" id="data-container">
             <!-- Dati delle colonne verranno inseriti qui -->
         </div>
@@ -166,6 +172,7 @@
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
+                dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
                 dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
