@@ -3,122 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permute - Visualizzatore Excel</title>
+    <title>Visualizzatore Excel - Permute</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #000; /* Sfondo completamente nero */
-            color: white;
-            text-align: center;
-            padding: 10px;
-            box-sizing: border-box;
-            overflow-y: auto;
+            background-color: #f4f4f4;
         }
-
         h1 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+            color: #333;
         }
-
-        .data-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        table {
+            border-collapse: collapse;
             width: 100%;
-            max-width: 360px;
-            padding: 10px;
-            background-color: #111; /* Sfondo dei dati scuro */
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            margin-bottom: 15px;
+            max-width: 600px;
+            margin: 20px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
         }
-
-        .data-item {
-            width: 100%;
-            padding: 15px 20px; /* Maggiore padding per una migliore leggibilità */
-            margin: 5px 0;
-            background-color: #222;
-            border-radius: 10px;
-            font-size: 1.2rem; /* Carattere ingrandito */
-            word-wrap: break-word;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
         }
-
+        th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: bold;
+        }
+        td {
+            color: #555;
+        }
         .controls {
-            margin-top: 20px;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            width: 100%;
-            max-width: 360px;
+            gap: 10px;
+            margin-top: 20px;
         }
-
-        .controls button, .controls input[type="number"] {
+        button, input[type="number"] {
             padding: 10px 15px;
-            font-size: 1rem;
-            border: 1px solid #555;
-            border-radius: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
             background-color: #007BFF;
             color: white;
-            cursor: pointer;
-            outline: none;
             transition: background-color 0.3s ease;
-            margin: 5px 0;
         }
-
-        .controls button:hover {
+        button:hover {
             background-color: #0056b3;
         }
-
-        .controls input[type="number"] {
-            background-color: #222;
-            color: white;
-            width: 80px;
+        input[type="number"] {
+            width: 100px;
             text-align: center;
-        }
-
-        @media (max-width: 400px) {
-            body {
-                padding: 5px;
-            }
-
-            .data-container {
-                max-width: 280px;
-            }
-
-            h1 {
-                font-size: 1rem;
-            }
-
-            .controls button, .controls input[type="number"] {
-                font-size: 0.9rem;
-                padding: 8px;
-            }
         }
     </style>
 </head>
 <body>
-    <h1>Permute</h1>
-    <div class="data-container" id="data-container">
-        <!-- Dati delle colonne verranno inseriti qui -->
-    </div>
+    <h1>Visualizzatore Excel - Permute</h1>
+    <table id="excel-table">
+        <thead>
+            <tr>
+                <!-- Intestazioni delle colonne -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dati delle righe -->
+        </tbody>
+    </table>
     <div class="controls">
-        <button id="prev-row">Precedente</button>
-        <button id="next-row">Successivo</button>
+        <button id="prev-row">Riga Precedente</button>
+        <button id="next-row">Riga Successiva</button>
         <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
-        <button id="search-row">Vai</button>
+        <button id="search-row">Vai alla riga</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
         let excelData = [];
-        let currentRow = 1;
+        let currentRow = 1; // Partiamo dalla seconda riga per visualizzare i dati
 
         document.addEventListener('DOMContentLoaded', loadExcel);
 
@@ -135,24 +106,31 @@
         }
 
         function displayRow(rowIndex) {
-            if (rowIndex < 1 || rowIndex >= excelData.length) return;
+            if (rowIndex < 1 || rowIndex >= excelData.length) return; // Evita l'intestazione
             currentRow = rowIndex;
             const row = excelData[rowIndex];
-            const dataContainer = document.getElementById('data-container');
-            dataContainer.innerHTML = '';
-            
-            // Visualizza il numero di riga
-            const rowNumber = document.createElement('div');
-            rowNumber.classList.add('data-item');
-            rowNumber.textContent = `Riga ${rowIndex}`;
-            dataContainer.appendChild(rowNumber);
+            const headers = excelData[0];
+            const tableHead = document.querySelector('#excel-table thead tr');
+            const tableBody = document.querySelector('#excel-table tbody');
 
-            row.slice(0, 5).forEach((cell, index) => {
-                const dataItem = document.createElement('div');
-                dataItem.classList.add('data-item');
-                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
-                dataContainer.appendChild(dataItem);
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (tableHead.children.length === 0) {
+                headers.slice(0, 5).forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    tableHead.appendChild(th);
+                });
+            }
+
+            const tr = document.createElement('tr');
+            row.slice(0, 5).forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
             });
+            tableBody.appendChild(tr);
         }
 
         document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
@@ -164,8 +142,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
-            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value);
+            if (!isNaN(rowIndex) && rowIndex > 0) {
                 displayRow(rowIndex);
             }
         }
