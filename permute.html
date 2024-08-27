@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzatore Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Visualizzatore Excel</h1>
+    <input type="file" id="file-input" accept=".xlsx, .xls" />
+    <table id="excel-table">
+        <thead>
+            <tr>
+                <!-- Titoli delle colonne saranno inseriti qui -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dati delle righe saranno inseriti qui -->
+        </tbody>
+    </table>
+    <div class="controls">
+        <button id="prev-row">Riga Precedente</button>
+        <button id="next-row">Riga Successiva</button>
+        <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+        <button id="search-row">Vai alla riga</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+    <script>
+        let excelData = [];
+        let currentRow = 0;
+
+        document.getElementById('file-input').addEventListener('change', handleFile, false);
+        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
+        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
+        document.getElementById('search-row').addEventListener('click', searchRow);
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                displayRow(0);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayRow(rowIndex) {
+            if (rowIndex < 0 || rowIndex >= excelData.length) return;
+            currentRow = rowIndex;
+            const row = excelData[rowIndex];
+            const tableHead = document.querySelector('#excel-table thead tr');
+            const tableBody = document.querySelector('#excel-table tbody');
+
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (rowIndex === 0) {
+                row.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    tableHead.appendChild(th);
+                });
+            } else {
+                const tr = document.createElement('tr');
+                row.slice(0, 5).forEach(cell => { // Mostra solo le prime 5 colonne
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            }
+        }
+
+        function navigateRow(offset) {
+            displayRow(currentRow + offset);
+        }
+
+        function searchRow() {
+            const rowIndex = parseInt(document.getElementById('row-search').value);
+            if (!isNaN(rowIndex)) {
+                displayRow(rowIndex);
+            }
+        }
+    </script>
+</body>
+</html>
