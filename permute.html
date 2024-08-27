@@ -21,34 +21,35 @@
             overflow-y: auto;
         }
 
-        h1 {
+        /* h1 {
             font-size: 1.2rem;
             margin-bottom: 10px;
-        }
+        } */
 
         .data-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start; /* Allinea a sinistra */
             justify-content: center;
             width: 100%;
             max-width: 360px;
-            padding: 10px;
-            background-color: #111; /* Sfondo dei dati scuro */
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            padding: 0; /* Rimuovi il padding */
+            background-color: transparent; /* Rimuovi lo sfondo scuro */
+            border-radius: 0; /* Rimuovi il bordo arrotondato */
+            box-shadow: none; /* Rimuovi l'ombra */
             margin-bottom: 15px;
         }
 
         .data-item {
             width: 100%;
-            padding: 15px 20px;
-            margin: 5px 0;
-            background-color: #222;
-            border-radius: 10px;
+            padding: 5px 0; /* Riduci il padding */
+            margin: 0; /* Rimuovi i margini */
+            background-color: transparent; /* Rimuovi lo sfondo */
+            border-radius: 0; /* Rimuovi il bordo arrotondato */
             font-size: 1.2rem;
             color: white; /* Carattere bianco */
             word-wrap: break-word;
+            border: none; /* Rimuovi eventuali bordi */
         }
 
         .controls {
@@ -123,7 +124,8 @@
     </style>
 </head>
 <body>
-    <h1>Permute</h1>
+    <!-- Rimuovi il titolo 
+    <h1>Permute</h1> -->
     <div class="data-container" id="data-container">
         <!-- Dati delle colonne verranno inseriti qui -->
     </div>
