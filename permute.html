@@ -7,118 +7,133 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #000;
-            color: white;
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             height: 100vh;
-            overflow: hidden;
-        }
-
-        #watch-face {
-            width: 100vmin;
-            height: 100vmin;
-            max-width: 300px;
-            max-height: 300px;
-            border-radius: 50%;
-            background-color: #111;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
+            margin: 0;
+            background-color: #000; /* Sfondo completamente nero */
+            color: white;
+            text-align: center;
             padding: 10px;
             box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
         h1 {
-            font-size: 1rem;
-            margin: 5px 0;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
         }
 
-        #data-container {
-            width: 100%;
-            flex-grow: 1;
+        .data-container {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            overflow-y: auto;
-            padding: 5px;
+            justify-content: center;
+            width: 100%;
+            max-width: 360px;
+            padding: 10px;
+            background-color: #111; /* Sfondo dei dati scuro */
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            margin-bottom: 15px;
         }
 
         .data-item {
-            width: 90%;
-            padding: 5px;
-            margin: 2px 0;
+            width: 100%;
+            padding: 15px 20px;
+            margin: 5px 0;
             background-color: #222;
-            border-radius: 5px;
-            font-size: 1rem; /* Ingrandito per migliore leggibilità */
+            border-radius: 10px;
+            font-size: 1.2rem;
+            color: white; /* Carattere bianco */
             word-wrap: break-word;
-            text-align: center;
         }
 
         .controls {
-            width: 100%;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            padding: 5px 0;
+            width: 100%;
+            max-width: 360px;
+            margin-top: 20px;
         }
 
-        .controls button {
+        .controls .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .controls button, .controls input[type="number"] {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 10px;
             background-color: #007BFF;
             color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px; /* Ingrandito per facile accesso */
-            height: 40px;
-            font-size: 1.2rem; /* Ingrandito per facile accesso */
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            outline: none;
+            transition: background-color 0.3s ease;
+            margin: 5px 0;
         }
 
-        #row-search {
-            width: 50px;
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+
+        .controls input[type="number"] {
             background-color: #222;
             color: white;
-            border: 1px solid #555;
-            border-radius: 5px;
-            padding: 2px;
-            font-size: 1rem;
+            width: 80px;
             text-align: center;
         }
 
-        #search-row {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px; /* Migliorata l'interazione su piccolo schermo */
-            font-size: 1rem; /* Ingrandito per migliore leggibilità */
-            cursor: pointer;
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .search-container input[type="number"] {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 400px) {
+            body {
+                padding: 5px;
+            }
+
+            .data-container {
+                max-width: 280px;
+            }
+
+            h1 {
+                font-size: 1rem;
+            }
+
+            .controls button, .controls input[type="number"] {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="watch-face">
-        <h1>Permute</h1>
-        <div id="data-container">
-            <!-- Dati delle colonne verranno inseriti qui -->
-        </div>
-        <div class="controls">
-            <button id="prev-row">◀</button>
-            <input type="number" id="row-search" placeholder="Riga" min="1" />
+    <h1>Permute</h1>
+    <div class="data-container" id="data-container">
+        <!-- Dati delle colonne verranno inseriti qui -->
+    </div>
+    <div class="controls">
+        <button id="prev-row">Precedente</button>
+        <div class="control-group">
+            <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
             <button id="search-row">Vai</button>
-            <button id="next-row">▶</button>
         </div>
+        <button id="next-row">Successivo</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
@@ -147,6 +162,7 @@
             const dataContainer = document.getElementById('data-container');
             dataContainer.innerHTML = '';
             
+            // Visualizza il numero di riga
             const rowNumber = document.createElement('div');
             rowNumber.classList.add('data-item');
             rowNumber.textContent = `Riga ${rowIndex}`;
@@ -155,7 +171,7 @@
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.textContent = excelData[0][index] + ": " + (cell || '');
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
         }
@@ -169,8 +185,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(rowIndex) && rowIndex >= 1 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
         }
