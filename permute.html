@@ -11,29 +11,26 @@
             padding: 10px;
             background-color: #000000;
             color: #ffffff;
-            font-size: 20px; /* Ingrandisci la dimensione del font */
-            text-align: center; /* Allinea il testo al centro */
+            font-size: 20px;
+            text-align: center;
         }
         .container {
             max-width: 100%;
             padding: 15px;
             box-sizing: border-box;
-            overflow: hidden; /* Evita il contenuto che esce dai bordi */
+            overflow: hidden;
         }
         .info-label {
-            font-size: 24px; /* Aumenta la dimensione del font per le etichette */
+            font-size: 24px;
             margin: 10px 0;
             word-wrap: break-word;
-            display: block; /* Assicura che gli elementi di testo si adattino bene */
+            display: block;
         }
-        .col-a, .col-b, .col-c, .col-d, .col-e {
-            font-weight: bold;
-        }
-        .col-a { color: #ff6666; } /* rosso chiaro */
-        .col-b { color: #d2a679; } /* marrone chiaro */
-        .col-c { color: #6699ff; } /* blu chiaro */
-        .col-d { color: #66ccff; } /* azzurro chiaro */
-        .col-e { color: #ffcc66; } /* giallo chiaro */
+        .col-a { color: #ff6666; }
+        .col-b { color: #d2a679; }
+        .col-c { color: #6699ff; }
+        .col-d { color: #66ccff; }
+        .col-e { color: #ffcc66; }
         .row-navigation {
             display: flex;
             flex-direction: column;
@@ -41,27 +38,27 @@
             margin-top: 20px;
         }
         .row-navigation input {
-            width: 80%; /* Imposta la larghezza relativa all'area visibile */
-            max-width: 100px; /* Imposta una larghezza massima */
+            width: 80%;
+            max-width: 100px;
             margin: 10px 0;
             padding: 12px;
             text-align: center;
             background-color: #000000;
             color: #ffffff;
             border: 1px solid #666666;
-            font-size: 20px; /* Ingrandisci la dimensione del font dell'input */
+            font-size: 20px;
         }
         .btn {
             background-color: #000000;
             color: #4CAF50;
             border: 1px solid #4CAF50;
-            border-radius: 8px; /* Aumenta il raggio del bordo */
-            padding: 14px 18px; /* Aumenta il padding per i pulsanti */
+            border-radius: 8px;
+            padding: 14px 18px;
             margin: 10px;
-            font-size: 20px; /* Ingrandisci la dimensione del font */
+            font-size: 20px;
             cursor: pointer;
-            width: 80%; /* Usa una larghezza relativa */
-            max-width: 240px; /* Imposta una larghezza massima */
+            width: 80%;
+            max-width: 240px;
         }
         .btn:hover {
             background-color: #4CAF50;
@@ -69,33 +66,37 @@
         }
         @media (max-width: 360px) {
             body {
-                font-size: 18px; /* Riduzione della dimensione del font */
+                font-size: 18px;
             }
             .info-label {
-                font-size: 20px; /* Riduzione della dimensione del font per le etichette */
+                font-size: 20px;
             }
             .btn {
                 font-size: 18px;
-                padding: 12px 16px; /* Riduzione del padding per i pulsanti */
+                padding: 12px 16px;
             }
             .row-navigation input {
-                font-size: 18px; /* Riduzione della dimensione del font per l'input */
+                font-size: 18px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="info-label"><strong>{{ headers[0] }}:</strong> <span class="col-a">{{ row_data.col_a }}</span></div>
-        <div class="info-label"><strong>{{ headers[1] }}:</strong> <span class="col-b">{{ row_data.col_b }}</span></div>
-        <div class="info-label"><strong>{{ headers[2] }}:</strong> <span class="col-c">{{ row_data.col_c }}</span></div>
-        <div class="info-label"><strong>{{ headers[3] }}:</strong> <span class="col-d">{{ row_data.col_d }}</span></div>
-        <div class="info-label"><strong>{{ headers[4] }}:</strong> <span class="col-e">{{ row_data.col_e }}</span></div>
-        <div class="info-label"><strong>Numero Progressivo:</strong> {{ row_data.index + 1 }}</div>
+        {% if row_data %}
+            <div class="info-label"><strong>{{ headers.0 }}:</strong> <span class="col-a">{{ row_data.col_a }}</span></div>
+            <div class="info-label"><strong>{{ headers.1 }}:</strong> <span class="col-b">{{ row_data.col_b }}</span></div>
+            <div class="info-label"><strong>{{ headers.2 }}:</strong> <span class="col-c">{{ row_data.col_c }}</span></div>
+            <div class="info-label"><strong>{{ headers.3 }}:</strong> <span class="col-d">{{ row_data.col_d }}</span></div>
+            <div class="info-label"><strong>{{ headers.4 }}:</strong> <span class="col-e">{{ row_data.col_e }}</span></div>
+            <div class="info-label"><strong>Numero Progressivo:</strong> {{ row_data.index|add:1 }}</div>
+        {% else %}
+            <p>No data available</p>
+        {% endif %}
         <div class="row-navigation">
-            <button class="btn" onclick="navigateRow('next')">Successivo</button>
             <button class="btn" onclick="navigateRow('prev')">Precedente</button>
-            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index + 1 }}" onchange="goToRow()">
+            <button class="btn" onclick="navigateRow('next')">Successivo</button>
+            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index|add:1 }}" onchange="goToRow()">
         </div>
     </div>
     <script>
