@@ -53,6 +53,7 @@
         }
 
         .controls {
+            margin-top: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -60,12 +61,15 @@
             max-width: 360px;
         }
 
-        .control-row {
+        .controls .control-row {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 360px;
-            margin-top: 10px;
+        }
+
+        .controls .control-row .btn-container {
+            display: flex;
+            gap: 10px; /* Spazio tra i pulsanti */
         }
 
         .controls button, .controls input[type="number"] {
@@ -78,7 +82,6 @@
             cursor: pointer;
             outline: none;
             transition: background-color 0.3s ease;
-            margin: 5px;
         }
 
         .controls button:hover {
@@ -110,9 +113,13 @@
                 padding: 8px;
             }
 
-            .control-row {
+            .controls .control-row {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: center;
+            }
+
+            .controls .control-row .btn-container {
+                flex-direction: column;
             }
         }
     </style>
@@ -124,12 +131,16 @@
     </div>
     <div class="controls">
         <div class="control-row">
-            <button id="prev-row">Precedente</button>
-            <button id="next-row">Successivo</button>
+            <div class="btn-container">
+                <button id="prev-row">Precedente</button>
+                <button id="next-row">Successivo</button>
+            </div>
         </div>
         <div class="control-row">
-            <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
-            <button id="search-row">Vai</button>
+            <div class="btn-container">
+                <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+                <button id="search-row">Vai</button>
+            </div>
         </div>
     </div>
 
@@ -168,7 +179,7 @@
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.textContent = (cell || ''); // Solo il dato
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
         }
@@ -182,7 +193,7 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            const rowIndex = parseInt(document.getElementById('row-search').value);
             if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
