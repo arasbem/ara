@@ -86,20 +86,16 @@
 </head>
 <body>
     <div class="container">
-        {% if row_data %}
-            <div class="info-label"><strong>{{ headers[0] }}:</strong> <span class="col-a">{{ row_data.col_a }}</span></div>
-            <div class="info-label"><strong>{{ headers[1] }}:</strong> <span class="col-b">{{ row_data.col_b }}</span></div>
-            <div class="info-label"><strong>{{ headers[2] }}:</strong> <span class="col-c">{{ row_data.col_c }}</span></div>
-            <div class="info-label"><strong>{{ headers[3] }}:</strong> <span class="col-d">{{ row_data.col_d }}</span></div>
-            <div class="info-label"><strong>{{ headers[4] }}:</strong> <span class="col-e">{{ row_data.col_e }}</span></div> <!-- Aggiunta della colonna E -->
-            <div class="info-label"><strong>Numero Progressivo:</strong> {{ row_data.index + 1 }}</div>
-        {% else %}
-            <p>No data available</p>
-        {% endif %}
+        <div class="info-label"><strong>{{ headers[0] }}:</strong> <span class="col-a">{{ row_data.col_a }}</span></div>
+        <div class="info-label"><strong>{{ headers[1] }}:</strong> <span class="col-b">{{ row_data.col_b }}</span></div>
+        <div class="info-label"><strong>{{ headers[2] }}:</strong> <span class="col-c">{{ row_data.col_c }}</span></div>
+        <div class="info-label"><strong>{{ headers[3] }}:</strong> <span class="col-d">{{ row_data.col_d }}</span></div>
+        <div class="info-label"><strong>{{ headers[4] }}:</strong> <span class="col-e">{{ row_data.col_e }}</span></div>
+        <div class="info-label"><strong>Numero Progressivo:</strong> {{ row_data.index + 1 }}</div>
         <div class="row-navigation">
             <button class="btn" onclick="navigateRow('next')">Successivo</button>
             <button class="btn" onclick="navigateRow('prev')">Precedente</button>
-            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index + 1 if row_data else 1 }}" onchange="goToRow()">
+            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index + 1 }}" onchange="goToRow()">
         </div>
     </div>
     <script>
