@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizzatore Excel</title>
+    <title>Visualizzatore Excel - Permute</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,35 +13,70 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
         }
         table {
             border-collapse: collapse;
             width: 100%;
             max-width: 600px;
-        }
-        table, th, td {
-            border: 1px solid black;
+            margin: 20px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
         }
         th, td {
-            padding: 8px;
+            border: 1px solid #ddd;
+            padding: 12px;
             text-align: left;
         }
+        th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: bold;
+        }
+        td {
+            color: #555;
+        }
         .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
             margin-top: 20px;
+        }
+        button, input[type="number"] {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="number"] {
+            width: 100px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <h1>Visualizzatore Excel</h1>
-    <input type="file" id="file-input" accept=".xlsx, .xls" />
+    <h1>Visualizzatore Excel - Permute</h1>
     <table id="excel-table">
         <thead>
             <tr>
-                <!-- Titoli delle colonne saranno inseriti qui -->
+                <!-- Intestazioni delle colonne -->
             </tr>
         </thead>
         <tbody>
-            <!-- Dati delle righe saranno inseriti qui -->
+            <!-- Dati delle righe -->
         </tbody>
     </table>
     <div class="controls">
@@ -54,53 +89,53 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
         let excelData = [];
-        let currentRow = 0;
+        let currentRow = 1; // Partiamo dalla seconda riga per visualizzare i dati
 
-        document.getElementById('file-input').addEventListener('change', handleFile, false);
-        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
-        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
-        document.getElementById('search-row').addEventListener('click', searchRow);
+        document.addEventListener('DOMContentLoaded', loadExcel);
 
-        function handleFile(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const data = new Uint8Array(event.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                displayRow(0);
-            };
-            reader.readAsArrayBuffer(file);
+        function loadExcel() {
+            fetch('permute.xlsx')
+                .then(response => response.arrayBuffer())
+                .then(data => {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    displayRow(currentRow);
+                });
         }
 
         function displayRow(rowIndex) {
-            if (rowIndex < 0 || rowIndex >= excelData.length) return;
+            if (rowIndex < 1 || rowIndex >= excelData.length) return; // Evita l'intestazione
             currentRow = rowIndex;
             const row = excelData[rowIndex];
+            const headers = excelData[0];
             const tableHead = document.querySelector('#excel-table thead tr');
             const tableBody = document.querySelector('#excel-table tbody');
 
             tableHead.innerHTML = '';
             tableBody.innerHTML = '';
 
-            if (rowIndex === 0) {
-                row.forEach(header => {
+            if (tableHead.children.length === 0) {
+                headers.slice(0, 5).forEach(header => {
                     const th = document.createElement('th');
                     th.textContent = header;
                     tableHead.appendChild(th);
                 });
-            } else {
-                const tr = document.createElement('tr');
-                row.slice(0, 5).forEach(cell => { // Mostra solo le prime 5 colonne
-                    const td = document.createElement('td');
-                    td.textContent = cell;
-                    tr.appendChild(td);
-                });
-                tableBody.appendChild(tr);
             }
+
+            const tr = document.createElement('tr');
+            row.slice(0, 5).forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+            });
+            tableBody.appendChild(tr);
         }
+
+        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
+        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
+        document.getElementById('search-row').addEventListener('click', searchRow);
 
         function navigateRow(offset) {
             displayRow(currentRow + offset);
@@ -108,7 +143,7 @@
 
         function searchRow() {
             const rowIndex = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(rowIndex)) {
+            if (!isNaN(rowIndex) && rowIndex > 0) {
                 displayRow(rowIndex);
             }
         }
