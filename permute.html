@@ -1,1 +1,175 @@
 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permute - Visualizzatore Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-color: #000; /* Sfondo completamente nero */
+            color: white;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .data-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 360px;
+            padding: 10px;
+            background-color: #111; /* Sfondo dei dati scuro */
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            margin-bottom: 15px;
+        }
+
+        .data-item {
+            width: 100%;
+            padding: 15px 20px; /* Maggiore padding per una migliore leggibilità */
+            margin: 5px 0;
+            background-color: #222;
+            border-radius: 10px;
+            font-size: 1.2rem; /* Carattere ingrandito */
+            word-wrap: break-word;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .controls button, .controls input[type="number"] {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.3s ease;
+            margin: 5px 0;
+        }
+
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+
+        .controls input[type="number"] {
+            background-color: #222;
+            color: white;
+            width: 80px;
+            text-align: center;
+        }
+
+        @media (max-width: 400px) {
+            body {
+                padding: 5px;
+            }
+
+            .data-container {
+                max-width: 280px;
+            }
+
+            h1 {
+                font-size: 1rem;
+            }
+
+            .controls button, .controls input[type="number"] {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Permute</h1>
+    <div class="data-container" id="data-container">
+        <!-- Dati delle colonne verranno inseriti qui -->
+    </div>
+    <div class="controls">
+        <button id="prev-row">Precedente</button>
+        <button id="next-row">Successivo</button>
+        <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+        <button id="search-row">Vai</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+    <script>
+        let excelData = [];
+        let currentRow = 1;
+
+        document.addEventListener('DOMContentLoaded', loadExcel);
+
+        function loadExcel() {
+            fetch('permute.xlsx')
+                .then(response => response.arrayBuffer())
+                .then(data => {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    displayRow(currentRow);
+                });
+        }
+
+        function displayRow(rowIndex) {
+            if (rowIndex < 1 || rowIndex >= excelData.length) return;
+            currentRow = rowIndex;
+            const row = excelData[rowIndex];
+            const dataContainer = document.getElementById('data-container');
+            dataContainer.innerHTML = '';
+            
+            // Visualizza il numero di riga
+            const rowNumber = document.createElement('div');
+            rowNumber.classList.add('data-item');
+            rowNumber.textContent = `Riga ${rowIndex}`;
+            dataContainer.appendChild(rowNumber);
+
+            row.slice(0, 5).forEach((cell, index) => {
+                const dataItem = document.createElement('div');
+                dataItem.classList.add('data-item');
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
+                dataContainer.appendChild(dataItem);
+            });
+        }
+
+        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
+        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
+        document.getElementById('search-row').addEventListener('click', searchRow);
+
+        function navigateRow(offset) {
+            displayRow(currentRow + offset);
+        }
+
+        function searchRow() {
+            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
+                displayRow(rowIndex);
+            }
+        }
+    </script>
+</body>
+</html>
