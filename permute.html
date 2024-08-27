@@ -135,6 +135,9 @@
             <button id="prev-row">Precedente</button>
             <button id="next-row">Successivo</button>
         </div>
+        <div class="row-number" id="row-number">
+            <!-- Numero della riga verrà inserito qui -->
+        </div>
         <div class="search-container">
             <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
             <button id="search-row">Vai</button>
@@ -168,10 +171,8 @@
             dataContainer.innerHTML = '';
             
             // Visualizza il numero di riga
-            const rowNumber = document.createElement('div');
-            rowNumber.classList.add('data-item');
+            const rowNumber = document.getElementById('row-number');
             rowNumber.textContent = `Riga ${rowIndex}`;
-            dataContainer.appendChild(rowNumber);
 
             // Assicurati che il numero di colonne sia consistente con l'intestazione
             const headers = excelData[0]; // Intestazioni delle colonne
