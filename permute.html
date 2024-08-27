@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizzatore Excel - Permute</title>
+    <title>Permute - Visualizzatore Excel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,68 +13,99 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #ffffff;
-            padding: 10px;
-            box-sizing: border-box;
-            color: #333;
-        }
-        h1 {
-            font-size: 20px;
-            margin-bottom: 15px;
+            background-color: #222;
+            color: white;
             text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .data-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
         .data-item {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f7f7f7;
-            text-align: center;
-            font-size: 16px;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background-color: #444;
+            border-radius: 10px;
+            font-size: 1rem;
+            word-wrap: break-word;
         }
+
         .controls {
+            margin-top: 15px;
             display: flex;
             justify-content: space-around;
             width: 100%;
-            margin-top: 20px;
         }
+
         button, input[type="number"] {
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
+            padding: 8px 10px;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 10px;
             background-color: #007BFF;
             color: white;
+            cursor: pointer;
+            outline: none;
             transition: background-color 0.3s ease;
-            flex: 1;
-            margin: 0 5px;
-            text-align: center;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         input[type="number"] {
-            background-color: #fff;
-            color: #333;
+            background-color: #444;
+            color: white;
             width: 60px;
-            padding: 10px;
+            text-align: center;
+        }
+
+        /* Ottimizzazione per schermi circolari */
+        @media (max-width: 400px) {
+            body {
+                padding: 10px;
+            }
+
+            .data-container {
+                max-width: 280px;
+            }
+
+            h1 {
+                font-size: 1rem;
+            }
+
+            button, input[type="number"] {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Visualizzatore Permute</h1>
-    <div id="data-container">
-        <!-- I dati verranno visualizzati qui -->
+    <h1>Permute</h1>
+    <div class="data-container" id="data-container">
+        <!-- Dati delle colonne verranno inseriti qui -->
     </div>
     <div class="controls">
         <button id="prev-row">Precedente</button>
         <button id="next-row">Successivo</button>
-    </div>
-    <div class="controls">
-        <input type="number" id="row-search" placeholder="Riga" min="1" />
-        <button id="search-row">Vai</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
@@ -100,32 +131,22 @@
             if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
             const row = excelData[rowIndex];
-            const headers = excelData[0];
             const dataContainer = document.getElementById('data-container');
-
             dataContainer.innerHTML = '';
 
-            headers.slice(0, 5).forEach((header, index) => {
+            row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
-                dataItem.className = 'data-item';
-                dataItem.textContent = `${header}: ${row[index] || ''}`;
+                dataItem.classList.add('data-item');
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
         }
 
         document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
         document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
-        document.getElementById('search-row').addEventListener('click', searchRow);
 
         function navigateRow(offset) {
             displayRow(currentRow + offset);
-        }
-
-        function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(rowIndex) && rowIndex > 0) {
-                displayRow(rowIndex);
-            }
         }
     </script>
 </body>
