@@ -170,7 +170,7 @@
             // Visualizza il numero di riga
             const rowNumber = document.createElement('div');
             rowNumber.classList.add('data-item');
-            rowNumber.textContent = `Riga ${rowIndex}`;
+            rowNumber.textContent = `Riga ${rowIndex + 1}`; // Mostra l'indice corretto
             dataContainer.appendChild(rowNumber);
 
             row.slice(0, 5).forEach((cell, index) => {
@@ -194,8 +194,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
-            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value) - 1; // Modificato per ottenere l'indice corretto
+            if (!isNaN(rowIndex) && rowIndex >= 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
         }
