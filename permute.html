@@ -3,78 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PERMUTE 2.0 - Risultato Ricerca</title>
+    <title>PERMUTE 2.0</title>
     <style>
         body {
-            font-family: Helvetica, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 10px;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 20px;
+            text-align: center;
         }
         .container {
-            width: 80%;
-            max-width: 600px;
-            border: 2px solid #ccc;
-            border-radius: 50%;
-            padding: 20px;
-            background-color: white;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .row-navigation {
-            margin-top: 20px;
-        }
-        .row-navigation input, .row-navigation button {
-            margin: 5px;
+            max-width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: hidden;
         }
         .info-label {
-            font-size: 20px;
+            font-size: 24px;
             margin: 10px 0;
+            word-wrap: break-word;
+            display: block;
         }
-        .info-label.rete {
-            color: brown;
+        .col-a, .col-b, .col-c, .col-d, .col-e {
+            font-weight: bold;
         }
-        .info-label.adsl {
-            color: blue;
+        .col-a { color: #ff6666; } /* rosso chiaro */
+        .col-b { color: #d2a679; } /* marrone chiaro */
+        .col-c { color: #6699ff; } /* blu chiaro */
+        .col-d { color: #66ccff; } /* azzurro chiaro */
+        .col-e { color: #99cc66; } /* verde chiaro */ /* Nuovo colore per la colonna E */
+        .row-navigation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
         }
-        .search-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+        .row-navigation input {
+            width: 80%;
+            max-width: 100px;
+            margin: 10px 0;
+            padding: 12px;
+            text-align: center;
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #666666;
+            font-size: 20px;
+        }
+        .btn {
+            background-color: #000000;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 10px;
+            font-size: 20px;
             cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
+            width: 80%;
+            max-width: 240px;
         }
-        .search-button:hover {
-            background-color: #45a049;
+        .btn:hover {
+            background-color: #4CAF50;
+            color: #000000;
+        }
+        @media (max-width: 360px) {
+            body {
+                font-size: 18px;
+            }
+            .info-label {
+                font-size: 20px;
+            }
+            .btn {
+                font-size: 18px;
+                padding: 12px 16px;
+            }
+            .row-navigation input {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         {% if row_data %}
-            <div class="info-label">{{ headers[0] }}: {{ row_data.col_a }}</div>
-            <div class="info-label">{{ headers[1] }}: {{ row_data.col_b }}</div>
-            <div class="info-label">{{ headers[2] }}: {{ row_data.col_c }}</div>
-            <div class="info-label">{{ headers[3] }}: {{ row_data.col_d }}</div>
-            <div class="info-label">{{ headers[4] }}: {{ row_data.col_e }}</div> <!-- Aggiunta della colonna E -->
-            <div class="info-label">Numero Progressivo: {{ row_data.index }}</div>
+            <div class="info-label"><strong>{{ headers[0] }}:</strong> <span class="col-a">{{ row_data.col_a }}</span></div>
+            <div class="info-label"><strong>{{ headers[1] }}:</strong> <span class="col-b">{{ row_data.col_b }}</span></div>
+            <div class="info-label"><strong>{{ headers[2] }}:</strong> <span class="col-c">{{ row_data.col_c }}</span></div>
+            <div class="info-label"><strong>{{ headers[3] }}:</strong> <span class="col-d">{{ row_data.col_d }}</span></div>
+            <div class="info-label"><strong>{{ headers[4] }}:</strong> <span class="col-e">{{ row_data.col_e }}</span></div> <!-- Nuova colonna E -->
+            <div class="info-label"><strong>Numero Progressivo:</strong> {{ row_data.index + 1 }}</div>
         {% else %}
             <p>No data available</p>
         {% endif %}
         <div class="row-navigation">
-            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index }}" onchange="goToRow()">
-            <button onclick="navigateRow('prev')">Riga Precedente</button>
-            <button onclick="navigateRow('next')">Prossima Riga</button>
+            <button class="btn" onclick="navigateRow('next')">Successivo</button>
+            <button class="btn" onclick="navigateRow('prev')">Precedente</button>
+            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index + 1 if row_data else 1 }}" onchange="goToRow()">
         </div>
     </div>
-
     <script>
         function navigateRow(direction) {
             let row = parseInt(document.getElementById('row_number').value);
@@ -83,12 +110,12 @@
             } else if (direction === 'next' && row < {{ total_rows }}) {
                 row++;
             }
-            window.location.href = '/?row=' + row;
+            goToRow(row);
         }
 
-        function goToRow() {
-            let row = document.getElementById('row_number').value;
-            window.location.href = '/?row=' + row;
+        function goToRow(row) {
+            row = row || document.getElementById('row_number').value;
+            window.location.href = '/?row=' + (parseInt(row) - 1);
         }
     </script>
 </body>
