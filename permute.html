@@ -13,12 +13,12 @@
             justify-content: flex-start;
             height: 100vh;
             margin: 0;
-            background-color: #222;
+            background-color: #000; /* Sfondo completamente nero */
             color: white;
             text-align: center;
             padding: 10px;
             box-sizing: border-box;
-            overflow-y: auto; /* Permette lo scroll verticale */
+            overflow-y: auto;
         }
 
         h1 {
@@ -32,9 +32,9 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 300px;
+            max-width: 360px;
             padding: 10px;
-            background-color: #333;
+            background-color: #111; /* Sfondo dei dati scuro */
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
             margin-bottom: 15px;
@@ -42,23 +42,33 @@
 
         .data-item {
             width: 100%;
-            padding: 10px 15px;
+            padding: 15px 20px;
             margin: 5px 0;
-            background-color: #444;
+            background-color: #222;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 1.2rem;
+            color: white; /* Carattere bianco */
             word-wrap: break-word;
         }
 
         .controls {
-            margin-top: 10px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 360px;
+            margin-top: 20px;
+        }
+
+        .controls .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
         }
 
-        button, input[type="number"] {
-            padding: 8px 10px;
+        .controls button, .controls input[type="number"] {
+            padding: 10px 15px;
             font-size: 1rem;
             border: 1px solid #555;
             border-radius: 10px;
@@ -67,16 +77,17 @@
             cursor: pointer;
             outline: none;
             transition: background-color 0.3s ease;
+            margin: 5px 0;
         }
 
-        button:hover {
+        .controls button:hover {
             background-color: #0056b3;
         }
 
-        input[type="number"] {
-            background-color: #444;
+        .controls input[type="number"] {
+            background-color: #222;
             color: white;
-            width: 60px;
+            width: 80px;
             text-align: center;
         }
 
@@ -85,13 +96,10 @@
             justify-content: center;
             align-items: center;
             margin-top: 15px;
-            width: 100%;
-            max-width: 300px;
         }
 
-        .search-container input {
+        .search-container input[type="number"] {
             margin-right: 5px;
-            flex: 1;
         }
 
         @media (max-width: 400px) {
@@ -107,18 +115,9 @@
                 font-size: 1rem;
             }
 
-            button, input[type="number"] {
+            .controls button, .controls input[type="number"] {
                 font-size: 0.9rem;
-            }
-
-            .search-container {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .search-container input {
-                margin: 0 0 5px 0;
-                width: 100%;
+                padding: 8px;
             }
         }
     </style>
@@ -130,11 +129,11 @@
     </div>
     <div class="controls">
         <button id="prev-row">Precedente</button>
+        <div class="control-group">
+            <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+            <button id="search-row">Vai</button>
+        </div>
         <button id="next-row">Successivo</button>
-    </div>
-    <div class="search-container">
-        <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
-        <button id="search-row">Vai</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
@@ -162,6 +161,12 @@
             const row = excelData[rowIndex];
             const dataContainer = document.getElementById('data-container');
             dataContainer.innerHTML = '';
+            
+            // Visualizza il numero di riga
+            const rowNumber = document.createElement('div');
+            rowNumber.classList.add('data-item');
+            rowNumber.textContent = `Riga ${rowIndex}`;
+            dataContainer.appendChild(rowNumber);
 
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
@@ -180,8 +185,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
         }
