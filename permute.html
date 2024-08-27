@@ -38,12 +38,16 @@
             width: 100%;
             padding: 15px;
             margin: 5px 0;
-            background-color: #222;
             border-radius: 8px;
             font-size: 1.5rem; /* Ingrandimento del carattere dei dati */
             word-wrap: break-word;
             box-sizing: border-box;
         }
+        .col-a { color: #ffffff; } /* Bianco */
+        .col-b { color: #8B4000; } /* Marrone rosso */
+        .col-c { color: #D2B48C; } /* Marrone chiaro */
+        .col-d { color: #8B0000; } /* Rosso scuro */
+        .col-e { color: #008000; } /* Verde */
         .row-navigation {
             display: flex;
             justify-content: space-between;
@@ -82,7 +86,7 @@
             background-color: #000000;
             color: #ffffff;
             border: 1px solid #666666;
-            font-size: 1.5rem; /* Ingrandimento della dimensione del font dell'input */
+            font-size: 1.2rem; /* Riduzione della dimensione del font dell'input */
         }
         .search-container button {
             background-color: #000000;
@@ -165,7 +169,8 @@
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
+                dataItem.classList.add(`col-${String.fromCharCode(97 + index)}`); // Aggiunge la classe per il colore
+                dataItem.textContent = (excelData[0][index] || '') + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
         }
