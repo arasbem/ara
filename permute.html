@@ -43,11 +43,21 @@
             word-wrap: break-word;
             box-sizing: border-box;
         }
-        .col-a { color: #ffffff; } /* Bianco */
-        .col-b { color: #8B4000; } /* Marrone rosso */
-        .col-c { color: #D2B48C; } /* Marrone chiaro */
-        .col-d { color: #8B0000; } /* Rosso scuro */
-        .col-e { color: #008000; } /* Verde */
+        .col-a {
+            color: #ffffff; /* Testo bianco per la colonna A */
+        }
+        .col-b {
+            color: #a52a2a; /* Marrone rosso per la colonna B */
+        }
+        .col-c {
+            color: #d2b48c; /* Marrone chiaro per la colonna C */
+        }
+        .col-d {
+            color: #8b0000; /* Rosso scuro per la colonna D */
+        }
+        .col-e {
+            color: #008000; /* Verde per la colonna E */
+        }
         .row-navigation {
             display: flex;
             justify-content: space-between;
@@ -86,7 +96,8 @@
             background-color: #000000;
             color: #ffffff;
             border: 1px solid #666666;
-            font-size: 1.2rem; /* Riduzione della dimensione del font dell'input */
+            font-size: 1.5rem; /* Ingrandimento della dimensione del font dell'input */
+            max-width: 50%; /* Riduzione della larghezza dell'input */
         }
         .search-container button {
             background-color: #000000;
@@ -169,7 +180,13 @@
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.classList.add(`col-${String.fromCharCode(97 + index)}`); // Aggiunge la classe per il colore
+                switch (index) {
+                    case 0: dataItem.classList.add('col-a'); break;
+                    case 1: dataItem.classList.add('col-b'); break;
+                    case 2: dataItem.classList.add('col-c'); break;
+                    case 3: dataItem.classList.add('col-d'); break;
+                    case 4: dataItem.classList.add('col-e'); break;
+                }
                 dataItem.textContent = (excelData[0][index] || '') + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
