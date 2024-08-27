@@ -3,79 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Viewer - Smartwatch</title>
+    <title>Visualizzatore Excel - Permute</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #000;
-            color: #fff;
+            margin: 0;
+            background-color: #f4f4f4;
         }
-        .watch-face {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background-color: #000;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        h1 {
+            color: #333;
         }
-        .content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            text-align: center;
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
         }
-        .cell-value {
-            font-size: 16px;
-            margin-bottom: 10px;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
         }
-        .cell-info {
-            font-size: 12px;
-            opacity: 0.7;
+        th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: bold;
+        }
+        td {
+            color: #555;
         }
         .controls {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            right: 0;
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button, input[type="number"] {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
         }
         button {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 20px;
-            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="number"] {
+            width: 100px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="watch-face">
-        <div class="content">
-            <div class="cell-value" id="cellValue"></div>
-            <div class="cell-info" id="cellInfo"></div>
-        </div>
-        <div class="controls">
-            <button id="prevBtn">&#8592;</button>
-            <button id="nextBtn">&#8594;</button>
-        </div>
+    <h1>Visualizzatore Excel - Permute</h1>
+    <table id="excel-table">
+        <thead>
+            <tr>
+                <!-- Intestazioni delle colonne -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dati delle righe -->
+        </tbody>
+    </table>
+    <div class="controls">
+        <button id="prev-row">Riga Precedente</button>
+        <button id="next-row">Riga Successiva</button>
+        <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+        <button id="search-row">Vai alla riga</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
         let excelData = [];
-        let currentRow = 1;
-        let currentCol = 0;
+        let currentRow = 1; // Partiamo dalla seconda riga per visualizzare i dati
 
         document.addEventListener('DOMContentLoaded', loadExcel);
 
@@ -87,56 +101,51 @@
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                    displayCell();
+                    displayRow(currentRow);
                 });
         }
 
-        function displayCell() {
+        function displayRow(rowIndex) {
+            if (rowIndex < 1 || rowIndex >= excelData.length) return; // Evita l'intestazione
+            currentRow = rowIndex;
+            const row = excelData[rowIndex];
             const headers = excelData[0];
-            const row = excelData[currentRow];
-            const cellValue = document.getElementById('cellValue');
-            const cellInfo = document.getElementById('cellInfo');
+            const tableHead = document.querySelector('#excel-table thead tr');
+            const tableBody = document.querySelector('#excel-table tbody');
 
-            if (row && row[currentCol] !== undefined) {
-                cellValue.textContent = row[currentCol];
-                cellInfo.textContent = `${headers[currentCol]} (R${currentRow + 1}, C${currentCol + 1})`;
-            } else {
-                cellValue.textContent = 'N/A';
-                cellInfo.textContent = 'Dato non disponibile';
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (tableHead.children.length === 0) {
+                headers.slice(0, 5).forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    tableHead.appendChild(th);
+                });
             }
+
+            const tr = document.createElement('tr');
+            row.slice(0, 5).forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+            });
+            tableBody.appendChild(tr);
         }
 
-        document.getElementById('prevBtn').addEventListener('click', () => navigate(-1));
-        document.getElementById('nextBtn').addEventListener('click', () => navigate(1));
+        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
+        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
+        document.getElementById('search-row').addEventListener('click', searchRow);
 
-        function navigate(direction) {
-            currentCol += direction;
-            if (currentCol < 0) {
-                currentCol = excelData[0].length - 1;
-                currentRow = (currentRow - 1 + excelData.length) % excelData.length;
-            } else if (currentCol >= excelData[0].length) {
-                currentCol = 0;
-                currentRow = (currentRow + 1) % excelData.length;
-            }
-            displayCell();
+        function navigateRow(offset) {
+            displayRow(currentRow + offset);
         }
 
-        // Aggiunge il supporto per lo swipe
-        let touchstartX = 0;
-        let touchendX = 0;
-        
-        document.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-        });
-
-        document.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            if (touchendX < touchstartX) navigate(1);
-            if (touchendX > touchstartX) navigate(-1);
+        function searchRow() {
+            const rowIndex = parseInt(document.getElementById('row-search').value);
+            if (!isNaN(rowIndex) && rowIndex > 0) {
+                displayRow(rowIndex);
+            }
         }
     </script>
 </body>
