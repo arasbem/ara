@@ -177,7 +177,7 @@
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
                 dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
-                dataItem.textContent = (cell || ''); // Mostra solo il dato senza l'intestazione
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
 
@@ -194,8 +194,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
-            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
         }
