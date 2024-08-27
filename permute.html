@@ -38,25 +38,11 @@
             width: 100%;
             padding: 15px;
             margin: 5px 0;
+            background-color: #222;
             border-radius: 8px;
             font-size: 1.5rem; /* Ingrandimento del carattere dei dati */
             word-wrap: break-word;
             box-sizing: border-box;
-        }
-        .col-a {
-            color: #ffffff; /* Testo bianco per la colonna A */
-        }
-        .col-b {
-            color: #a52a2a; /* Marrone rosso per la colonna B */
-        }
-        .col-c {
-            color: #d2b48c; /* Marrone chiaro per la colonna C */
-        }
-        .col-d {
-            color: #8b0000; /* Rosso scuro per la colonna D */
-        }
-        .col-e {
-            color: #008000; /* Verde per la colonna E */
         }
         .row-navigation {
             display: flex;
@@ -97,7 +83,6 @@
             color: #ffffff;
             border: 1px solid #666666;
             font-size: 1.5rem; /* Ingrandimento della dimensione del font dell'input */
-            max-width: 50%; /* Riduzione della larghezza dell'input */
         }
         .search-container button {
             background-color: #000000;
@@ -180,14 +165,7 @@
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                switch (index) {
-                    case 0: dataItem.classList.add('col-a'); break;
-                    case 1: dataItem.classList.add('col-b'); break;
-                    case 2: dataItem.classList.add('col-c'); break;
-                    case 3: dataItem.classList.add('col-d'); break;
-                    case 4: dataItem.classList.add('col-e'); break;
-                }
-                dataItem.textContent = (excelData[0][index] || '') + ": " + (cell || ''); // Intestazione + Dato
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
                 dataContainer.appendChild(dataItem);
             });
         }
