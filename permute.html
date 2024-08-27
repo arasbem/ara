@@ -173,11 +173,14 @@
             rowNumber.textContent = `Riga ${rowIndex}`;
             dataContainer.appendChild(rowNumber);
 
-            row.slice(0, 5).forEach((cell, index) => {
+            // Assicurati che il numero di colonne sia consistente con l'intestazione
+            const headers = excelData[0]; // Intestazioni delle colonne
+            headers.forEach((header, index) => {
+                const cellData = row[index] !== undefined ? row[index] : '-';
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
                 dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
-                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
+                dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
                 dataContainer.appendChild(dataItem);
             });
 
@@ -194,8 +197,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
-            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
+            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
         }
