@@ -13,7 +13,7 @@
             justify-content: flex-start;
             height: 100vh;
             margin: 0;
-            background-color: #222;
+            background-color: #000; /* Sfondo completamente nero */
             color: white;
             text-align: center;
             padding: 10px;
@@ -32,9 +32,9 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 360px; /* Maggiore larghezza per adattarsi meglio allo schermo */
+            max-width: 360px;
             padding: 10px;
-            background-color: #333;
+            background-color: #111; /* Sfondo dei dati scuro */
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
             margin-bottom: 15px;
@@ -42,11 +42,11 @@
 
         .data-item {
             width: 100%;
-            padding: 10px 15px;
+            padding: 15px 20px; /* Maggiore padding per una migliore leggibilità */
             margin: 5px 0;
-            background-color: #444;
+            background-color: #222;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 1.2rem; /* Carattere ingrandito */
             word-wrap: break-word;
         }
 
@@ -77,7 +77,7 @@
         }
 
         .controls input[type="number"] {
-            background-color: #444;
+            background-color: #222;
             color: white;
             width: 80px;
             text-align: center;
@@ -140,6 +140,12 @@
             const row = excelData[rowIndex];
             const dataContainer = document.getElementById('data-container');
             dataContainer.innerHTML = '';
+            
+            // Visualizza il numero di riga
+            const rowNumber = document.createElement('div');
+            rowNumber.classList.add('data-item');
+            rowNumber.textContent = `Riga ${rowIndex}`;
+            dataContainer.appendChild(rowNumber);
 
             row.slice(0, 5).forEach((cell, index) => {
                 const dataItem = document.createElement('div');
@@ -158,8 +164,8 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
+            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
         }
