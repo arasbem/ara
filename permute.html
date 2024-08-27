@@ -1,121 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PERMUTE 2.0</title>
+    <title>Permute - Visualizzatore Excel</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: #000000;
-            color: #ffffff;
-            font-size: 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-        .info-label {
-            font-size: 24px;
-            margin: 10px 0;
-            word-wrap: break-word;
-            display: block;
-        }
-        .col-a, .col-b, .col-c, .col-d, .col-e {
-            font-weight: bold;
-        }
-        .col-a { color: #ff6666; } /* rosso chiaro */
-        .col-b { color: #d2a679; } /* marrone chiaro */
-        .col-c { color: #6699ff; } /* blu chiaro */
-        .col-d { color: #66ccff; } /* azzurro chiaro */
-        .col-e { color: #99cc66; } /* verde chiaro */ /* Nuovo colore per la colonna E */
-        .row-navigation {
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-color: #000; /* Sfondo completamente nero */
+            color: white;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .data-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 360px;
+            padding: 10px;
+            background-color: #111; /* Sfondo dei dati scuro */
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            margin-bottom: 15px;
+        }
+
+        .data-item {
+            width: 100%;
+            padding: 15px 20px;
+            margin: 5px 0;
+            background-color: #222;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            color: white; /* Carattere bianco */
+            word-wrap: break-word;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 360px;
             margin-top: 20px;
         }
-        .row-navigation input {
-            width: 80%;
-            max-width: 100px;
-            margin: 10px 0;
-            padding: 12px;
-            text-align: center;
-            background-color: #000000;
-            color: #ffffff;
-            border: 1px solid #666666;
-            font-size: 20px;
+
+        .controls .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
         }
-        .btn {
-            background-color: #000000;
-            color: #4CAF50;
-            border: 1px solid #4CAF50;
-            border-radius: 8px;
-            padding: 14px 18px;
-            margin: 10px;
-            font-size: 20px;
+
+        .controls button, .controls input[type="number"] {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background-color: #007BFF;
+            color: white;
             cursor: pointer;
-            width: 80%;
-            max-width: 240px;
+            outline: none;
+            transition: background-color 0.3s ease;
+            margin: 5px 0;
         }
-        .btn:hover {
-            background-color: #4CAF50;
-            color: #000000;
+
+        .controls button:hover {
+            background-color: #0056b3;
         }
-        @media (max-width: 360px) {
+
+        .controls input[type="number"] {
+            background-color: #222;
+            color: white;
+            width: 80px;
+            text-align: center;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .search-container input[type="number"] {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 400px) {
             body {
-                font-size: 18px;
+                padding: 5px;
             }
-            .info-label {
-                font-size: 20px;
+
+            .data-container {
+                max-width: 280px;
             }
-            .btn {
-                font-size: 18px;
-                padding: 12px 16px;
+
+            h1 {
+                font-size: 1rem;
             }
-            .row-navigation input {
-                font-size: 18px;
+
+            .controls button, .controls input[type="number"] {
+                font-size: 0.9rem;
+                padding: 8px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        {% if row_data %}
-            <div class="info-label"><strong>{{ headers[0] }}:</strong> <span class="col-a">{{ row_data.col_a }}</span></div>
-            <div class="info-label"><strong>{{ headers[1] }}:</strong> <span class="col-b">{{ row_data.col_b }}</span></div>
-            <div class="info-label"><strong>{{ headers[2] }}:</strong> <span class="col-c">{{ row_data.col_c }}</span></div>
-            <div class="info-label"><strong>{{ headers[3] }}:</strong> <span class="col-d">{{ row_data.col_d }}</span></div>
-            <div class="info-label"><strong>{{ headers[4] }}:</strong> <span class="col-e">{{ row_data.col_e }}</span></div> <!-- Nuova colonna E -->
-            <div class="info-label"><strong>Numero Progressivo:</strong> {{ row_data.index + 1 }}</div>
-        {% else %}
-            <p>No data available</p>
-        {% endif %}
-        <div class="row-navigation">
-            <button class="btn" onclick="navigateRow('next')">Successivo</button>
-            <button class="btn" onclick="navigateRow('prev')">Precedente</button>
-            <input type="number" id="row_number" min="1" max="{{ total_rows }}" value="{{ row_data.index + 1 if row_data else 1 }}" onchange="goToRow()">
-        </div>
+    <h1>Permute</h1>
+    <div class="data-container" id="data-container">
+        <!-- Dati delle colonne verranno inseriti qui -->
     </div>
+    <div class="controls">
+        <button id="prev-row">Precedente</button>
+        <div class="control-group">
+            <input type="number" id="row-search" placeholder="Cerca riga" min="1" />
+            <button id="search-row">Vai</button>
+        </div>
+        <button id="next-row">Successivo</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
-        function navigateRow(direction) {
-            let row = parseInt(document.getElementById('row_number').value);
-            if (direction === 'prev' && row > 1) {
-                row--;
-            } else if (direction === 'next' && row < {{ total_rows }}) {
-                row++;
-            }
-            goToRow(row);
+        let excelData = [];
+        let currentRow = 1;
+
+        document.addEventListener('DOMContentLoaded', loadExcel);
+
+        function loadExcel() {
+            fetch('permute.xlsx')
+                .then(response => response.arrayBuffer())
+                .then(data => {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    displayRow(currentRow);
+                });
         }
 
-        function goToRow(row) {
-            row = row || document.getElementById('row_number').value;
-            window.location.href = '/?row=' + (parseInt(row) - 1);
+        function displayRow(rowIndex) {
+            if (rowIndex < 1 || rowIndex >= excelData.length) return;
+            currentRow = rowIndex;
+            const row = excelData[rowIndex];
+            const dataContainer = document.getElementById('data-container');
+            dataContainer.innerHTML = '';
+            
+            // Visualizza il numero di riga
+            const rowNumber = document.createElement('div');
+            rowNumber.classList.add('data-item');
+            rowNumber.textContent = `Riga ${rowIndex}`;
+            dataContainer.appendChild(rowNumber);
+
+            row.slice(0, 5).forEach((cell, index) => {
+                const dataItem = document.createElement('div');
+                dataItem.classList.add('data-item');
+                dataItem.textContent = excelData[0][index] + ": " + (cell || ''); // Intestazione + Dato
+                dataContainer.appendChild(dataItem);
+            });
+        }
+
+        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
+        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
+        document.getElementById('search-row').addEventListener('click', searchRow);
+
+        function navigateRow(offset) {
+            displayRow(currentRow + offset);
+        }
+
+        function searchRow() {
+            const rowIndex = parseInt(document.getElementById('row-search').value) + 1; // Considera l'intestazione
+            if (!isNaN(rowIndex) && rowIndex > 1 && rowIndex < excelData.length) {
+                displayRow(rowIndex);
+            }
         }
     </script>
 </body>
