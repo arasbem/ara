@@ -48,7 +48,9 @@
             background-color: #1c1c1c; /* Sfondo dei dati grigio scuro */
             border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
             font-size: 2rem; /* Ingrandimento del carattere dei dati */
-            word-wrap: break-word;
+            white-space: nowrap; /* Impedisce il ritorno a capo del testo */
+            overflow: hidden; /* Nasconde il testo che eccede */
+            text-overflow: ellipsis; /* Aggiunge i puntini di sospensione se il testo è troppo lungo */
             box-sizing: border-box;
             color: #ffffff; /* Colore del testo dei dati */
             border-bottom: 1px solid #ffffff; /* Riga sottile orizzontale bianca */
@@ -143,9 +145,6 @@
             }
             .data-item {
                 font-size: 1.5rem; /* Riduzione della dimensione del font dei dati */
-            }
-            .row-number {
-                font-size: 1.5rem; /* Riduzione della dimensione del font del numero di riga */
             }
             .row-navigation button, .search-container button {
                 font-size: 1.2rem;
