@@ -207,8 +207,18 @@
             
             // Assicurati che il numero di colonne sia consistente con l'intestazione
             const headers = excelData[0]; // Intestazioni delle colonne
+            
+            // Inverti i campi come richiesto
+            const reorderedRow = [
+                row[2], // terzo campo diventa primo
+                row[0], // primo campo diventa secondo
+                row[1], // secondo campo diventa terzo
+                ...row.slice(3) // gli altri campi restano invariati
+            ];
+            
+            // Assicurati che il numero di colonne sia consistente con l'intestazione
             headers.forEach((header, index) => {
-                const cellData = row[index] !== undefined ? row[index] : '-';
+                const cellData = reorderedRow[index] !== undefined ? reorderedRow[index] : '-';
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
                 dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
