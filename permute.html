@@ -17,7 +17,7 @@
         }
         .container {
             max-width: 100%;
-            padding: 15px;
+            padding: 10px; /* Ridotto il padding per un aspetto più compatto */
             box-sizing: border-box;
             overflow: hidden; /* Evita il contenuto che esce dai bordi */
             transition: transform 0.3s ease; /* Transizione per animazioni */
@@ -28,11 +28,11 @@
             align-items: center;
             width: 100%;
             max-width: 360px;
-            padding: 15px;
+            padding: 10px; /* Ridotto il padding per un aspetto più compatto */
             background-color: #1c1c1c; /* Grigio scuro per un contrasto più morbido */
-            border-radius: 20px; /* Aumenta il raggio per bordi più arrotondati */
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Ombra più marcata */
-            margin-bottom: 20px; /* Aumenta lo spazio tra i contenitori */
+            border-radius: 15px; /* Ridotto il raggio per bordi meno arrotondati */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); /* Ombra più leggera */
+            margin-bottom: 10px; /* Ridotto lo spazio tra i contenitori */
             text-align: left;
             transition: background-color 0.3s ease; /* Transizione per cambio colore di sfondo */
         }
@@ -43,10 +43,10 @@
         }
         .data-item {
             width: 100%;
-            padding: 20px; /* Aumenta il padding per un aspetto più spazioso */
-            margin: 8px 0; /* Maggiore spazio tra gli elementi */
+            padding: 15px; /* Ridotto il padding per un aspetto più compatto */
+            margin: 5px 0; /* Ridotto lo spazio tra gli elementi */
             background-color: #1c1c1c; /* Sfondo dei dati grigio scuro */
-            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
+            border-radius: 10px; /* Ridotto il raggio per bordi meno arrotondati */
             font-size: 1.5rem; /* Ridotto il carattere dei dati */
             word-wrap: break-word;
             box-sizing: border-box;
@@ -64,12 +64,12 @@
         .data-item.col-e { color: #66cc66; } /* Verde per colonna E */
 
         .row-number {
-            padding: 20px;
+            padding: 15px; /* Ridotto il padding per un aspetto più compatto */
             font-size: 1.5rem; /* Ridotto il carattere del numero di riga */
             background-color: #1c1c1c;
-            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
+            border-radius: 10px; /* Ridotto il raggio per bordi meno arrotondati */
             color: #ffffff; /* Colore del testo del numero di riga */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Ombra per il numero di riga */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Ombra più leggera per il numero di riga */
         }
 
         .row-navigation {
@@ -77,17 +77,17 @@
             justify-content: space-between;
             width: 100%;
             max-width: 360px;
-            margin-top: 30px; /* Aumenta lo spazio sopra la navigazione */
+            margin-top: 20px; /* Ridotto lo spazio sopra la navigazione */
             transition: transform 0.3s ease; /* Transizione per animazioni */
         }
         .row-navigation button {
             background-color: #000000;
             color: #4CAF50;
             border: 2px solid #4CAF50; /* Aumenta lo spessore del bordo */
-            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
-            padding: 18px 24px; /* Aumenta il padding per un aspetto più grande */
-            margin: 10px;
-            font-size: 1.5rem; /* Ingrandimento della dimensione del font dei pulsanti */
+            border-radius: 10px; /* Ridotto il raggio per bordi meno arrotondati */
+            padding: 12px 18px; /* Ridotto il padding per un aspetto più compatto */
+            margin: 5px;
+            font-size: 1.4rem; /* Ridotto il carattere dei pulsanti */
             cursor: pointer;
             width: 45%;
             transition: background-color 0.3s ease, color 0.3s ease; /* Transizione per cambiamenti di colore */
@@ -103,18 +103,18 @@
             justify-content: center;
             width: 100%;
             max-width: 360px;
-            margin-top: 20px; /* Aumenta lo spazio sopra il contenitore di ricerca */
+            margin-top: 15px; /* Ridotto lo spazio sopra il contenitore di ricerca */
         }
         .search-container input {
             flex: 1;
-            margin-right: 10px; /* Aumenta lo spazio tra input e pulsante */
-            padding: 14px; /* Aumenta il padding per l'input */
+            margin-right: 5px; /* Ridotto lo spazio tra input e pulsante */
+            padding: 12px; /* Ridotto il padding per l'input */
             text-align: center;
             background-color: #1c1c1c; /* Sfondo grigio scuro per l'input */
             color: #ffffff;
             border: 2px solid #666666; /* Aumenta lo spessore del bordo */
-            font-size: 1.2rem; /* Ridotto rispetto alla dimensione del font precedente */
-            max-width: 130px; /* Aumenta la larghezza massima dell'input */
+            font-size: 1.2rem; /* Ridotto il carattere per l'input */
+            max-width: 120px; /* Ridotto la larghezza massima dell'input */
             transition: background-color 0.3s ease, border-color 0.3s ease; /* Transizione per cambiamenti di colore */
         }
         .search-container input:focus {
@@ -125,11 +125,11 @@
             background-color: #000000;
             color: #4CAF50;
             border: 2px solid #4CAF50; /* Aumenta lo spessore del bordo */
-            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
-            padding: 18px 24px; /* Aumenta il padding per il pulsante */
-            font-size: 1.5rem; /* Ingrandimento della dimensione del font del pulsante */
+            border-radius: 10px; /* Ridotto il raggio per bordi meno arrotondati */
+            padding: 12px 18px; /* Ridotto il padding per il pulsante */
+            font-size: 1.4rem; /* Ridotto il carattere del pulsante */
             cursor: pointer;
-            width: 130px; /* Aumenta la larghezza del pulsante */
+            width: 120px; /* Ridotto la larghezza del pulsante */
             transition: background-color 0.3s ease, color 0.3s ease; /* Transizione per cambiamenti di colore */
         }
         .search-container button:hover {
@@ -149,7 +149,7 @@
             }
             .row-navigation button, .search-container button {
                 font-size: 1.2rem;
-                padding: 14px 18px; /* Riduzione del padding per i pulsanti */
+                padding: 12px 16px; /* Riduzione del padding per i pulsanti */
             }
             .search-container input {
                 font-size: 1.2rem; /* Riduzione della dimensione del font per l'input */
