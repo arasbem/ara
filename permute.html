@@ -13,12 +13,14 @@
             color: #ffffff;
             font-size: 22px; /* Dimensione del font */
             text-align: center; /* Allinea il testo al centro */
+            transition: background-color 0.3s ease; /* Transizione per cambio colore di sfondo */
         }
         .container {
             max-width: 100%;
             padding: 15px;
             box-sizing: border-box;
             overflow: hidden; /* Evita il contenuto che esce dai bordi */
+            transition: transform 0.3s ease; /* Transizione per animazioni */
         }
         .data-container {
             display: flex;
@@ -27,24 +29,26 @@
             justify-content: center;
             width: 100%;
             max-width: 360px;
-            padding: 10px;
-            background-color: #000000; /* Sfondo completamente nero */
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #1c1c1c; /* Grigio scuro per un contrasto più morbido */
+            border-radius: 20px; /* Aumenta il raggio per bordi più arrotondati */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Ombra più marcata */
+            margin-bottom: 20px; /* Aumenta lo spazio tra i contenitori */
             text-align: left;
+            transition: background-color 0.3s ease; /* Transizione per cambio colore di sfondo */
         }
         .data-item {
             width: 100%;
-            padding: 15px;
-            margin: 5px 0;
-            background-color: #000000; /* Sfondo dei dati completamente nero */
-            border-radius: 8px;
+            padding: 20px; /* Aumenta il padding per un aspetto più spazioso */
+            margin: 8px 0; /* Maggiore spazio tra gli elementi */
+            background-color: #1c1c1c; /* Sfondo dei dati grigio scuro */
+            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
             font-size: 1.5rem; /* Ingrandimento del carattere dei dati */
             word-wrap: break-word;
             box-sizing: border-box;
             color: #ffffff; /* Colore del testo dei dati */
             border-bottom: 1px solid #ffffff; /* Riga sottile orizzontale bianca */
+            transition: background-color 0.3s ease; /* Transizione per cambio colore di sfondo */
         }
         .data-item:last-child {
             border-bottom: none; /* Rimuovi la riga per l'ultimo elemento */
@@ -59,22 +63,25 @@
             justify-content: space-between;
             width: 100%;
             max-width: 360px;
-            margin-top: 20px;
+            margin-top: 30px; /* Aumenta lo spazio sopra la navigazione */
+            transition: transform 0.3s ease; /* Transizione per animazioni */
         }
         .row-navigation button {
             background-color: #000000;
             color: #4CAF50;
-            border: 1px solid #4CAF50;
-            border-radius: 8px;
-            padding: 16px 20px;
+            border: 2px solid #4CAF50; /* Aumenta lo spessore del bordo */
+            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
+            padding: 18px 24px; /* Aumenta il padding per un aspetto più grande */
             margin: 10px;
             font-size: 1.5rem; /* Ingrandimento della dimensione del font dei pulsanti */
             cursor: pointer;
-            width: 40%;
+            width: 45%;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Transizione per cambiamenti di colore */
         }
         .row-navigation button:hover {
             background-color: #4CAF50;
             color: #000000;
+            transform: scale(1.05); /* Effetto di ingrandimento al passaggio del mouse */
         }
         .search-container {
             display: flex;
@@ -82,32 +89,39 @@
             justify-content: center;
             width: 100%;
             max-width: 360px;
-            margin-top: 15px;
+            margin-top: 20px; /* Aumenta lo spazio sopra il contenitore di ricerca */
         }
         .search-container input {
             flex: 1;
-            margin-right: 5px;
-            padding: 12px; /* Ridotto rispetto al padding precedente */
+            margin-right: 10px; /* Aumenta lo spazio tra input e pulsante */
+            padding: 14px; /* Aumenta il padding per l'input */
             text-align: center;
-            background-color: #000000;
+            background-color: #1c1c1c; /* Sfondo grigio scuro per l'input */
             color: #ffffff;
-            border: 1px solid #666666;
+            border: 2px solid #666666; /* Aumenta lo spessore del bordo */
             font-size: 1.2rem; /* Ridotto rispetto alla dimensione del font precedente */
-            max-width: 100px; /* Ridotto a metà rispetto alla dimensione originale */
+            max-width: 130px; /* Aumenta la larghezza massima dell'input */
+            transition: background-color 0.3s ease, border-color 0.3s ease; /* Transizione per cambiamenti di colore */
+        }
+        .search-container input:focus {
+            background-color: #333333; /* Colore più chiaro al focus */
+            border-color: #4CAF50; /* Colore del bordo al focus */
         }
         .search-container button {
             background-color: #000000;
             color: #4CAF50;
-            border: 1px solid #4CAF50;
-            border-radius: 8px;
-            padding: 16px 20px;
+            border: 2px solid #4CAF50; /* Aumenta lo spessore del bordo */
+            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
+            padding: 18px 24px; /* Aumenta il padding per il pulsante */
             font-size: 1.5rem; /* Ingrandimento della dimensione del font del pulsante */
             cursor: pointer;
-            width: 100px;
+            width: 130px; /* Aumenta la larghezza del pulsante */
+            transition: background-color 0.3s ease, color 0.3s ease; /* Transizione per cambiamenti di colore */
         }
         .search-container button:hover {
             background-color: #4CAF50;
             color: #000000;
+            transform: scale(1.05); /* Effetto di ingrandimento al passaggio del mouse */
         }
         @media (max-width: 360px) {
             body {
