@@ -26,7 +26,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             width: 100%;
             max-width: 360px;
             padding: 15px;
@@ -36,6 +35,11 @@
             margin-bottom: 20px; /* Aumenta lo spazio tra i contenitori */
             text-align: left;
             transition: background-color 0.3s ease; /* Transizione per cambio colore di sfondo */
+        }
+        .data-items {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
         }
         .data-item {
             width: 100%;
@@ -57,6 +61,15 @@
         .data-item.col-c { color: #d2a679; } /* Marrone chiaro per colonna C */
         .data-item.col-d { color: #66ccff; } /* Azzurro per colonna D */
         .data-item.col-e { color: #66cc66; } /* Verde per colonna E */
+
+        .row-number {
+            padding: 20px;
+            font-size: 1.5rem; /* Dimensione del font per il numero di riga */
+            background-color: #1c1c1c;
+            border-radius: 12px; /* Aumenta il raggio per bordi più arrotondati */
+            color: #ffffff; /* Colore del testo del numero di riga */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Ombra per il numero di riga */
+        }
 
         .row-navigation {
             display: flex;
@@ -143,7 +156,12 @@
 <body>
     <div class="container">
         <div class="data-container" id="data-container">
-            <!-- Dati delle colonne verranno inseriti qui -->
+            <div class="data-items" id="data-items">
+                <!-- I dati delle colonne verranno inseriti qui -->
+            </div>
+            <div class="row-number" id="row-number">
+                <!-- Numero della riga verrà inserito qui -->
+            </div>
         </div>
         <div class="row-navigation">
             <button id="prev-row">Precedente</button>
@@ -178,15 +196,11 @@
             if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
             const row = excelData[rowIndex];
-            const dataContainer = document.getElementById('data-container');
-            dataContainer.innerHTML = '';
-            
-            // Visualizza il numero di riga
-            const rowNumber = document.createElement('div');
-            rowNumber.classList.add('data-item');
+            const dataItems = document.getElementById('data-items');
+            const rowNumber = document.getElementById('row-number');
+            dataItems.innerHTML = '';
             rowNumber.textContent = `Riga ${rowIndex}`;
-            dataContainer.appendChild(rowNumber);
-
+            
             // Assicurati che il numero di colonne sia consistente con l'intestazione
             const headers = excelData[0]; // Intestazioni delle colonne
             headers.forEach((header, index) => {
@@ -195,7 +209,7 @@
                 dataItem.classList.add('data-item');
                 dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
                 dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
-                dataContainer.appendChild(dataItem);
+                dataItems.appendChild(dataItem);
             });
 
             // Scrolla verso l'alto dopo aver visualizzato la riga
