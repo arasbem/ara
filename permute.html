@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permute 2.0</title>
     <style>
-        /* Manteniamo lo stile esistente */
+        /* Il tuo stile esistente rimane invariato */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -164,7 +164,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
         let excelData = [];
-        let currentRowIndex = 0;
+        let currentRowIndex = 1;
+        let rowNumberMap = {};
 
         document.addEventListener('DOMContentLoaded', loadExcel);
         document.getElementById('row-search').addEventListener('input', searchRow);
@@ -177,40 +178,51 @@
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    
+                    // Crea una mappa di riga basata sui valori della colonna A
+                    for (let i = 1; i < excelData.length; i++) {
+                        const rowNumber = excelData[i][0];
+                        rowNumberMap[rowNumber] = i;
+                    }
 
-                    displayRowByIndex(0);
+                    displayRowByNumber(excelData[1][0]);
                 });
         }
 
-        function displayRowByIndex(index) {
-            if (index < 0 || index >= excelData.length) return;
-            currentRowIndex = index;
-            const row = excelData[index];
-            const dataItems = document.getElementById('data-items');
-            dataItems.innerHTML = '';
+        function displayRowByNumber(rowNumber) {
+            const rowIndex = rowNumberMap[rowNumber];
+            displayRow(rowIndex);
+        }
 
-            // Manteniamo l'ordine originale: colonna B, colonna C, colonna D, colonna E
-            const columnOrder = [1, 2, 3, 4];
-            columnOrder.forEach(i => {
-                const header = excelData[0][i]; 
-                const cellData = row[i] !== undefined ? row[i] : '-';
+        function displayRow(rowIndex) {
+            if (rowIndex < 1 || rowIndex >= excelData.length) return;
+            currentRowIndex = rowIndex;
+            const row = excelData[rowIndex];
+            const dataItems = document.getElementById('data-items');
+            const rowNumber = document.getElementById('row-number');
+            dataItems.innerHTML = '';
+            rowNumber.textContent = `Riga ${row[0]}`; // Mostra il numero dalla nuova colonna A
+            
+            // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
+            const columnOrder = [2, 0, 1, 3]; // Gli indici delle colonne in base all'ordine richiesto
+            columnOrder.forEach(index => {
+                const header = excelData[0][index + 1]; // Intestazione delle colonne (shiftata di uno per la nuova colonna A)
+                const cellData = row[index + 1] !== undefined ? row[index + 1] : '-';
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.classList.add(`col-${String.fromCharCode(98 + i)}`);
-                dataItem.textContent = `${header}: ${cellData}`;
+                dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
+                dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
                 dataItems.appendChild(dataItem);
             });
 
+            // Scrolla verso l'alto dopo aver visualizzato la riga
             window.scrollTo(0, 0);
         }
 
         function searchRow() {
-            const searchValue = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(searchValue)) {
-                const foundIndex = excelData.findIndex(row => row[0] === searchValue);
-                if (foundIndex !== -1) {
-                    displayRowByIndex(foundIndex);
-                }
+            const rowNumber = parseInt(document.getElementById('row-search').value);
+            if (!isNaN(rowNumber) && rowNumber in rowNumberMap) {
+                displayRowByNumber(rowNumber);
             }
         }
 
@@ -218,8 +230,5 @@
         document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
 
         function navigateRow(offset) {
-            displayRowByIndex(currentRowIndex + offset);
-        }
-    </script>
-</body>
-</html>
+            const currentRowNumber = excelData[currentRowIndex][0];
+            const targetRowNumber = currentRowNumber
