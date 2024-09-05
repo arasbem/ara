@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permute 2.0</title>
     <style>
-        /* Stile aggiornato */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 10px;
-            background-color: #000000; /* Sfondo completamente nero */
-            color: #ffffff; /* Testo bianco per contrastare lo sfondo nero */
+            background-color: #000000; /* Sfondo nero */
+            color: #ffffff;
             font-size: 22px;
             text-align: center;
             transition: background-color 0.3s ease;
         }
+
         .container {
             max-width: 100%;
             padding: 10px;
@@ -23,6 +23,7 @@
             overflow: hidden;
             transition: transform 0.3s ease;
         }
+
         .data-container {
             display: flex;
             flex-direction: column;
@@ -30,33 +31,38 @@
             width: 100%;
             max-width: 360px;
             padding: 10px;
-            background-color: #000000; /* Sfondo completamente nero per il contenitore dei dati */
+            background-color: #1c1c1c;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
             margin-bottom: 10px;
             text-align: left;
             transition: background-color 0.3s ease;
         }
+
         .data-items {
             display: flex;
             flex-direction: column;
             width: 100%;
         }
+
         .data-item {
             width: 100%;
             padding: 15px;
             margin: 5px 0;
-            background-color: #333333; /* Sfondo leggermente grigio scuro per i dati */
+            background-color: #333333; /* Sfondo scuro per i dati */
             border-radius: 10px;
             font-size: 1.4rem;
-            color: #ffffff; /* Testo bianco per i dati */
-            border-bottom: 1px solid #ffffff; /* Bordi bianchi per migliorare la visibilità */
+            color: #e0e0e0; /* Testo più chiaro */
+            border-bottom: 1px solid #666666; /* Bordi meno evidenti */
             text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Leggera ombra per migliorare la leggibilità */
             transition: background-color 0.3s ease;
         }
+
         .data-item:last-child {
             border-bottom: none;
         }
+
         .data-item.col-b { color: #ff6666; }
         .data-item.col-c { color: #d2a679; }
         .data-item.col-d { color: #66ccff; }
@@ -65,9 +71,9 @@
         .row-number {
             padding: 15px;
             font-size: 1.5rem;
-            background-color: #333333; /* Sfondo grigio scuro per il numero della riga */
+            background-color: #333333; /* Sfondo scuro per il numero della riga */
             border-radius: 10px;
-            color: #ffffff; /* Testo bianco per il numero della riga */
+            color: #e0e0e0; /* Testo più chiaro */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
         }
 
@@ -77,11 +83,11 @@
             width: 100%;
             max-width: 360px;
             margin-top: 20px;
-            transition: transform 0.3s ease;
         }
+
         .row-navigation button {
-            background-color: #000000;
-            color: #4CAF50;
+            background-color: #1c1c1c; /* Sfondo scuro per i bottoni */
+            color: #ffffff; /* Testo chiaro */
             border: 2px solid #4CAF50;
             border-radius: 10px;
             padding: 12px 18px;
@@ -91,11 +97,13 @@
             width: 45%;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
+
         .row-navigation button:hover {
-            background-color: #4CAF50;
-            color: #000000;
+            background-color: #4CAF50; /* Colore di sfondo del bottone al passaggio del mouse */
+            color: #000000; /* Testo scuro per contrastare il colore di sfondo */
             transform: scale(1.05);
         }
+
         .search-container {
             display: flex;
             align-items: center;
@@ -104,22 +112,25 @@
             max-width: 360px;
             margin-top: 15px;
         }
+
         .search-container input {
             flex: 1;
             margin-right: 5px;
             padding: 12px;
             text-align: center;
-            background-color: #333333; /* Sfondo grigio scuro per il campo di ricerca */
-            color: #ffffff; /* Testo bianco per il campo di ricerca */
-            border: 2px solid #666666; /* Bordo grigio chiaro per il campo di ricerca */
+            background-color: #1c1c1c;
+            color: #ffffff;
+            border: 2px solid #666666;
             font-size: 1.2rem;
             max-width: 120px;
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
+
         .search-container input:focus {
-            background-color: #444444; /* Sfondo più chiaro quando il campo di ricerca è attivo */
-            border-color: #4CAF50; /* Colore del bordo quando il campo di ricerca è attivo */
+            background-color: #333333;
+            border-color: #4CAF50;
         }
+
         @media (max-width: 360px) {
             body {
                 font-size: 20px;
@@ -219,4 +230,9 @@
 
         function searchRow() {
             const rowNumber = parseInt(document.getElementById('row-search').value);
-            if (!isNaN(rowNumber) && rowNumber in
+            if (!isNaN(rowNumber) && rowNumber in rowNumberMap) {
+                displayRowByNumber(rowNumber);
+            }
+        }
+
+        document.getElementById('prev-row').addEventListener('click', () => navigate
