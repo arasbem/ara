@@ -181,43 +181,4 @@
         }
 
         function displayRow(rowIndex) {
-            if (rowIndex < 1 || rowIndex >= excelData.length) return;
-            currentRow = rowIndex;
-            const row = excelData[rowIndex];
-            const dataItems = document.getElementById('data-items');
-            const rowNumber = document.getElementById('row-number');
-            dataItems.innerHTML = '';
-            rowNumber.textContent = `Riga ${rowIndex}`;
-            
-            // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
-            const columnOrder = [2, 0, 1, 3]; // Gli indici delle colonne in base all'ordine richiesto
-            columnOrder.forEach(index => {
-                const header = excelData[0][index]; // Intestazione delle colonne
-                const cellData = row[index] !== undefined ? row[index] : '-';
-                const dataItem = document.createElement('div');
-                dataItem.classList.add('data-item');
-                dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); // col-b, col-c, col-d, ecc.
-                dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
-                dataItems.appendChild(dataItem);
-            });
-
-            // Scrolla verso l'alto dopo aver visualizzato la riga
-            window.scrollTo(0, 0);
-        }
-
-        function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
-            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
-                displayRow(rowIndex);
-            }
-        }
-
-        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
-        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
-
-        function navigateRow(offset) {
-            displayRow(currentRow + offset);
-        }
-    </script>
-</body>
-</html>
+            if (
