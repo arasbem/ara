@@ -187,12 +187,10 @@
             currentRowIndex = index;
             const row = excelData[index];
             const dataItems = document.getElementById('data-items');
-            const rowNumber = document.getElementById('row-number');
             dataItems.innerHTML = '';
-            rowNumber.textContent = `Riga ${row[0]}`; // Mostra il valore della colonna "A" come numero di riga
 
-            // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
-            const columnOrder = [2, 0, 1, 3];
+            // Manteniamo l'ordine originale: colonna B, colonna C, colonna D, colonna E
+            const columnOrder = [1, 2, 3, 4];
             columnOrder.forEach(i => {
                 const header = excelData[0][i]; 
                 const cellData = row[i] !== undefined ? row[i] : '-';
