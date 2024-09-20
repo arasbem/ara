@@ -12,14 +12,16 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
   body {
-    font-family: 'Roboto', sans-serif;
     background-color: #000;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 2.5vw;
+    text-align: center;
   }
   #container {
     width: 100vw;
@@ -29,27 +31,47 @@
     border-radius: 50%;
     overflow: hidden;
     position: relative;
-    background-color: #222;
+    background-color: #1c1c1c;
   }
   #data-display {
     position: absolute;
-    top: 55%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 70%;
-    text-align: center;
-    font-size: 3vw;
-    max-height: 50%;
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     overflow-y: auto;
   }
+  .data-item {
+    width: 100%;
+    padding: 2vw;
+    margin: 1vw 0;
+    background-color: #2c2c2c;
+    border-radius: 2vw;
+    font-size: 2.5vw;
+    word-wrap: break-word;
+    text-align: center;
+    border-bottom: 0.2vw solid #ffffff;
+  }
+  .data-item:last-child {
+    border-bottom: none;
+  }
+  .data-item.col-b { color: #ff6666; }
+  .data-item.col-c { color: #d2a679; }
+  .data-item.col-d { color: #66ccff; }
+  .data-item.col-e { color: #66cc66; }
   .nav-button {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background-color: rgba(76, 175, 80, 0.7);
-    border: none;
-    color: white;
-    padding: 4vw 2vw;
+    background-color: #000000;
+    border: 0.4vw solid #4CAF50;
+    color: #4CAF50;
+    padding: 2vw 1vw;
     text-align: center;
     text-decoration: none;
     font-size: 5vw;
@@ -59,6 +81,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  }
+  .nav-button:hover {
+    background-color: #4CAF50;
+    color: #000000;
+    transform: translateY(-50%) scale(1.05);
   }
   #prev-button {
     left: 0;
@@ -80,19 +108,24 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(76, 175, 80, 0.7);
+    background-color: #1c1c1c;
     border-top-left-radius: 15vw;
     border-top-right-radius: 15vw;
   }
   #search-input {
     width: 20vw;
     padding: 1vw;
-    font-size: 3vw;
+    font-size: 2.5vw;
     border-radius: 5vw;
-    border: none;
+    border: 0.4vw solid #666666;
     text-align: center;
-    background-color: rgba(255, 255, 255, 0.8);
-    color: #000;
+    background-color: #1c1c1c;
+    color: #ffffff;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  #search-input:focus {
+    background-color: #333333;
+    border-color: #4CAF50;
   }
   #row-number {
     position: absolute;
@@ -104,10 +137,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(76, 175, 80, 0.7);
+    background-color: #1c1c1c;
     border-bottom-left-radius: 15vw;
     border-bottom-right-radius: 15vw;
-    font-size: 4vw;
+    font-size: 3vw;
     font-weight: bold;
   }
 </style>
@@ -119,92 +152,64 @@
     <button id="prev-button" class="nav-button">&lt;</button>
     <button id="next-button" class="nav-button">&gt;</button>
     <div id="search-container">
-      <input type="number" id="search-input" placeholder="Riga #">
+      <input type="number" id="search-input" placeholder="Cerca riga" min="1">
     </div>
   </div>
 
   <script>
-    let workbook;
-    let currentSheet;
+    let excelData = [];
     let currentRow = 1;
 
-    // Funzione per caricare il file XLSX
-    async function loadXLSX() {
+    async function loadExcel() {
       try {
         const response = await fetch('permute.xlsx');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const arrayBuffer = await response.arrayBuffer();
-        workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        currentSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         displayRow(currentRow);
       } catch (error) {
         console.error("Errore nel caricamento del file:", error);
-        document.getElementById('data-display').innerText = "Errore nel caricamento del file. Controlla la console per i dettagli.";
+        document.getElementById('data-display').innerHTML = "<div class='data-item'>Errore nel caricamento del file. Controlla la console per i dettagli.</div>";
       }
     }
 
-    // Funzione per visualizzare una riga specifica
-    function displayRow(rowNumber) {
-      const range = XLSX.utils.decode_range(currentSheet['!ref']);
-      if (rowNumber < range.s.r + 1 || rowNumber > range.e.r + 1) {
-        alert('Riga non valida');
-        return;
-      }
-
-      let rowData = '';
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: rowNumber - 1, c: col });
-        const cell = currentSheet[cellAddress];
-        if (cell) {
-          rowData += `${XLSX.utils.format_cell(cell)}\n`;
-        } else {
-          rowData += '\n';
-        }
-      }
-
-      document.getElementById('data-display').innerText = rowData.trim();
-      document.getElementById('row-number').innerText = `Riga ${rowNumber}`;
-      currentRow = rowNumber;
+    function displayRow(rowIndex) {
+      if (rowIndex < 1 || rowIndex >= excelData.length) return;
+      currentRow = rowIndex;
+      const row = excelData[rowIndex];
+      const dataDisplay = document.getElementById('data-display');
+      const rowNumber = document.getElementById('row-number');
+      dataDisplay.innerHTML = '';
+      rowNumber.textContent = `Riga ${rowIndex}`;
+      
+      const columnOrder = [2, 0, 1, 3];
+      columnOrder.forEach((index, i) => {
+        const header = excelData[0][index];
+        const cellData = row[index] !== undefined ? row[index] : '-';
+        const dataItem = document.createElement('div');
+        dataItem.classList.add('data-item');
+        dataItem.classList.add(`col-${String.fromCharCode(98 + i)}`);
+        dataItem.textContent = `${header}: ${cellData}`;
+        dataDisplay.appendChild(dataItem);
+      });
     }
 
-    // Event listeners
-    document.getElementById('prev-button').addEventListener('click', () => {
-      if (currentRow > 1) {
-        displayRow(currentRow - 1);
+    function searchRow() {
+      const rowIndex = parseInt(document.getElementById('search-input').value);
+      if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
+        displayRow(rowIndex);
       }
-    });
-
-    document.getElementById('next-button').addEventListener('click', () => {
-      const range = XLSX.utils.decode_range(currentSheet['!ref']);
-      if (currentRow < range.e.r + 1) {
-        displayRow(currentRow + 1);
-      }
-    });
-
-    document.getElementById('search-input').addEventListener('input', (event) => {
-      const searchRow = parseInt(event.target.value);
-      if (!isNaN(searchRow)) {
-        displayRow(searchRow);
-      }
-    });
-
-    // Funzione per adattare le dimensioni al dispositivo
-    function resizeContainer() {
-      const container = document.getElementById('container');
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      const size = Math.min(windowWidth, windowHeight);
-      container.style.width = `${size}px`;
-      container.style.height = `${size}px`;
     }
 
-    // Chiamata iniziale e listener per il ridimensionamento
-    window.addEventListener('resize', resizeContainer);
-    resizeContainer();
+    document.getElementById('prev-button').addEventListener('click', () => displayRow(currentRow - 1));
+    document.getElementById('next-button').addEventListener('click', () => displayRow(currentRow + 1));
+    document.getElementById('search-input').addEventListener('input', searchRow);
 
-    // Carica il file XLSX all'avvio
-    loadXLSX();
+    loadExcel();
   </script>
 </body></html>
