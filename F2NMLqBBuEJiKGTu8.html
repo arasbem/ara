@@ -1,0 +1,172 @@
+<html><head><base href="https://galaxywatch.api/xlsx/viewer/">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Visualizzatore Permute.xlsx per Galaxy Watch 4</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #container {
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    background-color: #222;
+  }
+  #data-display {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    text-align: center;
+    font-size: 14px;
+    max-height: 60%;
+    overflow-y: auto;
+  }
+  .nav-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(76, 175, 80, 0.7);
+    border: none;
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 18px;
+    cursor: pointer;
+    width: 40px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #prev-button {
+    left: 0;
+    border-top-right-radius: 50px;
+    border-bottom-right-radius: 50px;
+  }
+  #next-button {
+    right: 0;
+    border-top-left-radius: 50px;
+    border-bottom-left-radius: 50px;
+  }
+  #search-container {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(76, 175, 80, 0.7);
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
+  }
+  #search-input {
+    width: 60px;
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 15px;
+    border: none;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #000;
+  }
+  #row-number {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(76, 175, 80, 0.7);
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <div id="container">
+    <div id="row-number"></div>
+    <div id="data-display"></div>
+    <button id="prev-button" class="nav-button">&lt;</button>
+    <button id="next-button" class="nav-button">&gt;</button>
+    <div id="search-container">
+      <input type="number" id="search-input" placeholder="Riga #">
+    </div>
+  </div>
+
+  <script>
+    let workbook;
+    let currentSheet;
+    let currentRow = 1;
+
+    // Funzione per caricare il file XLSX
+    async function loadXLSX() {
+      const response = await fetch('https://galaxywatch.api/xlsx/viewer/permute.xlsx');
+      const arrayBuffer = await response.arrayBuffer();
+      workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      currentSheet = workbook.Sheets[workbook.SheetNames[0]];
+      displayRow(currentRow);
+    }
+
+    // Funzione per visualizzare una riga specifica
+    function displayRow(rowNumber) {
+      const range = XLSX.utils.decode_range(currentSheet['!ref']);
+      if (rowNumber < range.s.r + 1 || rowNumber > range.e.r + 1) {
+        alert('Riga non valida');
+        return;
+      }
+
+      let rowData = '';
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowNumber - 1, c: col });
+        const cell = currentSheet[cellAddress];
+        rowData += `${XLSX.utils.format_cell(cell)}\n`;
+      }
+
+      document.getElementById('data-display').innerText = rowData;
+      document.getElementById('row-number').innerText = `Riga ${rowNumber}`;
+      currentRow = rowNumber;
+    }
+
+    // Event listeners
+    document.getElementById('prev-button').addEventListener('click', () => {
+      displayRow(currentRow - 1);
+    });
+
+    document.getElementById('next-button').addEventListener('click', () => {
+      displayRow(currentRow + 1);
+    });
+
+    document.getElementById('search-input').addEventListener('input', (event) => {
+      const searchRow = parseInt(event.target.value);
+      if (!isNaN(searchRow)) {
+        displayRow(searchRow);
+      }
+    });
+
+    // Carica il file XLSX all'avvio
+    loadXLSX();
+  </script>
+</body></html>
