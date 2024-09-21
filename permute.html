@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permute 4.0</title>
+    <title>Permute 2.0</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -26,7 +26,7 @@
             background-color: #1c1c1c; /* Sfondo nero per il contenuto */
         }
         .title {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-weight: bold;
             background-color: #4CAF50;
             padding: 10px 20px;
@@ -43,13 +43,25 @@
             max-height: 60%; /* Limita l'altezza */
             overflow: hidden;
         }
-        .data-item {
-            font-size: 1.4rem;
-            margin: 5px 0;
-            word-wrap: break-word;
-            color: #ff0000; /* Cambia colore del testo */
-            text-align: left; /* Allinea il testo a sinistra */
+        .data-items {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start; /* Allinea a sinistra */
+            width: 100%;
         }
+        .data-item {
+            font-size: 2rem; /* Aumenta la dimensione del testo */
+            margin: 8px 0;
+            word-wrap: break-word;
+            text-align: left; /* Allinea il testo a sinistra */
+            width: 100%;
+        }
+        /* Colori per i dati */
+        .data-item:nth-child(1) { color: #ff0000; } /* Rosso */
+        .data-item:nth-child(2) { color: #a52a2a; } /* Marrone chiaro */
+        .data-item:nth-child(3) { color: #8b4513; } /* Marrone scuro */
+        .data-item:nth-child(4) { color: #228b22; } /* Verde */
         .row-navigation {
             display: flex;
             justify-content: space-between;
@@ -63,8 +75,8 @@
             color: #000000;
             border: 2px solid #4CAF50;
             border-radius: 15px;
-            width: 80px; /* Dimensione regolabile */
-            height: 80px; /* Dimensione regolabile */
+            width: 50px; /* Riduzione della larghezza */
+            height: 80px; /* Altezza invariata */
             font-size: 1.5rem; /* Dimensione del testo */
             cursor: pointer;
             margin: 5px;
@@ -134,7 +146,7 @@
             
             // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
             const columnOrder = [2, 0, 1, 3]; // Gli indici delle colonne in base all'ordine richiesto
-            columnOrder.forEach(index => {
+            columnOrder.forEach((index, i) => {
                 const header = excelData[0][index]; // Intestazione delle colonne
                 const cellData = row[index] !== undefined ? row[index] : '-';
                 const dataItem = document.createElement('div');
