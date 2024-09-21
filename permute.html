@@ -18,7 +18,7 @@
             justify-content: center; 
             align-items: center; 
             height: 100vh; 
-            min-height: 100vh; /* Assicura che occupi tutto lo schermo */
+            min-height: 100vh; 
         }
         .container {
             max-width: 100%;
@@ -26,14 +26,13 @@
             box-sizing: border-box;
             overflow: hidden; 
             transition: transform 0.3s ease;
-            margin: auto; /* Centra il contenitore */
+            margin: auto; 
         }
         .data-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 360px;
             padding: 5px;
             background-color: #1c1c1c; 
             border-radius: 15px; 
@@ -82,7 +81,9 @@
             border-radius: 10px; 
             color: #ffffff; 
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            margin-top: 2px; /* Margine superiore ridotto */
+            margin-top: 2px; 
+            transition: opacity 0.5s ease; 
+            opacity: 0; /* Inizialmente invisibile */
         }
 
         .row-navigation {
@@ -201,7 +202,8 @@
             const rowNumber = document.getElementById('row-number');
             dataItems.innerHTML = '';
             rowNumber.textContent = `Riga ${rowIndex}`;
-            
+            rowNumber.style.opacity = '1'; // Mostra il numero
+
             const columnOrder = [2, 0, 1, 3];
             columnOrder.forEach(index => {
                 const header = excelData[0][index];
@@ -212,6 +214,11 @@
                 dataItem.innerHTML = `<strong>${header}:</strong><br>${cellData}`;
                 dataItems.appendChild(dataItem);
             });
+
+            // Nascondi il numero dopo 0.5 secondi
+            setTimeout(() => {
+                rowNumber.style.opacity = '0';
+            }, 500);
 
             window.scrollTo(0, 0); 
         }
