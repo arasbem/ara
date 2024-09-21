@@ -21,7 +21,7 @@
             height: 100vh; /* Usa tutta l'altezza del display */
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start; /* Allinea gli elementi in alto */
             align-items: center;
             background-color: #000000; /* Sfondo completamente nero */
         }
@@ -48,12 +48,12 @@
             outline: none; /* Rimuove il bordo di focus */
         }
         .data-container {
-            flex: 1; /* Occupa lo spazio centrale */
             display: flex;
             justify-content: center;
             align-items: center;
             width: 95%; /* Maggiore larghezza per il contenuto */
-            max-height: 60%; /* Limita l'altezza */
+            max-height: 50%; /* Limita l'altezza */
+            margin-top: 20px; /* Sposta i dati più in alto */
             overflow: hidden;
         }
         .data-item {
@@ -110,14 +110,14 @@
             <span>PROGRESSIVO: </span>
             <input type="number" id="progressivo" placeholder="1" min="1" />
         </div>
-        <div class="row-navigation">
-            <button id="prev-row">◀</button>
-            <button id="next-row">▶</button>
-        </div>
         <div class="data-container" id="data-container">
             <div class="data-items" id="data-items">
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
+        </div>
+        <div class="row-navigation">
+            <button id="prev-row">◀</button>
+            <button id="next-row">▶</button>
         </div>
         <div class="search-container">
             <input type="number" id="row-search" placeholder="CERCA" min="1" />
