@@ -86,27 +86,13 @@
             cursor: pointer;
             margin: 5px;
         }
-        .search-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 10px; /* Margine inferiore per distanziare */
-        }
-        .search-container input {
-            width: 60%; /* Dimensione regolabile */
-            padding: 10px;
-            text-align: center;
-            background-color: #1c1c1c;
-            color: #ffffff;
-            border: 2px solid #4CAF50;
-            font-size: 1rem;
-            border-radius: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="circle-container">
-        <div class="title" id="progressivo">PROGRESSIVO</div>
+        <div class="title">
+            <input type="number" id="progressivo-input" value="1" />
+        </div>
         <div class="row-navigation">
             <button id="prev-row">◀</button>
             <button id="next-row">▶</button>
@@ -116,9 +102,6 @@
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
         </div>
-        <div class="search-container">
-            <input type="number" id="row-search" placeholder="CERCA" min="1" />
-        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
@@ -127,7 +110,7 @@
         let currentRow = 1;
 
         document.addEventListener('DOMContentLoaded', loadExcel);
-        document.getElementById('row-search').addEventListener('input', searchRow);
+        document.getElementById('progressivo-input').addEventListener('input', searchRow);
 
         function loadExcel() {
             fetch('permute.xlsx')
@@ -144,7 +127,7 @@
         function displayRow(rowIndex) {
             if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
-            document.getElementById('progressivo').textContent = `PROGRESSIVO: ${currentRow}`; // Mostra il numero di riga
+            document.getElementById('progressivo-input').value = currentRow;
             const row = excelData[rowIndex];
             const dataItems = document.getElementById('data-items');
             dataItems.innerHTML = '';
@@ -181,7 +164,7 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
+            const rowIndex = parseInt(document.getElementById('progressivo-input').value);
             if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
