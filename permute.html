@@ -56,12 +56,17 @@
             word-wrap: break-word;
             text-align: left; /* Allinea il testo a sinistra */
             width: 100%;
+            font-weight: bold; /* Testo in grassetto */
+        }
+        .data-header {
+            font-size: 1.2rem; /* Dimensione più piccola per le intestazioni */
+            font-weight: normal; /* Intestazioni in stile normale */
         }
         /* Colori per i dati */
-        .data-item:nth-child(1) { color: #ff0000; } /* Rosso */
-        .data-item:nth-child(2) { color: #a52a2a; } /* Marrone chiaro */
-        .data-item:nth-child(3) { color: #8b4513; } /* Marrone scuro */
-        .data-item:nth-child(4) { color: #228b22; } /* Verde */
+        .data-item:nth-child(1) .data-value { color: #ff0000; } /* Rosso */
+        .data-item:nth-child(2) .data-value { color: #a52a2a; } /* Marrone chiaro */
+        .data-item:nth-child(3) .data-value { color: #8b4513; } /* Marrone scuro */
+        .data-item:nth-child(4) .data-value { color: #228b22; } /* Verde */
         .row-navigation {
             display: flex;
             justify-content: space-between;
@@ -151,7 +156,19 @@
                 const cellData = row[index] !== undefined ? row[index] : '-';
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
+
+                // Aggiungi l'intestazione sopra al dato
+                const headerElement = document.createElement('div');
+                headerElement.classList.add('data-header');
+                headerElement.textContent = `${header}`;
+                dataItem.appendChild(headerElement);
+
+                // Aggiungi il dato vero e proprio
+                const dataValueElement = document.createElement('div');
+                dataValueElement.classList.add('data-value');
+                dataValueElement.textContent = `${cellData}`;
+                dataItem.appendChild(dataValueElement);
+
                 dataItems.appendChild(dataItem);
             });
         }
