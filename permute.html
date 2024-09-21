@@ -21,12 +21,12 @@
             height: 100vh; /* Usa tutta l'altezza del display */
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Centra verticalmente */
+            justify-content: space-between;
             align-items: center;
             background-color: #1c1c1c; /* Sfondo nero per il contenuto */
         }
         .title {
-            font-size: 1.5rem; /* Aumentato per maggior chiarezza */
+            font-size: 1.2rem;
             font-weight: bold;
             background-color: #4CAF50;
             padding: 10px 20px;
@@ -44,8 +44,8 @@
             overflow: hidden;
         }
         .data-item {
-            font-size: 2.5rem; /* Aumentata la dimensione del testo dei dati */
-            margin: 20px 0; /* Aggiungi margine per spacciare i dati */
+            font-size: 2rem; /* Aumenta la dimensione del testo dei dati */
+            margin: 15px 0; /* Aggiungi margine per spacciare i dati */
             word-wrap: break-word;
             text-align: left; /* Allinea il testo a sinistra */
         }
@@ -66,8 +66,8 @@
             justify-content: space-between;
             width: 100%;
             position: absolute;
-            bottom: 20px; /* Posiziona le frecce in basso */
-            padding: 0 50px; /* Spaziatura laterale */
+            top: 50%;
+            transform: translateY(-50%);
         }
         .row-navigation button {
             background-color: #4CAF50;
@@ -76,9 +76,9 @@
             border-radius: 15px;
             width: 40px; /* Dimensione ridotta in larghezza */
             height: 80px; /* Aumenta l'altezza */
-            font-size: 1.5rem; /* Aumentato per una maggiore chiarezza */
+            font-size: 1.2rem; /* Riduci la dimensione del testo */
             cursor: pointer;
-            margin: 0 10px; /* Margine per separare i pulsanti */
+            margin: 5px;
         }
         .search-container {
             width: 100%;
@@ -93,7 +93,7 @@
             background-color: #1c1c1c;
             color: #ffffff;
             border: 2px solid #4CAF50;
-            font-size: 1.2rem; /* Aumentato per maggiore chiarezza */
+            font-size: 1rem;
             border-radius: 10px;
         }
     </style>
@@ -101,14 +101,14 @@
 <body>
     <div class="circle-container">
         <div class="title" id="progressivo">PROGRESSIVO</div>
+        <div class="row-navigation">
+            <button id="prev-row">◀</button>
+            <button id="next-row">▶</button>
+        </div>
         <div class="data-container" id="data-container">
             <div class="data-items" id="data-items">
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
-        </div>
-        <div class="row-navigation">
-            <button id="prev-row">◀</button>
-            <button id="next-row">▶</button>
         </div>
         <div class="search-container">
             <input type="number" id="row-search" placeholder="CERCA" min="1" />
