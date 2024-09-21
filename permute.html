@@ -44,7 +44,7 @@
             overflow: hidden;
         }
         .data-item {
-            font-size: 2rem; /* Aumenta la dimensione del testo dei dati */
+            font-size: 2.5rem; /* Aumenta la dimensione del testo dei dati */
             margin: 15px 0; /* Aggiungi margine per spacciare i dati */
             word-wrap: break-word;
             text-align: left; /* Allinea il testo a sinistra */
@@ -52,17 +52,20 @@
             align-items: center; /* Allinea verticalmente l'icona e il dato */
         }
         .icon {
-            font-size: 2rem; /* Dimensione delle icone */
+            font-size: 2.5rem; /* Dimensione delle icone */
             margin-right: 10px; /* Margine a destra per distanziare l'icona dal dato */
         }
-        .data-beige {
-            color: #f5f5dc; /* Beige per il primo dato */
+        .data-red {
+            color: #ff0000; /* Rosso acceso per il primo dato */
+        }
+        .data-white {
+            color: #ffffff; /* Bianco per il secondo dato */
         }
         .data-yellow {
-            color: #ffff00; /* Giallo per il secondo dato */
+            color: #ffff00; /* Giallo per il terzo dato */
         }
         .data-green {
-            color: #00cc00; /* Verde acceso per il terzo dato */
+            color: #00cc00; /* Verde acceso per il quarto dato */
         }
         .row-navigation {
             display: flex;
@@ -159,15 +162,16 @@
 
                 if (idx === 0) {
                     icon.textContent = '❌'; // Icona rossa
-                    dataItem.classList.add('data-beige');
+                    dataItem.classList.add('data-red');
                 } else if (idx === 1) {
                     icon.textContent = '📞'; // Icona telefono
-                    dataItem.classList.add('data-yellow');
+                    dataItem.classList.add('data-white');
                 } else if (idx === 2) {
                     icon.textContent = '⚡'; // Icona cavi elettrici
-                    dataItem.classList.add('data-green');
+                    dataItem.classList.add('data-yellow');
                 } else if (idx === 3) {
                     icon.textContent = '➡️'; // Icona freccia verso destra
+                    dataItem.classList.add('data-green');
                 }
 
                 dataItem.appendChild(icon);
