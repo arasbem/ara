@@ -47,8 +47,19 @@
             font-size: 1.6rem; /* Aumenta la dimensione del testo */
             margin: 5px 0;
             word-wrap: break-word;
-            color: #ff0000; /* Cambia colore del testo */
             text-align: left; /* Allinea il testo a sinistra */
+        }
+        .header {
+            color: #ff0000; /* Rosso per le intestazioni */
+        }
+        .data-beige {
+            color: #f5f5dc; /* Beige per il primo dato */
+        }
+        .data-yellow {
+            color: #ffff00; /* Giallo per il secondo dato */
+        }
+        .data-green {
+            color: #008000; /* Verde per il terzo dato */
         }
         .row-navigation {
             display: flex;
@@ -134,12 +145,27 @@
             
             // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
             const columnOrder = [2, 0, 1, 3]; // Gli indici delle colonne in base all'ordine richiesto
-            columnOrder.forEach(index => {
+            columnOrder.forEach((index, idx) => {
                 const header = excelData[0][index]; // Intestazione delle colonne
                 const cellData = row[index] !== undefined ? row[index] : '-';
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
-                dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
+
+                // Aggiungi la classe colore in base all'indice
+                if (idx === 0) {
+                    dataItem.classList.add('header');
+                    dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
+                } else {
+                    dataItem.textContent = `${header}: ${cellData}`; // Intestazione + Dato o "-"
+                    if (idx === 1) {
+                        dataItem.classList.add('data-beige');
+                    } else if (idx === 2) {
+                        dataItem.classList.add('data-yellow');
+                    } else if (idx === 3) {
+                        dataItem.classList.add('data-green');
+                    }
+                }
+
                 dataItems.appendChild(dataItem);
             });
         }
