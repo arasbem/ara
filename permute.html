@@ -48,9 +48,12 @@
             margin: 15px 0; /* Aggiungi margine per spacciare i dati */
             word-wrap: break-word;
             text-align: left; /* Allinea il testo a sinistra */
+            display: flex; /* Permette di allineare l'icona e il dato */
+            align-items: center; /* Allinea verticalmente l'icona e il dato */
         }
         .icon {
             font-size: 2rem; /* Dimensione delle icone */
+            margin-right: 10px; /* Margine a destra per distanziare l'icona dal dato */
         }
         .data-beige {
             color: #f5f5dc; /* Beige per il primo dato */
@@ -107,10 +110,6 @@
         </div>
         <div class="data-container" id="data-container">
             <div class="data-items" id="data-items">
-                <div class="data-item icon">❌</div> <!-- Icona rossa -->
-                <div class="data-item icon">📞</div> <!-- Icona telefono -->
-                <div class="data-item icon">⚡</div> <!-- Icona cavi elettrici -->
-                <div class="data-item icon">➡️</div> <!-- Icona freccia verso destra verde -->
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
         </div>
@@ -146,15 +145,6 @@
             const row = excelData[rowIndex];
             const dataItems = document.getElementById('data-items');
             dataItems.innerHTML = '';
-            
-            // Aggiungi le icone in cima ai dati
-            const icons = ['❌', '📞', '⚡', '➡️'];
-            icons.forEach(icon => {
-                const iconItem = document.createElement('div');
-                iconItem.classList.add('data-item', 'icon');
-                iconItem.textContent = icon;
-                dataItems.appendChild(iconItem);
-            });
 
             // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
             const columnOrder = [2, 0, 1, 3]; // Gli indici delle colonne in base all'ordine richiesto
@@ -163,16 +153,25 @@
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
 
-                // Aggiungi la classe colore in base all'indice
+                // Aggiungi l'icona in base all'indice
+                const icon = document.createElement('div');
+                icon.classList.add('icon');
+
                 if (idx === 0) {
+                    icon.textContent = '❌'; // Icona rossa
                     dataItem.classList.add('data-beige');
                 } else if (idx === 1) {
+                    icon.textContent = '📞'; // Icona telefono
                     dataItem.classList.add('data-yellow');
                 } else if (idx === 2) {
+                    icon.textContent = '⚡'; // Icona cavi elettrici
                     dataItem.classList.add('data-green');
+                } else if (idx === 3) {
+                    icon.textContent = '➡️'; // Icona freccia verso destra
                 }
 
-                dataItem.textContent = cellData; // Solo i dati
+                dataItem.appendChild(icon);
+                dataItem.appendChild(document.createTextNode(cellData)); // Aggiungi il dato
                 dataItems.appendChild(dataItem);
             });
         }
