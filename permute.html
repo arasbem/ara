@@ -21,7 +21,7 @@
             height: 100vh; /* Usa tutta l'altezza del display */
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Allinea gli elementi in alto */
+            justify-content: space-between;
             align-items: center;
             background-color: #000000; /* Sfondo completamente nero */
         }
@@ -33,27 +33,14 @@
             border-radius: 15px;
             border: 2px solid #4CAF50;
             margin: 10px 0;
-            display: flex;
-            align-items: center; /* Allinea il contenuto al centro */
-        }
-        .title input {
-            background-color: transparent; /* Sfondo trasparente per il campo input */
-            border: none; /* Nessun bordo */
-            color: #ffffff; /* Colore testo bianco */
-            font-size: 1.2rem; /* Dimensione del testo */
-            text-align: center; /* Testo centrato */
-            width: 100px; /* Larghezza del campo input */
-        }
-        .title input:focus {
-            outline: none; /* Rimuove il bordo di focus */
         }
         .data-container {
+            flex: 1; /* Occupa lo spazio centrale */
             display: flex;
             justify-content: center;
             align-items: center;
             width: 95%; /* Maggiore larghezza per il contenuto */
-            max-height: 50%; /* Limita l'altezza */
-            margin-top: 20px; /* Sposta i dati più in alto */
+            max-height: 60%; /* Limita l'altezza */
             overflow: hidden;
         }
         .data-item {
@@ -100,24 +87,34 @@
             margin: 5px;
         }
         .search-container {
-            display: none; /* Nasconde la vecchia casella di ricerca */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px; /* Margine inferiore per distanziare */
+        }
+        .search-container input {
+            width: 60%; /* Dimensione regolabile */
+            padding: 10px;
+            text-align: center;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            border: 2px solid #4CAF50;
+            font-size: 1rem;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
     <div class="circle-container">
-        <div class="title">
-            <span>PROGRESSIVO: </span>
-            <input type="number" id="progressivo" placeholder="1" min="1" />
+        <div class="title" id="progressivo">PROGRESSIVO</div>
+        <div class="row-navigation">
+            <button id="prev-row">◀</button>
+            <button id="next-row">▶</button>
         </div>
         <div class="data-container" id="data-container">
             <div class="data-items" id="data-items">
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
-        </div>
-        <div class="row-navigation">
-            <button id="prev-row">◀</button>
-            <button id="next-row">▶</button>
         </div>
         <div class="search-container">
             <input type="number" id="row-search" placeholder="CERCA" min="1" />
@@ -130,7 +127,7 @@
         let currentRow = 1;
 
         document.addEventListener('DOMContentLoaded', loadExcel);
-        document.getElementById('progressivo').addEventListener('input', searchRow);
+        document.getElementById('row-search').addEventListener('input', searchRow);
 
         function loadExcel() {
             fetch('permute.xlsx')
@@ -147,7 +144,7 @@
         function displayRow(rowIndex) {
             if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
-            document.getElementById('progressivo').value = currentRow; // Imposta il numero di riga nel campo input
+            document.getElementById('progressivo').textContent = `PROGRESSIVO: ${currentRow}`; // Mostra il numero di riga
             const row = excelData[rowIndex];
             const dataItems = document.getElementById('data-items');
             dataItems.innerHTML = '';
@@ -184,7 +181,7 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('progressivo').value); // Prendi il valore dal nuovo campo input
+            const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
             if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
