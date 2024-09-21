@@ -11,7 +11,7 @@
             padding: 0; 
             background-color: #000000; 
             color: #ffffff;
-            font-size: 20px; 
+            font-size: 22px; 
             text-align: center; 
             transition: background-color 0.3s ease; 
         }
@@ -27,12 +27,12 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 300px; /* Ridotto la larghezza massima per adattare allo schermo circolare */
+            max-width: 360px;
             padding: 0; 
             background-color: #1c1c1c; 
             border-radius: 15px; 
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); 
-            margin: 0 auto; 
+            margin-bottom: 0; 
             text-align: left;
             transition: background-color 0.3s ease; 
         }
@@ -40,14 +40,16 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            padding: 0; 
+            margin: 0; 
         }
         .data-item {
             width: 100%;
-            padding: 5px; /* Ridotto il padding per ridurre lo spazio vuoto */
-            margin: 0; /* Ridotto il margine per ridurre lo spazio vuoto */
+            padding: 5px; 
+            margin: 0; 
             background-color: #1c1c1c;
             border-radius: 10px; 
-            font-size: 1.6rem; 
+            font-size: 1.8rem; 
             word-wrap: break-word;
             box-sizing: border-box;
             color: #ffffff; 
@@ -70,20 +72,19 @@
 
         .row-number {
             padding: 5px; 
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             background-color: #1c1c1c;
             border-radius: 10px; 
             color: #ffffff; 
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            margin: 0 auto; 
         }
 
         .row-navigation {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 300px; /* Ridotto la larghezza massima per adattare allo schermo circolare */
-            margin: 10px auto; 
+            max-width: 360px;
+            margin-top: 5px; 
             transition: transform 0.3s ease; 
         }
         .row-navigation button {
@@ -92,10 +93,10 @@
             border: 2px solid #4CAF50;
             border-radius: 10px; 
             padding: 5px 10px; 
-            margin: 0 5px; 
-            font-size: 1.2rem; 
+            margin: 0;
+            font-size: 1.4rem; 
             cursor: pointer;
-            width: 40%; 
+            width: 45%;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
         .row-navigation button:hover {
@@ -108,24 +109,42 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 300px; /* Ridotto la larghezza massima per adattare allo schermo circolare */
-            margin: 10px auto; 
+            max-width: 360px;
+            margin-top: 5px; 
         }
         .search-container input {
             flex: 1;
-            margin-right: 2px; 
+            margin-right: 0; 
             padding: 5px; 
             text-align: center;
             background-color: #1c1c1c; 
             color: #ffffff;
             border: 2px solid #666666;
             font-size: 1.2rem; 
-            max-width: 100px; 
+            max-width: 120px; 
             transition: background-color 0.3s ease, border-color 0.3s ease; 
         }
         .search-container input:focus {
             background-color: #333333;
             border-color: #4CAF50; 
+        }
+        @media (max-width: 360px) {
+            body {
+                font-size: 20px; 
+            }
+            .data-item {
+                font-size: 1.6rem; 
+            }
+            .row-number {
+                font-size: 1.2rem;
+            }
+            .row-navigation button {
+                font-size: 1.2rem;
+                padding: 5px 10px; 
+            }
+            .search-container input {
+                font-size: 1.2rem; 
+            }
         }
     </style>
 </head>
