@@ -43,11 +43,11 @@
         }
         .data-item {
             width: 100%;
-            padding: 15px; 
-            margin: 5px 0; 
+            padding: 10px; /* Ridotto il padding per un aspetto più compatto */
+            margin: 2px 0; /* Ridotto lo spazio tra gli elementi */
             background-color: #1c1c1c;
-            border-radius: 10px;
-            font-size: 1.8rem; /* Aumentata la dimensione del font dei dati */
+            border-radius: 10px; 
+            font-size: 1.8rem; 
             word-wrap: break-word;
             box-sizing: border-box;
             color: #ffffff; 
@@ -63,13 +63,13 @@
         .data-item.col-d { color: #66ccff; } 
         .data-item.col-e { color: #66cc66; } 
 
-        .data-item strong { /* Intestazione in grassetto e più piccola */
+        .data-item strong { 
             font-weight: bold;
-            font-size: 1.2rem; /* Dimensione dell'intestazione */
+            font-size: 1.2rem; 
         }
 
         .row-number {
-            padding: 15px; 
+            padding: 10px; 
             font-size: 1.5rem;
             background-color: #1c1c1c;
             border-radius: 10px; 
@@ -82,7 +82,7 @@
             justify-content: space-between;
             width: 100%;
             max-width: 360px;
-            margin-top: 20px;
+            margin-top: 15px; /* Ridotto lo spazio sopra la navigazione */
             transition: transform 0.3s ease; 
         }
         .row-navigation button {
@@ -90,8 +90,8 @@
             color: #4CAF50;
             border: 2px solid #4CAF50;
             border-radius: 10px; 
-            padding: 12px 18px;
-            margin: 5px;
+            padding: 10px 15px; /* Ridotto il padding per i pulsanti */
+            margin: 2px;
             font-size: 1.4rem; 
             cursor: pointer;
             width: 45%;
@@ -108,12 +108,12 @@
             justify-content: center;
             width: 100%;
             max-width: 360px;
-            margin-top: 15px;
+            margin-top: 10px; /* Ridotto lo spazio sopra il contenitore di ricerca */
         }
         .search-container input {
             flex: 1;
-            margin-right: 5px;
-            padding: 12px; 
+            margin-right: 2px; /* Ridotto lo spazio tra input e pulsante */
+            padding: 10px; 
             text-align: center;
             background-color: #1c1c1c; 
             color: #ffffff;
@@ -131,14 +131,14 @@
                 font-size: 20px; 
             }
             .data-item {
-                font-size: 1.6rem; /* Riduzione leggera per schermi piccoli */
+                font-size: 1.6rem; 
             }
             .row-number {
                 font-size: 1.2rem;
             }
             .row-navigation button {
                 font-size: 1.2rem;
-                padding: 12px 16px; 
+                padding: 10px 15px; 
             }
             .search-container input {
                 font-size: 1.2rem; 
@@ -201,7 +201,6 @@
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
                 dataItem.classList.add(`col-${String.fromCharCode(98 + index)}`); 
-                // Intestazione in grassetto, dati su una nuova riga
                 dataItem.innerHTML = `<strong>${header}:</strong><br>${cellData}`;
                 dataItems.appendChild(dataItem);
             });
