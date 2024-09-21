@@ -14,6 +14,10 @@
             font-size: 22px; 
             text-align: center; 
             transition: background-color 0.3s ease; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
         }
         .container {
             max-width: 100%;
@@ -21,6 +25,7 @@
             box-sizing: border-box;
             overflow: hidden; 
             transition: transform 0.3s ease;
+            margin: auto; /* Centra il contenitore */
         }
         .data-container {
             display: flex;
@@ -28,11 +33,11 @@
             align-items: center;
             width: 100%;
             max-width: 360px;
-            padding: 5px; /* Ridotto il padding del contenitore dei dati */
+            padding: 5px;
             background-color: #1c1c1c; 
             border-radius: 15px; 
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); 
-            margin-bottom: 5px; /* Ridotto lo spazio sotto il contenitore */
+            margin-bottom: 5px;
             text-align: left;
             transition: background-color 0.3s ease; 
         }
@@ -40,12 +45,12 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            margin: 5px 0; /* Aggiunto un piccolo margine sopra e sotto i dati */
+            margin: 5px 0; 
         }
         .data-item {
             width: 100%;
-            padding: 8px; /* Ridotto il padding dei singoli dati */
-            margin: 1px 0; /* Ridotto lo spazio tra i dati */
+            padding: 8px; 
+            margin: 1px 0; 
             background-color: #1c1c1c;
             border-radius: 10px; 
             font-size: 1.8rem; 
@@ -70,13 +75,13 @@
         }
 
         .row-number {
-            padding: 8px; /* Ridotto il padding del numero di riga */
+            padding: 8px; 
             font-size: 1.5rem;
             background-color: #1c1c1c;
             border-radius: 10px; 
             color: #ffffff; 
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            margin-top: 5px; /* Aggiunto un piccolo margine sopra il numero di riga */
+            margin-top: 5px; 
         }
 
         .row-navigation {
@@ -84,7 +89,7 @@
             justify-content: space-between;
             width: 100%;
             max-width: 360px;
-            margin-top: 10px; /* Ridotto lo spazio sopra la navigazione */
+            margin-top: 10px; 
             transition: transform 0.3s ease; 
         }
         .row-navigation button {
@@ -92,7 +97,7 @@
             color: #4CAF50;
             border: 2px solid #4CAF50;
             border-radius: 10px; 
-            padding: 8px 15px; /* Ridotto il padding dei pulsanti */
+            padding: 8px 15px; 
             margin: 2px;
             font-size: 1.4rem; 
             cursor: pointer;
@@ -110,12 +115,12 @@
             justify-content: center;
             width: 100%;
             max-width: 360px;
-            margin-top: 10px; /* Ridotto lo spazio sopra il contenitore di ricerca */
+            margin-top: 10px; 
         }
         .search-container input {
             flex: 1;
-            margin-right: 2px; /* Ridotto lo spazio tra input e pulsante */
-            padding: 8px; /* Ridotto il padding dell'input */
+            margin-right: 2px; 
+            padding: 8px; 
             text-align: center;
             background-color: #1c1c1c; 
             color: #ffffff;
@@ -140,7 +145,7 @@
             }
             .row-navigation button {
                 font-size: 1.2rem;
-                padding: 8px 12px; /* Ridotto ulteriormente il padding dei pulsanti */
+                padding: 8px 12px; 
             }
             .search-container input {
                 font-size: 1.2rem; 
