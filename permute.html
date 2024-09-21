@@ -33,6 +33,19 @@
             border-radius: 15px;
             border: 2px solid #4CAF50;
             margin: 10px 0;
+            display: flex;
+            align-items: center; /* Allinea il contenuto al centro */
+        }
+        .title input {
+            background-color: transparent; /* Sfondo trasparente per il campo input */
+            border: none; /* Nessun bordo */
+            color: #ffffff; /* Colore testo bianco */
+            font-size: 1.2rem; /* Dimensione del testo */
+            text-align: center; /* Testo centrato */
+            width: 100px; /* Larghezza del campo input */
+        }
+        .title input:focus {
+            outline: none; /* Rimuove il bordo di focus */
         }
         .data-container {
             flex: 1; /* Occupa lo spazio centrale */
@@ -86,12 +99,16 @@
             cursor: pointer;
             margin: 5px;
         }
+        .search-container {
+            display: none; /* Nasconde la vecchia casella di ricerca */
+        }
     </style>
 </head>
 <body>
     <div class="circle-container">
         <div class="title">
-            <input type="number" id="progressivo-input" value="1" />
+            <span>PROGRESSIVO: </span>
+            <input type="number" id="progressivo" placeholder="1" min="1" />
         </div>
         <div class="row-navigation">
             <button id="prev-row">◀</button>
@@ -102,6 +119,9 @@
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
         </div>
+        <div class="search-container">
+            <input type="number" id="row-search" placeholder="CERCA" min="1" />
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
@@ -110,7 +130,7 @@
         let currentRow = 1;
 
         document.addEventListener('DOMContentLoaded', loadExcel);
-        document.getElementById('progressivo-input').addEventListener('input', searchRow);
+        document.getElementById('progressivo').addEventListener('input', searchRow);
 
         function loadExcel() {
             fetch('permute.xlsx')
@@ -127,7 +147,7 @@
         function displayRow(rowIndex) {
             if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
-            document.getElementById('progressivo-input').value = currentRow;
+            document.getElementById('progressivo').value = currentRow; // Imposta il numero di riga nel campo input
             const row = excelData[rowIndex];
             const dataItems = document.getElementById('data-items');
             dataItems.innerHTML = '';
@@ -164,7 +184,7 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('progressivo-input').value);
+            const rowIndex = parseInt(document.getElementById('progressivo').value); // Prendi il valore dal nuovo campo input
             if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
