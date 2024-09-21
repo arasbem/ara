@@ -18,7 +18,7 @@
             justify-content: center; 
             align-items: center; 
             height: 100vh; 
-            min-height: 100vh; 
+            min-height: 100vh;
         }
         .container {
             max-width: 100%;
@@ -26,13 +26,15 @@
             box-sizing: border-box;
             overflow: hidden; 
             transition: transform 0.3s ease;
-            margin: auto; 
+            margin: auto;
+            position: relative; /* Per gestire l'animazione del numero di riga */
         }
         .data-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
+            max-width: 360px;
             padding: 5px;
             background-color: #1c1c1c; 
             border-radius: 15px; 
@@ -76,14 +78,18 @@
 
         .row-number {
             padding: 8px; 
-            font-size: 1.5rem;
-            background-color: #1c1c1c;
+            font-size: 5rem; /* Aumentato per la visibilità */
+            background-color: #ffffff; /* Sfondo bianco per l'animazione */
             border-radius: 10px; 
-            color: #ffffff; 
+            color: #000000; /* Testo nero */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            margin-top: 2px; 
-            transition: opacity 0.5s ease; 
-            opacity: 0; /* Inizialmente invisibile */
+            margin-top: 2px; /* Margine superiore ridotto */
+            display: none; /* Nascosto per default */
+            position: absolute; /* Posizione assoluta per centrare */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10; /* Assicurati che sia sopra gli altri elementi */
         }
 
         .row-navigation {
@@ -143,7 +149,7 @@
                 font-size: 1.6rem; 
             }
             .row-number {
-                font-size: 1.2rem;
+                font-size: 3rem; /* Dimensione del numero per schermi piccoli */
             }
             .row-navigation button {
                 font-size: 1.2rem;
@@ -202,8 +208,7 @@
             const rowNumber = document.getElementById('row-number');
             dataItems.innerHTML = '';
             rowNumber.textContent = `Riga ${rowIndex}`;
-            rowNumber.style.opacity = '1'; // Mostra il numero
-
+            
             const columnOrder = [2, 0, 1, 3];
             columnOrder.forEach(index => {
                 const header = excelData[0][index];
@@ -215,17 +220,21 @@
                 dataItems.appendChild(dataItem);
             });
 
-            // Nascondi il numero dopo 0.5 secondi
-            setTimeout(() => {
-                rowNumber.style.opacity = '0';
-            }, 500);
-
             window.scrollTo(0, 0); 
+        }
+
+        function showRowNumber() {
+            const rowNumber = document.getElementById('row-number');
+            rowNumber.style.display = 'block'; // Mostra il numero della riga
+            setTimeout(() => {
+                rowNumber.style.display = 'none'; // Nascondi dopo 0.5 secondi
+            }, 500);
         }
 
         function searchRow() {
             const rowIndex = parseInt(document.getElementById('row-search').value); 
             if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
+                showRowNumber();
                 displayRow(rowIndex);
             }
         }
@@ -234,6 +243,7 @@
         document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
 
         function navigateRow(offset) {
+            showRowNumber();
             displayRow(currentRow + offset);
         }
     </script>
