@@ -36,6 +36,7 @@
             border-radius: 15px;
             border: 2px solid #808080; /* Grigio */
             margin: 10px 0;
+            cursor: pointer; /* Indica che è cliccabile */
         }
 
         .data-container {
@@ -101,7 +102,7 @@
 
         .search-container {
             width: 100%;
-            display: flex;
+            display: none; /* Nascondi inizialmente */
             justify-content: center;
             margin-bottom: 10px; /* Margine inferiore per distanziare */
         }
@@ -131,7 +132,7 @@
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
         </div>
-        <div class="search-container">
+        <div class="search-container" id="search-container">
             <input type="number" id="row-search" placeholder="CERCA" min="1" />
         </div>
     </div>
@@ -143,6 +144,7 @@
 
         document.addEventListener('DOMContentLoaded', loadExcel);
         document.getElementById('row-search').addEventListener('input', searchRow);
+        document.getElementById('progressivo').addEventListener('click', toggleSearch);
 
         function loadExcel() {
             fetch('permute.xlsx')
@@ -199,6 +201,15 @@
             const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
             if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
+            }
+        }
+
+        function toggleSearch() {
+            const searchContainer = document.getElementById('search-container');
+            if (searchContainer.style.display === 'flex') {
+                searchContainer.style.display = 'none'; // Nascondi il campo di ricerca
+            } else {
+                searchContainer.style.display = 'flex'; // Mostra il campo di ricerca
             }
         }
 
