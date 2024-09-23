@@ -29,7 +29,7 @@
         }
 
         .title {
-            font-size: 1.2rem;
+            font-size: 1.5rem; /* Dimensione aumentata per una migliore visibilità */
             font-weight: bold;
             background-color: #808080; /* Grigio */
             padding: 10px 20px;
@@ -37,6 +37,7 @@
             border: 2px solid #808080; /* Grigio */
             margin: 10px 0;
             cursor: pointer; /* Indica che è cliccabile */
+            flex: 0 0 auto; /* Impedisce il ridimensionamento */
         }
 
         .data-container {
@@ -125,6 +126,22 @@
             border-radius: 10px;
         }
 
+        /* Media queries per adattamenti */
+        @media (max-width: 600px) {
+            .title {
+                font-size: 1.2rem; /* Riduci dimensione titolo sui dispositivi più piccoli */
+            }
+
+            .data-item {
+                font-size: 2rem; /* Riduci dimensione dati sui dispositivi più piccoli */
+            }
+
+            .row-navigation button {
+                width: 30px; /* Dimensione ridotta per bottoni */
+                height: 60px; /* Dimensione ridotta per bottoni */
+                font-size: 1rem; /* Dimensione testo ridotta */
+            }
+        }
     </style>
 </head>
 
@@ -206,7 +223,7 @@
         }
 
         function searchRow() {
-            const rowIndex = parseInt(document.getElementById('row-search').value); // Considera solo il valore inserito
+            const rowIndex = parseInt(document.getElementById('row-search').value);
             if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
                 displayRow(rowIndex);
             }
@@ -214,11 +231,7 @@
 
         function toggleSearch() {
             const searchContainer = document.getElementById('search-container');
-            if (searchContainer.classList.contains('show')) {
-                searchContainer.classList.remove('show'); // Nascondi il campo di ricerca
-            } else {
-                searchContainer.classList.add('show'); // Mostra il campo di ricerca
-            }
+            searchContainer.classList.toggle('show');
         }
 
         document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
