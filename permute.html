@@ -8,6 +8,7 @@
         :root {
             --primary-color: #808080;
             --font-size-large: 2.5rem;
+            --error-color: #ff0000;
         }
 
         body {
@@ -39,13 +40,13 @@
             padding: 10px 20px;
             border-radius: 15px;
             border: 2px solid var(--primary-color);
-            margin-bottom: 20px; /* Aggiunto margine inferiore */
+            margin: 10px 0;
         }
 
         .data-container {
             flex: 1;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; 
             justify-content: center;
             align-items: center;
             width: 95%;
@@ -54,7 +55,8 @@
         }
 
         .data-items {
-            /* Non è necessario nessun stile specifico per data-items */
+            overflow-y: auto; /* Aggiunto scorrimento verticale */
+            max-height: 100%; /* Limita l'altezza per evitare overflow */
         }
 
         .data-item {
@@ -66,7 +68,7 @@
             align-items: center;
         }
 
-        .icon { /* Classe .icon invece di .data-item-icon */
+        .icon { 
             font-size: var(--font-size-large);
             margin-right: 10px;
         }
@@ -95,13 +97,18 @@
             font-size: 1.2rem;
             cursor: pointer;
             margin: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .row-navigation button:hover {
+            background-color: #a0a0a0;
         }
 
         .search-container {
             width: 100%;
             display: flex;
             justify-content: center;
-            margin-top: 10px; /* Aggiunto margine superiore */
+            margin-top: 10px; 
         }
 
         .search-container input {
@@ -114,23 +121,183 @@
             font-size: 1rem;
             border-radius: 10px;
         }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+
+        @media screen and (max-width: 768px) {
+            .row-navigation button {
+                width: 30px;
+                height: 60px;
+                font-size: 1rem;
+            }
+
+            .search-container input {
+                width: 80%;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media screen and (max-aspect-ratio: 1/1) {
+            .circle-container {
+                border-radius: 50%;
+                overflow: hidden;
+                padding: 5%;
+                box-sizing: border-box;
+            }
+
+            .data-container {
+                max-height: 50%;
+            }
+
+            .row-navigation {
+                top: 60%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="circle-container">
+        <div class="title" id="progressivo">PROGRESSIVO</div>
+        <div class="row-navigation">
+            <button id="prev-row" data-offset="-1">◀</button>
+            <button id="next-row" data-offset="1">▶</button>
+        </div>
         <div class="data-container" id="data-container">
-            <div class="title" id="progressivo">PROGRESSIVO</div>
             <div class="data-items" id="data-items">
                 <!-- I dati delle colonne verranno inseriti qui -->
             </div>
             <div class="search-container">
                 <input type="number" id="row-search" placeholder="CERCA" min="1" />
             </div>
-        </div>
-        <div class="row-navigation">
-            <button id="prev-row" data-offset="-1">◀</button>
-            <button id="next-row" data-offset="1">▶</button>
+            <div class="error-message" id="error-message"></div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+    <script>
+        let excelData = [];
+        let currentRow = 1;
+
+        // Gestione di tutti gli eventi
+        function handleEvent(event) {
+            switch (event.type) {
+                case 'DOMContentLoaded':
+                    loadExcel();
+                    break;
+                case 'input':
+                    searchRow();
+                    break;
+                case 'click':
+                    navigateRow(parseInt(event.target.dataset.offset));
+                    break;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', handleEvent);
+        document.getElementById('row-search').addEventListener('input', handleEvent);
+        document.getElementById('prev-row').addEventListener('click', handleEvent);
+        document.getElementById('next-row').addEventListener('click', handleEvent);
+
+        function loadExcel() {
+            fetch('permute.xlsx')
+                .then(response => {
+                    if (!response.ok) throw new Error('File non trovato');
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    displayRow(currentRow);
+                })
+                .catch(error => {
+                    displayError(error.message);
+                });
+        }
+
+        function displayRow(rowIndex) {
+            if (rowIndex < 1 || rowIndex >= excelData.length) return;
+            currentRow = rowIndex;
+
+            displayRowHeader(currentRow);
+            displayRowData(currentRow);
+            hideError();
+        }
+
+        function displayRowHeader(rowIndex) {
+            document.getElementById('progressivo').textContent = `PROGRESSIVO: ${rowIndex}`;
+        }
+
+        function displayRowData(rowIndex) {
+            const dataItems = document.getElementById('data-items');
+            dataItems.innerHTML = '';
+            const row = excelData[rowIndex];
+            const columnOrder = [2, 0, 1, 3];
+
+            columnOrder.forEach((index, idx) => {
+                const cellData = row[index] !== undefined ? row[index] : '-';
+                const dataItem = document.createElement('div');
+                dataItem.classList.add('data-item');
+
+                const icon = document.createElement('div');
+                icon.classList.add('icon');
+                icon.classList.add(getIconClass(idx));
+
+                if (idx === 0) {
+                    icon.textContent = '❌';
+                    dataItem.classList.add('data-red');
+                } else if (idx === 1) {
+                    icon.textContent = '📞';
+                    dataItem.classList.add('data-white');
+                } else if (idx === 2) {
+                    icon.textContent = '⚡';
+                    dataItem.classList.add('data-yellow');
+                } else if (idx === 3) {
+                    icon.textContent = '➡️';
+                    dataItem.classList.add('data-green');
+                }
+
+                dataItem.appendChild(icon);
+                dataItem.appendChild(document.createTextNode(cellData));
+                dataItems.appendChild(dataItem);
+            });
+        }
+
+        function getIconClass(index) {
+            switch (index) {
+                case 0: return 'data-red';
+                case 1: return 'data-white';
+                case 2: return 'data-yellow';
+                case 3: return 'data-green';
+                default: return '';
+            }
+        }
+
+        function searchRow() {
+            const rowIndex = parseInt(document.getElementById('row-search').value);
+            if (!isNaN(rowIndex) && rowIndex > 0 && rowIndex < excelData.length) {
+                displayRow(rowIndex);
+            } else {
+                displayError('Numero di riga non valido');
+            }
+        }
+
+        function navigateRow(offset) {
+            displayRow(currentRow + offset);
+        }
+
+        function displayError(message) {
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function hideError() {
+            document.getElementById('error-message').textContent = '';
+        }
+    </script>
+</body>
+</html>
