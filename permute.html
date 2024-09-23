@@ -66,7 +66,7 @@
             align-items: center;
         }
 
-        .icon {
+        .icon { /* Classe .icon invece di .data-item-icon */
             font-size: var(--font-size-large);
             margin-right: 10px;
         }
@@ -134,23 +134,3 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
-    <script>
-        let excelData = [];
-        let currentRow = 1;
-
-        // Gestione di tutti gli eventi
-        function handleEvent(event) {
-            switch (event.type) {
-                case 'DOMContentLoaded':
-                    loadExcel();
-                    break;
-                case 'input':
-                    searchRow();
-                    break;
-                case 'click':
-                    navigateRow(parseInt(event.target.dataset.offset));
-                    break;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', handleEvent);
