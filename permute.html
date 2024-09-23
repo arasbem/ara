@@ -51,7 +51,7 @@
         }
 
         .data-item {
-            font-size: 2.5rem; /* Aumenta la dimensione del testo dei dati */
+            font-size: 3rem; /* Aumentata la dimensione del testo dei dati */
             margin: 15px 0; /* Aggiungi margine per spacciare i dati */
             word-wrap: break-word;
             text-align: left; /* Allinea il testo a sinistra */
@@ -60,7 +60,7 @@
         }
 
         .icon {
-            font-size: 2.5rem; /* Dimensione delle icone */
+            font-size: 3rem; /* Dimensione delle icone aumentata */
             margin-right: 10px; /* Margine a destra per distanziare l'icona dal dato */
         }
 
@@ -133,7 +133,11 @@
             }
 
             .data-item {
-                font-size: 2rem; /* Riduci dimensione dati sui dispositivi più piccoli */
+                font-size: 2.5rem; /* Dimensione dati ridotta per i dispositivi più piccoli */
+            }
+
+            .icon {
+                font-size: 2.5rem; /* Dimensione icone ridotta per i dispositivi più piccoli */
             }
 
             .row-navigation button {
@@ -231,7 +235,7 @@
 
         function toggleSearch() {
             const searchContainer = document.getElementById('search-container');
-            searchContainer.classList.toggle('show');
+            searchContainer.classList.toggle('show'); // Aggiungi o rimuovi la classe per mostrare/nascondere
         }
 
         document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
