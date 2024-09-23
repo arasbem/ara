@@ -102,9 +102,16 @@
 
         .search-container {
             width: 100%;
-            display: none; /* Nascondi inizialmente */
+            display: flex;
             justify-content: center;
             margin-bottom: 10px; /* Margine inferiore per distanziare */
+            transition: max-height 0.5s ease; /* Transizione per una transizione fluida */
+            max-height: 0; /* Altezza iniziale nulla */
+            overflow: hidden; /* Nascondi il contenuto */
+        }
+
+        .search-container.show {
+            max-height: 60px; /* Mostra il campo di ricerca con altezza fissa */
         }
 
         .search-container input {
@@ -117,6 +124,7 @@
             font-size: 1rem;
             border-radius: 10px;
         }
+
     </style>
 </head>
 
@@ -206,10 +214,10 @@
 
         function toggleSearch() {
             const searchContainer = document.getElementById('search-container');
-            if (searchContainer.style.display === 'flex') {
-                searchContainer.style.display = 'none'; // Nascondi il campo di ricerca
+            if (searchContainer.classList.contains('show')) {
+                searchContainer.classList.remove('show'); // Nascondi il campo di ricerca
             } else {
-                searchContainer.style.display = 'flex'; // Mostra il campo di ricerca
+                searchContainer.classList.add('show'); // Mostra il campo di ricerca
             }
         }
 
