@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permute 4.0</title>
     <style>
+        :root {
+            --primary-color: #808080;
+            --font-size-large: 2.5rem;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -15,6 +20,7 @@
             text-align: center;
             overflow: hidden; /* Nasconde il contenuto fuori dal display circolare */
         }
+
         .circle-container {
             position: absolute;
             width: 100vw; /* Usa tutta la larghezza del display */
@@ -25,15 +31,17 @@
             align-items: center;
             background-color: #000000; /* Sfondo completamente nero */
         }
+
         .title {
             font-size: 1.2rem;
             font-weight: bold;
-            background-color: #808080; /* Grigio per il titolo */
+            background-color: var(--primary-color); /* Grigio per il titolo */
             padding: 10px 20px;
             border-radius: 15px;
-            border: 2px solid #808080; /* Grigio per il bordo */
+            border: 2px solid var(--primary-color); /* Grigio per il bordo */
             margin: 10px 0;
         }
+
         .data-container {
             flex: 1; /* Occupa lo spazio centrale */
             display: flex;
@@ -43,30 +51,37 @@
             max-height: 60%; /* Limita l'altezza */
             overflow: hidden;
         }
+
         .data-item {
-            font-size: 2.5rem; /* Aumenta la dimensione del testo dei dati */
+            font-size: var(--font-size-large);
             margin: 15px 0; /* Aggiungi margine per spacciare i dati */
             word-wrap: break-word;
             text-align: left; /* Allinea il testo a sinistra */
             display: flex; /* Permette di allineare l'icona e il dato */
             align-items: center; /* Allinea verticalmente l'icona e il dato */
         }
-        .icon {
-            font-size: 2.5rem; /* Dimensione delle icone */
-            margin-right: 10px; /* Margine a destra per distanziare l'icona dal dato */
+
+        .data-item-icon {
+            font-size: var(--font-size-large);
+            margin-right: 10px;
         }
+
         .data-red {
-            color: #ff0000; /* Rosso acceso per il primo dato */
+            color: #ff0000;
         }
+
         .data-white {
-            color: #ffffff; /* Bianco per il secondo dato */
+            color: #ffffff;
         }
+
         .data-yellow {
-            color: #ffff00; /* Giallo per il terzo dato */
+            color: #ffff00;
         }
+
         .data-green {
-            color: #00cc00; /* Verde acceso per il quarto dato */
+            color: #00cc00;
         }
+
         .row-navigation {
             display: flex;
             justify-content: space-between;
@@ -75,10 +90,11 @@
             top: 50%;
             transform: translateY(-50%);
         }
+
         .row-navigation button {
-            background-color: #808080; /* Grigio per lo sfondo */
+            background-color: var(--primary-color); /* Grigio per lo sfondo */
             color: #000000; /* Nero per il testo */
-            border: 2px solid #808080; /* Grigio per il bordo */
+            border: 2px solid var(--primary-color); /* Grigio per il bordo */
             border-radius: 15px;
             width: 40px; /* Dimensione ridotta in larghezza */
             height: 80px; /* Aumenta l'altezza */
@@ -86,12 +102,14 @@
             cursor: pointer;
             margin: 5px;
         }
+
         .search-container {
             width: 100%;
             display: flex;
             justify-content: center;
             margin-bottom: 10px; /* Margine inferiore per distanziare */
         }
+
         .search-container input {
             width: 60%; /* Dimensione regolabile */
             padding: 10px;
@@ -108,8 +126,8 @@
     <div class="circle-container">
         <div class="title" id="progressivo">PROGRESSIVO</div>
         <div class="row-navigation">
-            <button id="prev-row">◀</button>
-            <button id="next-row">▶</button>
+            <button id="prev-row" data-offset="-1"> </button>
+            <button id="next-row" data-offset="1"> </button>
         </div>
         <div class="data-container" id="data-container">
             <div class="data-items" id="data-items">
@@ -123,11 +141,22 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
     <script>
-        let excelData = [];
+        const excelData = [];
         let currentRow = 1;
 
-        document.addEventListener('DOMContentLoaded', loadExcel);
-        document.getElementById('row-search').addEventListener('input', searchRow);
+        function handleEvent(event) {
+            if (event.type === 'DOMContentLoaded') {
+                loadExcel();
+            } else if (event.type === 'input') {
+                searchRow();
+            } else if (event.type === 'click') {
+                navigateRow(event.target.dataset.offset);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', handleEvent);
+        document.addEventListener('input', handleEvent);
+        document.addEventListener('click', handleEvent);
 
         function loadExcel() {
             fetch('permute.xlsx')
@@ -144,40 +173,50 @@
         function displayRow(rowIndex) {
             if (rowIndex < 1 || rowIndex >= excelData.length) return;
             currentRow = rowIndex;
-            document.getElementById('progressivo').textContent = `PROGRESSIVO: ${currentRow}`; // Mostra il numero di riga
-            const row = excelData[rowIndex];
+            displayRowHeader(currentRow);
+            displayRowData(currentRow);
+        }
+
+        function displayRowHeader(rowIndex) {
+            const header = document.getElementById('progressivo');
+            header.textContent = `PROGRESSIVO: ${rowIndex}`;
+        }
+
+        function displayRowData(rowIndex) {
             const dataItems = document.getElementById('data-items');
             dataItems.innerHTML = '';
 
-            // Ordina le colonne secondo l'ordine specificato: 3, 1, 2, 4
-            const columnOrder = [2, 0, 1, 3]; // Gli indici delle colonne in base all'ordine richiesto
+            const row = excelData[rowIndex];
+            const columnOrder = [2, 0, 1, 3];
+
             columnOrder.forEach((index, idx) => {
                 const cellData = row[index] !== undefined ? row[index] : '-';
                 const dataItem = document.createElement('div');
                 dataItem.classList.add('data-item');
 
-                // Aggiungi l'icona in base all'indice
                 const icon = document.createElement('div');
-                icon.classList.add('icon');
-
-                if (idx === 0) {
-                    icon.textContent = '❌'; // Icona rossa
-                    dataItem.classList.add('data-red');
-                } else if (idx === 1) {
-                    icon.textContent = '📞'; // Icona telefono
-                    dataItem.classList.add('data-white');
-                } else if (idx === 2) {
-                    icon.textContent = '⚡'; // Icona cavi elettrici
-                    dataItem.classList.add('data-yellow');
-                } else if (idx === 3) {
-                    icon.textContent = '➡️'; // Icona freccia verso destra
-                    dataItem.classList.add('data-green');
-                }
+                icon.classList.add('data-item-icon');
+                icon.classList.add(getIconClass(idx));
 
                 dataItem.appendChild(icon);
-                dataItem.appendChild(document.createTextNode(cellData)); // Aggiungi il dato
+                dataItem.appendChild(document.createTextNode(cellData));
                 dataItems.appendChild(dataItem);
             });
+        }
+
+        function getIconClass(index) {
+            switch (index) {
+                case 0:
+                    return 'data-red';
+                case 1:
+                    return 'data-white';
+                case 2:
+                    return 'data-yellow';
+                case 3:
+                    return 'data-green';
+                default:
+                    return '';
+            }
         }
 
         function searchRow() {
@@ -186,9 +225,6 @@
                 displayRow(rowIndex);
             }
         }
-
-        document.getElementById('prev-row').addEventListener('click', () => navigateRow(-1));
-        document.getElementById('next-row').addEventListener('click', () => navigateRow(1));
 
         function navigateRow(offset) {
             displayRow(currentRow + offset);
