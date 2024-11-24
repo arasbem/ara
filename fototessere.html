@@ -1,0 +1,333 @@
+<html><head><base href="." target="_blank">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generatore Fototessere</title>
+<style>
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+    }
+
+    .container {
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px);
+        transform-style: preserve-3d;
+        transition: transform 0.3s ease;
+    }
+
+    .container:hover {
+        transform: translateY(-5px);
+    }
+
+    h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .upload-section {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        border-radius: 15px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 
+            8px 8px 16px #d1d1d1,
+            -8px -8px 16px #ffffff;
+    }
+
+    input[type="file"] {
+        padding: 10px;
+        border-radius: 10px;
+        background: #f8f9fa;
+        border: 2px dashed #3498db;
+        width: 80%;
+        max-width: 400px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    input[type="file"]:hover {
+        border-color: #2ecc71;
+        background: #fff;
+    }
+
+    .preview-section {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin: 20px 0;
+        gap: 20px;
+    }
+
+    #previewOriginal, #previewContainer {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    #previewOriginal:hover, #previewContainer:hover {
+        transform: scale(1.02);
+    }
+
+    canvas {
+        border: 3px solid #3498db;
+        border-radius: 10px;
+        margin: 5px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    canvas:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    button {
+        background: linear-gradient(45deg, #3498db, #2ecc71);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        margin: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        animation: pulse 2s infinite;
+    }
+
+    button:hover {
+        background: linear-gradient(45deg, #2ecc71, #3498db);
+        transform: translateY(-2px);
+        box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+    }
+
+    .instructions {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 
+            8px 8px 16px #d1d1d1,
+            -8px -8px 16px #ffffff;
+    }
+
+    .instructions h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .specs {
+        background: linear-gradient(145deg, #e8f4fc, #d1e9f7);
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+        font-size: 0.95em;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .specs ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .specs li {
+        padding: 5px 0;
+        position: relative;
+        padding-left: 25px;
+    }
+
+    .specs li:before {
+        content: "•";
+        color: #3498db;
+        font-size: 1.5em;
+        position: absolute;
+        left: 5px;
+        top: 0;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generatore Fototessere</h1>
+        
+        <div class="instructions">
+            <h3>Istruzioni:</h3>
+            <p>1. Carica una foto del tuo primo piano</p>
+            <p>2. L'immagine verrà automaticamente convertita nel formato fototessera</p>
+            <p>3. Scarica le fototessere nel formato standard 35x45mm su foglio A4</p>
+            <div class="specs">
+                <strong>Specifiche formato:</strong>
+                <ul>
+                    <li>Dimensioni: 35x45mm</li>
+                    <li>Risoluzione: 300 DPI</li>
+                    <li>Sfondo: Bianco</li>
+                    <li>Formato foglio: A4 (210x297mm)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="processImage()">Genera Fototessere</button>
+        </div>
+
+        <div class="preview-section">
+            <div id="previewOriginal">
+                <h3>Foto Originale</h3>
+                <canvas id="originalCanvas"></canvas>
+            </div>
+            <div id="previewContainer">
+                <h3>Fototessere Generate (A4)</h3>
+                <canvas id="outputCanvas"></canvas>
+            </div>
+        </div>
+
+        <div id="downloadSection">
+            <button id="downloadBtn" onclick="downloadPhotos()" style="display: none;">
+                Scarica Fototessere
+            </button>
+        </div>
+    </div>
+
+<script>
+let originalImage = null;
+const PHOTO_WIDTH = 35; // mm
+const PHOTO_HEIGHT = 45; // mm
+const DPI = 300; // punti per pollice
+const MM_PER_INCH = 25.4;
+const BORDER_WIDTH = 2; // mm
+const A4_WIDTH = 210; // mm
+const A4_HEIGHT = 297; // mm
+
+function processImage() {
+    const input = document.getElementById('imageInput');
+    const file = input.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            originalImage = new Image();
+            originalImage.onload = function() {
+                drawOriginal();
+                generatePhotoSheet();
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+            }
+            originalImage.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+function drawOriginal() {
+    const canvas = document.getElementById('originalCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const maxPreviewSize = 300;
+    const ratio = Math.min(maxPreviewSize / originalImage.width, maxPreviewSize / originalImage.height);
+    
+    canvas.width = originalImage.width * ratio;
+    canvas.height = originalImage.height * ratio;
+    
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+}
+
+function generatePhotoSheet() {
+    const canvas = document.getElementById('outputCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const pixelsPerMM = DPI / MM_PER_INCH;
+    const photoWidthPx = Math.round(PHOTO_WIDTH * pixelsPerMM);
+    const photoHeightPx = Math.round(PHOTO_HEIGHT * pixelsPerMM);
+    const borderWidthPx = Math.round(BORDER_WIDTH * pixelsPerMM);
+    
+    canvas.width = Math.round(A4_WIDTH * pixelsPerMM);
+    canvas.height = Math.round(A4_HEIGHT * pixelsPerMM);
+    
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const photosPerRow = Math.floor(A4_WIDTH / (PHOTO_WIDTH + BORDER_WIDTH));
+    const photosPerColumn = Math.floor(A4_HEIGHT / (PHOTO_HEIGHT + BORDER_WIDTH));
+    
+    const totalWidthUsed = (photosPerRow * (PHOTO_WIDTH + BORDER_WIDTH)) - BORDER_WIDTH;
+    const totalHeightUsed = (photosPerColumn * (PHOTO_HEIGHT + BORDER_WIDTH)) - BORDER_WIDTH;
+    const marginLeft = (A4_WIDTH - totalWidthUsed) / 2;
+    const marginTop = (A4_HEIGHT - totalHeightUsed) / 2;
+    
+    const marginLeftPx = Math.round(marginLeft * pixelsPerMM);
+    const marginTopPx = Math.round(marginTop * pixelsPerMM);
+    
+    for(let row = 0; row < photosPerColumn; row++) {
+        for(let col = 0; col < photosPerRow; col++) {
+            const x = marginLeftPx + col * (photoWidthPx + borderWidthPx);
+            const y = marginTopPx + row * (photoHeightPx + borderWidthPx);
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x, y, photoWidthPx, photoHeightPx);
+            
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, photoWidthPx, photoHeightPx);
+            
+            ctx.drawImage(
+                originalImage,
+                x + borderWidthPx,
+                y + borderWidthPx,
+                photoWidthPx - 2 * borderWidthPx,
+                photoHeightPx - 2 * borderWidthPx
+            );
+        }
+    }
+    
+    const scale = Math.min(600 / canvas.width, 800 / canvas.height);
+    canvas.style.width = (canvas.width * scale) + 'px';
+    canvas.style.height = (canvas.height * scale) + 'px';
+}
+
+function downloadPhotos() {
+    const canvas = document.getElementById('outputCanvas');
+    const link = document.createElement('a');
+    link.download = 'fototessere_A4.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+</script>
+</body></html>
