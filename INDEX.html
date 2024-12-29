@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Multimediale NAS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        section {
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+        .file-item {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #eee;
+            cursor: pointer;
+        }
+        .file-item:hover {
+            background-color: #ddd;
+        }
+        .player-container {
+            margin-top: 20px;
+        }
+        audio, video {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Player Multimediale NAS</h1>
+        <p>Seleziona un file per riprodurlo dal tuo NAS</p>
+    </header>
+
+    <section id="musica">
+        <h2>Musica</h2>
+        <ul class="file-list" id="music-list">
+            <!-- I file musicali verranno caricati dinamicamente -->
+        </ul>
+    </section>
+
+    <section id="film">
+        <h2>Film</h2>
+        <ul class="file-list" id="movie-list">
+            <!-- I file video verranno caricati dinamicamente -->
+        </ul>
+    </section>
+
+    <!-- Sezione Player -->
+    <div class="player-container" id="player-container">
+        <!-- Il player audio/video verrà inserito dinamicamente -->
+    </div>
+
+    <script>
+        // Funzione per ottenere la lista dei file da una cartella
+        function fetchFilesFromNAS(directory, type) {
+            // Usa fetch per ottenere i file dalla cartella NAS tramite HTTPS
+            fetch(directory)
+                .then(response => response.json())  // Assumendo che il NAS fornisca una risposta JSON
+                .then(data => {
+                    let files = data.files;
+                    if (type === 'audio') {
+                        displayFiles(files, 'audio');
+                    } else if (type === 'video') {
+                        displayFiles(files, 'video');
+                    }
+                })
+                .catch(error => console.error('Errore nel recuperare i file:', error));
+        }
+
+        // Funzione per visualizzare i file nella lista
+        function displayFiles(files, type) {
+            const list = type === 'audio' ? document.getElementById('music-list') : document.getElementById('movie-list');
+            list.innerHTML = ''; // Pulisce la lista prima di aggiungere nuovi file
+
+            files.forEach(file => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('file-item');
+                listItem.textContent = file.name;
+                listItem.onclick = () => playMedia(file.url, type);
+                list.appendChild(listItem);
+            });
+        }
+
+        // Funzione per riprodurre i file
+        function playMedia(fileURL, type) {
+            const playerContainer = document.getElementById('player-container');
+            playerContainer.innerHTML = ''; // Pulisce il player precedente
+
+            let mediaElement;
+
+            // Crea il player in base al tipo di file
+            if (type === 'audio') {
+                mediaElement = document.createElement('audio');
+                mediaElement.controls = true;
+                const source = document.createElement('source');
+                source.src = fileURL;
+                source.type = 'audio/mp3';
+                mediaElement.appendChild(source);
+            } else if (type === 'video') {
+                mediaElement = document.createElement('video');
+                mediaElement.controls = true;
+                const source = document.createElement('source');
+                source.src = fileURL;
+                source.type = 'video/mp4';
+                mediaElement.appendChild(source);
+            }
+
+            playerContainer.appendChild(mediaElement);
+        }
+
+        // Esempio di accesso ai file dalla cartella NAS
+        // Sostituire con l'URL delle cartelle del NAS
+        const nasBaseURL = "https://w4dzka3w1yj0c9dp.myfritz.net:49230/NAS";
+
+        // Carica i file musicali e video dalle rispettive cartelle
+        fetchFilesFromNAS(nasBaseURL + "/MUSICA", 'audio');
+        fetchFilesFromNAS(nasBaseURL + "/FILM", 'video');
+    </script>
+</body>
+</html>
