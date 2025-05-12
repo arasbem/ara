@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEM Generator Web - Creazione file settimanali</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            color: #000000;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 150px;
+            height: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        label {
+            font-weight: bold;
+            min-width: 80px;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            flex-grow: 1;
+        }
+        button {
+            background-color: #0078D7;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        #progressContainer {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+        }
+        progress {
+            width: 100%;
+            height: 20px;
+        }
+        #statusMessage {
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .error {
+            color: #d32f2f;
+        }
+        .success {
+            color: #388e3c;
+        }
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #0078D7;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #0078D7;
+        }
+        .instructions p {
+            margin-bottom: 8px;
+        }
+        .instructions ul {
+            margin-top: 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <!-- Placeholder for logo -->
+            <svg width="150" height="100" viewBox="0 0 150 100">
+                <rect x="25" y="25" width="100" height="50" fill="#0078D7" rx="10" ry="10" />
+                <text x="75" y="60" fill="white" text-anchor="middle" font-weight="bold" font-size="20">CEM</text>
+            </svg>
+        </div>
+        
+        <div class="form-group">
+            <div class="form-row">
+                <label for="fullName">Nome e Cognome:</label>
+                <input type="text" id="fullName" placeholder="Inserisci nome e cognome">
+            </div>
+            
+            <div class="form-row">
+                <label for="month">Mese:</label>
+                <select id="month">
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                    <option value="04">04</option>
+                    <option value="05">05</option>
+                    <option value="06">06</option>
+                    <option value="07">07</option>
+                    <option value="08">08</option>
+                    <option value="09">09</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+                
+                <label for="year">Anno:</label>
+                <select id="year"></select>
+            </div>
+        </div>
+        
+        <button id="generateBtn">Genera file</button>
+        
+        <div id="progressContainer">
+            <progress id="progressBar" value="0" max="100"></progress>
+            <div id="statusMessage"></div>
+        </div>
+
+        <div class="instructions">
+            <h3>Istruzioni</h3>
+            <p>Per generare i file settimanali:</p>
+            <ul>
+                <li>Inserisci il tuo nome e cognome</li>
+                <li>Seleziona mese e anno</li>
+                <li>Clicca su "Genera file"</li>
+                <li>Scarica il file ZIP contenente tutti i file generati</li>
+            </ul>
+            <p>I file generati avranno:</p>
+            <ul>
+                <li>Il tuo nome e cognome nella cella C1</li>
+                <li>Le date di inizio e fine nella cella I1 e K1</li>
+                <li>Il mese/anno nella cella O1</li>
+            </ul>
+            <p><strong>Nota:</strong> Il template Excel (dima.xlsx) è già incluso nell'applicazione.</p>
+        </div>
+    </div>
+
+    <script>
+        // Struttura del progetto:
+        // /
+        // ├── index.html (questo file)
+        // ├── css/ (opzionale, per fogli di stile aggiuntivi)
+        // ├── js/ (opzionale, per script aggiuntivi)
+        // └── assets/
+        //     └── dima.xlsx (il file template deve essere posizionato qui)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Imposta mese corrente
+            const currentDate = new Date();
+            const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            document.getElementById('month').value = currentMonth;
+            
+            // Popola il select degli anni
+            const yearSelect = document.getElementById('year');
+            const currentYear = currentDate.getFullYear();
+            
+            for (let year = currentYear; year < currentYear + 6; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+            
+            // Genera i file
+            document.getElementById('generateBtn').addEventListener('click', generateFiles);
+        });
+        
+        async function generateFiles() {
+            // Validazione input
+            const fullName = document.getElementById('fullName').value.trim();
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            
+            if (!fullName) {
+                showStatus('Inserisci nome e cognome', 'error');
+                return;
+            }
+            
+            // Prepara UI per elaborazione
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            progressBar.value = 10;
+            showStatus('Caricamento template...', '');
+            
+            try {
+                // Carica il file template dalla cartella assets
+                const templateUrl = 'assets/dima.xlsx';
+                const templateResponse = await fetch(templateUrl);
+                
+                if (!templateResponse.ok) {
+                    throw new Error(`Impossibile caricare il template: ${templateResponse.statusText}`);
+                }
+                
+                const templateArrayBuffer = await templateResponse.arrayBuffer();
+                const workbook = XLSX.read(templateArrayBuffer, { type: 'array' });
+                
+                progressBar.value = 30;
+                showStatus('Calcolo dei giorni lavorativi...', '');
+                
+                // Calcola i giorni lavorativi del mese
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const workingDays = [];
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month - 1, day);
+                    const dayOfWeek = date.getDay(); // 0 è domenica, 6 è sabato
+                    
+                    // Controlla se è un giorno lavorativo (lunedì-venerdì)
+                    if (dayOfWeek > 0 && dayOfWeek < 6) {
+                        workingDays.push(day);
+                    }
+                }
+                
+                progressBar.value = 50;
+                showStatus('Raggruppamento in settimane...', '');
+                
+                // Raggruppa i giorni in settimane lavorative
+                const groups = [];
+                let currentGroup = [];
+                
+                for (let i = 0; i < workingDays.length; i++) {
+                    const currentDay = workingDays[i];
+                    
+                    if (currentGroup.length === 0) {
+                        currentGroup.push(currentDay);
+                    } else if (currentDay === currentGroup[currentGroup.length - 1] + 1) {
+                        currentGroup.push(currentDay);
+                    } else {
+                        groups.push([...currentGroup]);
+                        currentGroup = [currentDay];
+                    }
+                }
+                
+                if (currentGroup.length > 0) {
+                    groups.push(currentGroup);
+                }
+                
+                progressBar.value = 70;
+                showStatus('Generazione file Excel...', '');
+                
+                // Crea un nuovo ZIP con i file generati
+                const zip = new JSZip();
+                const folderName = `${month}-${year}`;
+                const folder = zip.folder(folderName);
+                
+                // Genera un file Excel per ogni gruppo di giorni
+                for (const group of groups) {
+                    const startDay = group[0];
+                    const endDay = group[group.length - 1];
+                    const fileName = startDay === endDay ? `${startDay}.xlsx` : `${startDay}-${endDay}.xlsx`;
+                    
+                    // Clona il workbook
+                    const newWorkbook = XLSX.utils.book_new();
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // Copia il contenuto del foglio
+                    const newWorksheet = XLSX.utils.aoa_to_sheet([[]]);
+                    Object.keys(worksheet).forEach(cell => {
+                        if (cell[0] !== '!') { // Ignora le proprietà speciali
+                            newWorksheet[cell] = worksheet[cell];
+                        }
+                    });
+                    
+                    // Aggiungi le proprietà del foglio (come intervalli, ecc.)
+                    Object.keys(worksheet).forEach(prop => {
+                        if (prop[0] === '!') {
+                            newWorksheet[prop] = worksheet[prop];
+                        }
+                    });
+                    
+                    // Aggiungi o modifica le celle specifiche
+                    // Nome e Cognome nella cella C1
+                    newWorksheet['C1'] = { t: 's', v: fullName };
+                    
+                    // Giorno iniziale nella cella I1
+                    newWorksheet['I1'] = { t: 'n', v: startDay };
+                    
+                    // Giorno finale nella cella K1
+                    newWorksheet['K1'] = { t: 'n', v: endDay };
+                    
+                    // Mese/Anno nella cella O1
+                    newWorksheet['O1'] = { t: 's', v: `${month}/${year}` };
+                    
+                    // Aggiungi il foglio al nuovo workbook
+                    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, workbook.SheetNames[0]);
+                    
+                    // Converti il workbook in un blob e aggiungilo al zip
+                    const content = XLSX.write(newWorkbook, { type: 'array' });
+                    folder.file(fileName, content);
+                }
+                
+                progressBar.value = 90;
+                showStatus('Preparazione download...', '');
+                
+                // Genera il file ZIP
+                const zipContent = await zip.generateAsync({ type: 'blob' });
+                
+                // Scarica il file ZIP
+                saveAs(zipContent, `CEM_${month}-${year}_${fullName.replace(/\s+/g, '_')}.zip`);
+                
+                progressBar.value = 100;
+                showStatus('File generati con successo!', 'success');
+                
+            } catch (error) {
+                console.error('Errore durante la generazione dei file:', error);
+                showStatus(`Errore: ${error.message}`, 'error');
+            }
+        }
+        
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = type; // Imposta la classe per lo stile (error, success)
+        }
+    </script>
+</body>
+</html>
