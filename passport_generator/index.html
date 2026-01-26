@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Fototessere Pro</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <main class="glass-container">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-id-card-clip"></i>
+                <h1>FotoTessera<span>PRO</span></h1>
+            </div>
+            <p class="subtitle">Il modo più semplice e bello per creare le tue fototessere.</p>
+        </header>
+
+        <section class="content-grid">
+            <!-- Left Column: Upload & Instructions -->
+            <div class="left-panel">
+                <div class="upload-zone" id="dropZone">
+                    <div class="icon-container">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h3>Trascina la tua foto qui</h3>
+                    <p>oppure</p>
+                    <label for="imageInput" class="custom-file-upload">
+                        Scegli File
+                    </label>
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    <p class="file-hint">Supporta JPG, PNG</p>
+                </div>
+
+                <div class="instructions-card">
+                    <h3><i class="fa-solid fa-list-check"></i> Istruzioni</h3>
+                    <ul>
+                        <li><i class="fa-solid fa-1"></i> Carica un primo piano chiaro.</li>
+                        <li><i class="fa-solid fa-2"></i> L'IA (simulata) centrerà il volto.</li>
+                        <li><i class="fa-solid fa-3"></i> Scarica il PDF A4 pronto per la stampa.</li>
+                    </ul>
+                    <div class="specs-badge">
+                        <span>35x45mm</span>
+                        <span>300 DPI</span>
+                        <span>Sfondo Bianco</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Preview -->
+            <div class="right-panel">
+                <div class="preview-card" id="previewCard">
+                    <div class="preview-header">
+                        <h3>Anteprima</h3>
+                        <div class="status-indicator" id="statusIndicator">
+                            <span class="dot"></span> In attesa
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-container">
+                        <canvas id="outputCanvas"></canvas>
+                        <div class="placeholder-overlay" id="placeholderOverlay">
+                            <i class="fa-regular fa-image"></i>
+                            <p>L'anteprima apparirà qui</p>
+                        </div>
+                        <div class="loading-overlay" id="loadingOverlay">
+                            <div class="spinner"></div>
+                            <p>Elaborazione in corso...</p>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button id="downloadBtn" class="btn-primary" disabled>
+                            <i class="fa-solid fa-download"></i> Scarica A4
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
