@@ -475,23 +475,35 @@
 
 <script>
 (function(){
+  // STATO
   const state = { images: [] };
   const MAX_DIM = 1800;
   const JPEG_QUALITY = 0.85;
-  const CROP_THRESHOLD = 20;
-  const CROP_PADDING = 2;
+  const CROP_THRESHOLD = 25;
+  const CROP_PADDING = 5;
 
+  // DOM ELEMENTI
   const $ = (id) => document.getElementById(id);
-  const cliente = $('cliente'), co = $('co'), tecnico = $('tecnico'), data = $('data');
+  const cliente = $('cliente');
+  const co = $('co');
+  const tecnico = $('tecnico');
+  const data = $('data');
   const docTypeRadios = document.querySelectorAll('input[name="docType"]');
   const filenameManual = $('filenameManual');
-  const tagName = $('tagName'), tagStatus = $('tagStatus');
+  const tagName = $('tagName');
+  const tagStatus = $('tagStatus');
   const thumbWrap = $('thumbWrap');
   const btnGenerate = $('btnGenerate');
   const statusEl = $('status');
+  const cameraInput = $('cameraInput');
+  const fileInput = $('fileInput');
+  const btnCamera = $('btnCamera');
+  const btnUpload = $('btnUpload');
+  const btnRegenerate = $('btnRegenerate');
 
   let manualOverride = false;
 
+  // DATA DEFAULT
   function todayStr(){
     const d = new Date();
     const pad = n => String(n).padStart(2,'0');
@@ -499,7 +511,7 @@
   }
   data.value = todayStr();
 
-  // --- RILEVAMENTO E RITAGLIO BORDI ---
+  // --- RILEVAMENTO BORDI ---
   function detectEdges(imageData, threshold) {
     const data = imageData.data;
     const w = imageData.width;
@@ -512,7 +524,7 @@
     }
 
     let minX = w, maxX = 0, minY = h, maxY = 0;
-    const thresh = threshold || 20;
+    const thresh = threshold || 25;
 
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -533,11 +545,11 @@
     return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
   }
 
-  function cropImage(dataUrl, padding = 2, threshold = 20) {
+  // --- RITAGLIO IMMAGINE ---
+  function cropImage(dataUrl, padding = 5, threshold = 25) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onerror = () => reject(new Error('Immagine non valida'));
-      img.onload = () => {
+      img.onload = function() {
         try {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -548,11 +560,16 @@
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const edges = detectEdges(imageData, threshold);
           
-          const pad = Math.max(0, padding || 0);
+          const pad = Math.max(0, padding);
           const x = Math.max(0, edges.x - pad);
           const y = Math.max(0, edges.y - pad);
           const w = Math.min(canvas.width - x, edges.w + pad * 2);
           const h = Math.min(canvas.height - y, edges.h + pad * 2);
+
+          if (w < 10 || h < 10) {
+            reject(new Error('Area di ritaglio troppo piccola'));
+            return;
+          }
 
           const cropCanvas = document.createElement('canvas');
           cropCanvas.width = w;
@@ -564,6 +581,9 @@
         } catch(e) {
           reject(e);
         }
+      };
+      img.onerror = function() {
+        reject(new Error('Impossibile caricare l\'immagine'));
       };
       img.src = dataUrl;
     });
@@ -592,6 +612,7 @@
     return 'CO';
   }
 
+  // --- COSTRUZIONE NOME FILE ---
   function buildFilename(){
     const c = sanitize(cliente.value);
     const coVal = sanitize(co.value);
@@ -602,18 +623,18 @@
 
     const parts = [
       { label:'PREFIX', value:prefix, valid:true },
-      { label:'CLIENTE', value:c, valid: c.length>0 },
+      { label:'CLIENTE', value:c, valid: c.length > 0 },
       { label:'CO', value:'CO', valid:true },
-      { label:'ORDINE', value: coVal.length>0 ? coVal : null, valid: coVal.length>0 },
-      { label:'TECNICO', value: t.length>0 ? t : null, valid: t.length>0 },
+      { label:'ORDINE', value: coVal.length > 0 ? coVal : null, valid: coVal.length > 0 },
+      { label:'TECNICO', value: t.length > 0 ? t : null, valid: t.length > 0 },
       { label:'DATA', value: dOk, valid: !!dOk },
     ];
 
     const allValid = parts.every(p => p.valid && p.value);
 
     let html = '';
-    parts.forEach((p,i) => {
-      if(i>0) html += '<span class="seg">_</span>';
+    parts.forEach((p, i) => {
+      if(i > 0) html += '<span class="seg">_</span>';
       html += p.value
         ? `<span class="val">${p.value}</span>`
         : `<span class="miss">${p.label}</span>`;
@@ -628,7 +649,7 @@
 
     const finalFilename = (manualOverride && manual.length > 0) ? manual : autoFilename;
 
-    tagStatus.textContent = finalFilename ? 'PRONTO' : 'INCOMPLETO';
+    tagStatus.textContent = finalFilename ? '✅ PRONTO' : '⏳ INCOMPLETO';
     tagStatus.style.color = finalFilename ? 'var(--ok)' : 'var(--danger)';
 
     return { filename: finalFilename, allValid, autoFilename };
@@ -637,6 +658,7 @@
   function refreshGenerateState(){
     const { filename, allValid } = buildFilename();
     btnGenerate.disabled = !(allValid && state.images.length > 0 && filename);
+    return { filename, allValid };
   }
 
   function updateManualFromAuto(){
@@ -651,6 +673,7 @@
     refreshGenerateState();
   }
 
+  // --- EVENTI DATI ---
   [cliente, co, tecnico, data].forEach(el => {
     el.addEventListener('input', onDataChange);
     el.addEventListener('change', onDataChange);
@@ -660,31 +683,34 @@
     radio.addEventListener('change', onDataChange);
   });
 
-  filenameManual.addEventListener('input', () => {
+  filenameManual.addEventListener('input', function() {
     manualOverride = true;
     buildFilename();
     refreshGenerateState();
   });
 
-  $('btnRegenerate').addEventListener('click', () => {
+  btnRegenerate.addEventListener('click', function() {
     manualOverride = false;
     updateManualFromAuto();
     refreshGenerateState();
     buildFilename();
   });
 
-  // --- CAMERA / CARICAMENTO ---
-  $('btnCamera').addEventListener('click', () => $('cameraInput').click());
-  $('btnUpload').addEventListener('click', () => $('fileInput').click());
+  // --- CARICAMENTO IMMAGINI ---
+  btnCamera.addEventListener('click', function() {
+    cameraInput.click();
+  });
 
-  function loadAndCompress(file){
+  btnUpload.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  function loadAndCompress(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Lettura file fallita'));
-      reader.onload = (e) => {
+      reader.onload = function(e) {
         const img = new Image();
-        img.onerror = () => reject(new Error('Immagine non valida'));
-        img.onload = () => {
+        img.onload = function() {
           let { width, height } = img;
           if(width > MAX_DIM || height > MAX_DIM){
             const scale = MAX_DIM / Math.max(width, height);
@@ -692,96 +718,140 @@
             height = Math.round(height * scale);
           }
           const canvas = document.createElement('canvas');
-          canvas.width = width; canvas.height = height;
+          canvas.width = width;
+          canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0,0,width,height);
+          ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
           resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
         };
+        img.onerror = function() {
+          reject(new Error('Immagine non valida'));
+        };
         img.src = e.target.result;
+      };
+      reader.onerror = function() {
+        reject(new Error('Lettura file fallita'));
       };
       reader.readAsDataURL(file);
     });
   }
 
-  async function handleFiles(fileList){
+  async function handleFiles(fileList) {
     const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
-    for(const file of files){
-      try{
-        const dataUrl = await loadAndCompress(file);
-        let finalDataUrl = dataUrl;
-        let isCropped = false;
+    if(files.length === 0) {
+      statusEl.textContent = '⚠️ Nessun file immagine valido';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    for(const file of files) {
+      try {
+        statusEl.textContent = `📷 Elaborazione: ${file.name}...`;
+        statusEl.className = 'status';
         
+        // 1. Carica e comprimi
+        const dataUrl = await loadAndCompress(file);
+        
+        // 2. Ritaglia automaticamente i bordi
+        let croppedDataUrl = null;
+        let isCropped = false;
         try {
-          // Applica il ritaglio automatico
-          finalDataUrl = await cropImage(dataUrl, CROP_PADDING, CROP_THRESHOLD);
+          croppedDataUrl = await cropImage(dataUrl, CROP_PADDING, CROP_THRESHOLD);
           isCropped = true;
         } catch(cropErr) {
-          console.warn('Ritaglio fallito, uso immagine originale:', cropErr);
-          finalDataUrl = dataUrl;
+          console.warn('Ritaglio fallito per', file.name, cropErr);
+          croppedDataUrl = dataUrl;
           isCropped = false;
         }
         
-        state.images.push({ 
-          id: Date.now() + Math.random(), 
-          dataUrl: finalDataUrl,
-          isCropped: isCropped
+        state.images.push({
+          id: Date.now() + Math.random() + '_' + file.name,
+          dataUrl: croppedDataUrl,
+          originalDataUrl: dataUrl,
+          isCropped: isCropped,
+          name: file.name
         });
+        
         renderThumbs();
         refreshGenerateState();
-      } catch(err){
-        statusEl.textContent = 'Errore: ' + err.message;
+        statusEl.textContent = `✅ Caricata: ${file.name} ${isCropped ? '(ritagliata)' : ''}`;
+        statusEl.className = 'status ok';
+        
+      } catch(err) {
+        console.error('Errore su file:', file.name, err);
+        statusEl.textContent = `❌ Errore: ${file.name} - ${err.message}`;
         statusEl.className = 'status error';
       }
     }
   }
 
-  $('cameraInput').addEventListener('change', (e) => { 
-    if(e.target.files && e.target.files.length > 0) {
-      handleFiles(e.target.files);
+  cameraInput.addEventListener('change', function(e) {
+    if(this.files && this.files.length > 0) {
+      handleFiles(this.files);
     }
-    e.target.value = ''; 
-  });
-  
-  $('fileInput').addEventListener('change', (e) => { 
-    if(e.target.files && e.target.files.length > 0) {
-      handleFiles(e.target.files);
-    }
-    e.target.value = ''; 
+    this.value = '';
   });
 
-  function renderThumbs(){
-    if(state.images.length === 0){
+  fileInput.addEventListener('change', function(e) {
+    if(this.files && this.files.length > 0) {
+      handleFiles(this.files);
+    }
+    this.value = '';
+  });
+
+  // --- RENDER MINIATURE ---
+  function renderThumbs() {
+    if(state.images.length === 0) {
       thumbWrap.innerHTML = '<div class="empty-note">Nessuna foto aggiunta</div>';
       return;
     }
-    thumbWrap.innerHTML = `<div class="thumbs">${
-      state.images.map((img,i) => `
+    
+    let html = '<div class="thumbs">';
+    state.images.forEach((img, i) => {
+      html += `
         <div class="thumb">
           <img src="${img.dataUrl}" alt="foto ${i+1}">
           <span class="num">${i+1}</span>
           ${img.isCropped ? '<span class="crop-badge">✂️</span>' : ''}
           <span class="rm" data-id="${img.id}" role="button" aria-label="Rimuovi foto ${i+1}">&times;</span>
         </div>
-      `).join('')
-    }</div>`;
+      `;
+    });
+    html += '</div>';
+    thumbWrap.innerHTML = html;
 
     thumbWrap.querySelectorAll('.rm').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
         state.images = state.images.filter(img => String(img.id) !== id);
         renderThumbs();
         refreshGenerateState();
+        statusEl.textContent = `🗑️ Foto rimossa`;
+        statusEl.className = 'status';
       });
     });
   }
 
   // --- GENERAZIONE PDF CON DOWNLOAD AUTOMATICO ---
-  btnGenerate.addEventListener('click', async function(e) {
+  btnGenerate.addEventListener('click', async function() {
     const { filename, allValid } = buildFilename();
-    if(!allValid || state.images.length === 0 || !filename) {
-      statusEl.textContent = '⚠️ Compila tutti i campi e aggiungi almeno una foto';
+    
+    if(!allValid) {
+      statusEl.textContent = '⚠️ Compila tutti i campi obbligatori';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    if(state.images.length === 0) {
+      statusEl.textContent = '⚠️ Aggiungi almeno una foto';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    if(!filename) {
+      statusEl.textContent = '⚠️ Nome file non valido';
       statusEl.className = 'status error';
       return;
     }
@@ -790,14 +860,19 @@
     statusEl.textContent = '📄 Generazione PDF in corso...';
     statusEl.className = 'status';
 
-    try{
+    try {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const margin = 10;
 
-      for(let i=0; i<state.images.length; i++){
+      for(let i = 0; i < state.images.length; i++) {
         if(i > 0) pdf.addPage();
         
         const imgData = state.images[i].dataUrl;
@@ -819,15 +894,15 @@
         pdf.addImage(imgData, 'JPEG', x, y, w, h, undefined, 'FAST');
       }
 
-      // DOWNLOAD AUTOMATICO con il nome corretto
+      // DOWNLOAD AUTOMATICO CON IL NOME CORRETTO
       pdf.save(filename);
       
-      statusEl.textContent = `✅ PDF salvato come: ${filename}`;
+      statusEl.textContent = `✅ PDF scaricato come: ${filename}`;
       statusEl.className = 'status ok';
       
-    } catch(err){
+    } catch(err) {
       console.error('Errore generazione PDF:', err);
-      statusEl.textContent = '❌ Errore: ' + err.message;
+      statusEl.textContent = `❌ Errore: ${err.message}`;
       statusEl.className = 'status error';
     } finally {
       this.disabled = false;
@@ -835,18 +910,25 @@
     }
   });
 
-  function getImageDims(dataUrl){
+  function getImageDims(dataUrl) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve({ w: img.width, h: img.height });
-      img.onerror = () => reject(new Error('Impossibile caricare l\'immagine'));
+      img.onload = function() {
+        resolve({ w: this.width, h: this.height });
+      };
+      img.onerror = function() {
+        reject(new Error('Impossibile caricare l\'immagine per le dimensioni'));
+      };
       img.src = dataUrl;
     });
   }
 
-  // Inizializza
+  // --- INIZIALIZZAZIONE ---
   updateManualFromAuto();
   refreshGenerateState();
+  statusEl.textContent = '✅ Pronto per iniziare';
+  statusEl.className = 'status ok';
+
 })();
 </script>
 </body>
