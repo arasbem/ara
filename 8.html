@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generatore Verbale Fotografico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg: #eef1f4;
+    --panel: #ffffff;
+    --panel-2: #f4f6f8;
+    --line: #dde3e9;
+    --text: #182430;
+    --muted: #667384;
+    --blue: #00549e;
+    --blue-dark: #003b70;
+    --blue-tint: #e8f1fa;
+    --red: #e2001a;
+    --red-tint: #fdeaec;
+    --ok: #1e8e5a;
+    --danger: #d1293b;
+    --radius: 4px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', system-ui, sans-serif;
+    min-height:100vh;
+    padding:0 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:920px; margin:0 auto;}
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  .brandbar{
+    height:6px;
+    background:linear-gradient(90deg, var(--blue) 0%, var(--blue) 65%, var(--red) 65%, var(--red) 100%);
+    margin:0 -16px;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:20px 0 18px;
+    flex-wrap:wrap;
+    animation:fadeUp .4s ease both;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .logo-mark{
+    display:flex;
+    align-items:baseline;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:-0.01em;
+    color:var(--blue-dark);
+    line-height:1;
+  }
+  .logo-mark .dot{color:var(--red);}
+  .brand-sep{
+    width:1px; height:28px;
+    background:var(--line);
+  }
+  .brand-titles h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16px;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.005em;
+  }
+  .brand-titles p{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:2px 0 0;
+  }
+  .stamp{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    text-align:right;
+    line-height:1.5;
+  }
+  .stamp b{color:var(--blue);}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:20px;
+    animation:fadeUp .45s ease both;
+    animation-delay:.05s;
+    box-shadow:0 1px 2px rgba(20,40,60,0.04);
+  }
+  .panel-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--blue-dark);
+    margin:0 0 18px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel-title::before{
+    content:'';
+    width:8px;height:8px;
+    background:var(--red);
+    display:inline-block;
+    border-radius:1px;
+  }
+
+  .capture-buttons{display:flex; gap:10px; margin-bottom:16px;}
+  .btn{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:14px 10px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:border-color .15s, background .15s, box-shadow .15s;
+  }
+  .btn:hover{border-color:var(--blue); background:var(--blue-tint);}
+  .btn:focus-visible{outline:2px solid var(--blue); outline-offset:2px;}
+  .btn.primary{
+    background:var(--blue);
+    color:#ffffff;
+    border-color:var(--blue);
+  }
+  .btn.primary:hover{background:var(--blue-dark); border-color:var(--blue-dark);}
+  .btn.primary:focus-visible{outline:2px solid var(--blue-dark); outline-offset:2px;}
+  .btn.primary:disabled{
+    background:#a9c2d8;
+    border-color:#a9c2d8;
+    color:#eef4f9;
+    cursor:not-allowed;
+  }
+  .btn svg{width:18px;height:18px; flex-shrink:0;}
+
+  #cameraInput, #fileInput{display:none;}
+
+  .thumbs{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(76px,1fr));
+    gap:8px;
+    margin-top:4px;
+  }
+  .thumb{
+    position:relative;
+    aspect-ratio:1;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:var(--panel-2);
+    animation:fadeUp .25s ease both;
+  }
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .thumb .rm{
+    position:absolute; top:2px; right:2px;
+    width:20px; height:20px;
+    background:rgba(255,255,255,0.92);
+    border:1px solid var(--line);
+    border-radius:2px;
+    color:var(--text);
+    font-size:13px;
+    line-height:18px;
+    text-align:center;
+    cursor:pointer;
+  }
+  .thumb .rm:hover{border-color:var(--red); color:var(--red);}
+  .thumb .num{
+    position:absolute; bottom:2px; left:2px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    background:rgba(255,255,255,0.92);
+    padding:1px 4px;
+    border-radius:2px;
+    color:var(--muted);
+  }
+  .thumb .crop-badge{
+    position:absolute; top:2px; left:2px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:7px;
+    background:rgba(0,84,158,0.85);
+    color:white;
+    padding:1px 4px;
+    border-radius:2px;
+  }
+  .empty-note{
+    font-size:12px;
+    color:var(--muted);
+    padding:20px 0;
+    text-align:center;
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+
+  label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:16px;}
+  input[type=text], input[type=date]{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    padding:11px 12px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+    color-scheme: light;
+  }
+  input[type=text]:focus, input[type=date]:focus,
+  input[type=text]:focus-visible, input[type=date]:focus-visible{
+    border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(0,84,158,0.12);
+  }
+  input.err{
+    border-color:var(--danger);
+    box-shadow:0 0 0 3px rgba(209,41,59,0.12);
+  }
+  input::placeholder{color:#9aa6b3;}
+
+  input.mono{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.05em;
+  }
+
+  .hint{font-size:11px; color:var(--muted); margin-top:5px;}
+
+  .radio-group{
+    display:flex;
+    gap:24px;
+    margin-bottom:16px;
+    padding:8px 0;
+  }
+  .radio-group label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:500;
+    text-transform:none;
+    letter-spacing:0;
+    color:var(--text);
+    cursor:pointer;
+  }
+  .radio-group input[type="radio"]{
+    width:18px;
+    height:18px;
+    accent-color:var(--blue);
+    cursor:pointer;
+    margin:0;
+  }
+
+  .tag{
+    margin-top:22px;
+    position:relative;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--blue-tint);
+    padding:14px 16px 14px 22px;
+  }
+  .tag::before{
+    content:'';
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:6px;
+    background:repeating-linear-gradient(
+      -45deg, var(--blue) 0 4px, var(--red) 4px 8px
+    );
+    opacity:.75;
+    border-radius:var(--radius) 0 0 var(--radius);
+  }
+  .tag-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--blue-dark);
+    margin-bottom:8px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .tag-name{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--text);
+    word-break:break-all;
+    line-height:1.6;
+  }
+  .tag-name .seg{color:var(--muted);}
+  .tag-name .val{color:var(--blue-dark); font-weight:600;}
+  .tag-name .miss{color:var(--danger);}
+
+  .filename-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .filename-row .field{
+    flex:1;
+    margin-bottom:0;
+    min-width:200px;
+  }
+  .filename-row .btn{
+    flex:0 0 auto;
+    padding:11px 16px;
+    font-size:12px;
+  }
+
+  .generate-row .btn.primary{width:100%; background:var(--red); border-color:var(--red);}
+  .generate-row .btn.primary:hover{background:#b80014; border-color:#b80014;}
+  .generate-row .btn.primary:disabled{background:#f0b4bc; border-color:#f0b4bc; color:#fff;}
+  .status{
+    margin-top:10px;
+    font-size:12px;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--muted);
+    min-height:16px;
+  }
+  .status.ok{color:var(--ok);}
+  .status.error{color:var(--danger);}
+
+  footer{
+    max-width:920px;
+    margin:14px auto 0;
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.03em;
+  }
+</style>
+</head>
+<body>
+<div class="brandbar"></div>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="logo-mark">dormakaba<span class="dot">.</span></span>
+      <span class="brand-sep"></span>
+      <div class="brand-titles">
+        <h1>Verbale Fotografico</h1>
+        <p>Documentazione intervento</p>
+      </div>
+    </div>
+    <div class="stamp">MODULO <b>VA</b><br>Nomenclatura conforme</div>
+  </header>
+
+  <div class="panel">
+    <p class="panel-title">Foto verbale</p>
+
+    <div class="capture-buttons">
+      <button type="button" class="btn primary" id="btnCamera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scatta foto
+      </button>
+      <button type="button" class="btn" id="btnUpload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Carica foto
+      </button>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    <input type="file" id="fileInput" accept="image/*" multiple>
+
+    <div id="thumbWrap">
+      <div class="empty-note">Nessuna foto aggiunta</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="panel-title">Dati intervento</p>
+
+    <div class="radio-group">
+      <label>
+        <input type="radio" name="docType" value="CO" checked>
+        CO (Contratto Ordine)
+      </label>
+      <label>
+        <input type="radio" name="docType" value="CM">
+        CM (Contratto Manutenzione)
+      </label>
+    </div>
+
+    <div class="field">
+      <label for="cliente">Cliente</label>
+      <input type="text" id="cliente" placeholder="es. ROSSI SPA" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="co">Numero ordine (CO)</label>
+      <input type="text" id="co" class="mono" placeholder="es. 1300123456" inputmode="numeric" autocomplete="off">
+      <p class="hint" id="coHint">Inserire il numero ordine completo</p>
+    </div>
+
+    <div class="field">
+      <label for="tecnico">Cognome tecnico</label>
+      <input type="text" id="tecnico" placeholder="es. BIANCHI" autocomplete="off">
+    </div>
+
+    <div class="field" style="margin-bottom:0;">
+      <label for="data">Data intervento</label>
+      <input type="date" id="data">
+    </div>
+
+    <div class="filename-row">
+      <div class="field">
+        <label for="filenameManual">Nome file PDF</label>
+        <input type="text" id="filenameManual" class="mono" placeholder="Generato automaticamente">
+      </div>
+      <button type="button" class="btn" id="btnRegenerate">🔄 Rigenera nome</button>
+    </div>
+
+    <div class="tag">
+      <div class="tag-label"><span>Anteprima nome file</span><span id="tagStatus">&mdash;</span></div>
+      <div class="tag-name" id="tagName">&hellip;</div>
+    </div>
+  </div>
+
+  <div class="panel generate-row">
+    <button type="button" class="btn primary" id="btnGenerate" disabled>
+      Genera PDF
+    </button>
+    <div class="status" id="status"></div>
+  </div>
+
+</div>
+
+<footer>Elaborazione interamente locale nel browser &middot; nessuna foto viene caricata su server esterni</footer>
+
+<script>
+(function(){
+  const state = { images: [] };
+  const MAX_DIM = 1800;
+  const JPEG_QUALITY = 0.85;
+  const CROP_THRESHOLD = 20;
+  const CROP_PADDING = 2;
+
+  const $ = (id) => document.getElementById(id);
+  const cliente = $('cliente'), co = $('co'), tecnico = $('tecnico'), data = $('data');
+  const docTypeRadios = document.querySelectorAll('input[name="docType"]');
+  const filenameManual = $('filenameManual');
+  const tagName = $('tagName'), tagStatus = $('tagStatus');
+  const thumbWrap = $('thumbWrap');
+  const btnGenerate = $('btnGenerate');
+  const statusEl = $('status');
+
+  let manualOverride = false;
+
+  function todayStr(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  data.value = todayStr();
+
+  // --- RILEVAMENTO E RITAGLIO BORDI ---
+  function detectEdges(imageData, threshold) {
+    const data = imageData.data;
+    const w = imageData.width;
+    const h = imageData.height;
+    const gray = new Uint8Array(w * h);
+    
+    for (let i = 0; i < w * h; i++) {
+      const idx = i * 4;
+      gray[i] = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+    }
+
+    let minX = w, maxX = 0, minY = h, maxY = 0;
+    const thresh = threshold || 20;
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const val = gray[y * w + x];
+        if (val < 255 - thresh) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    if (maxX === 0 && maxY === 0) {
+      return { x: 0, y: 0, w: w, h: h };
+    }
+
+    return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+  }
+
+  function cropImage(dataUrl, padding = 2, threshold = 20) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Immagine non valida'));
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const edges = detectEdges(imageData, threshold);
+          
+          const pad = Math.max(0, padding || 0);
+          const x = Math.max(0, edges.x - pad);
+          const y = Math.max(0, edges.y - pad);
+          const w = Math.min(canvas.width - x, edges.w + pad * 2);
+          const h = Math.min(canvas.height - y, edges.h + pad * 2);
+
+          const cropCanvas = document.createElement('canvas');
+          cropCanvas.width = w;
+          cropCanvas.height = h;
+          const cropCtx = cropCanvas.getContext('2d');
+          cropCtx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+          
+          resolve(cropCanvas.toDataURL('image/jpeg', JPEG_QUALITY));
+        } catch(e) {
+          reject(e);
+        }
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  // --- SANITIZZAZIONE ---
+  function sanitize(str){
+    return (str || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^A-Z0-9]+/g, '')
+      .trim();
+  }
+
+  function formatDate(isoStr){
+    if(!isoStr) return null;
+    const [y,m,d] = isoStr.split('-');
+    if(!y||!m||!d) return null;
+    return `${d}.${m}.${y}`;
+  }
+
+  function getDocType(){
+    for(const radio of docTypeRadios){
+      if(radio.checked) return radio.value;
+    }
+    return 'CO';
+  }
+
+  function buildFilename(){
+    const c = sanitize(cliente.value);
+    const coVal = sanitize(co.value);
+    const t = sanitize(tecnico.value);
+    const dOk = formatDate(data.value);
+    const docType = getDocType();
+    const prefix = docType === 'CO' ? 'VA' : 'VM';
+
+    const parts = [
+      { label:'PREFIX', value:prefix, valid:true },
+      { label:'CLIENTE', value:c, valid: c.length>0 },
+      { label:'CO', value:'CO', valid:true },
+      { label:'ORDINE', value: coVal.length>0 ? coVal : null, valid: coVal.length>0 },
+      { label:'TECNICO', value: t.length>0 ? t : null, valid: t.length>0 },
+      { label:'DATA', value: dOk, valid: !!dOk },
+    ];
+
+    const allValid = parts.every(p => p.valid && p.value);
+
+    let html = '';
+    parts.forEach((p,i) => {
+      if(i>0) html += '<span class="seg">_</span>';
+      html += p.value
+        ? `<span class="val">${p.value}</span>`
+        : `<span class="miss">${p.label}</span>`;
+    });
+    html += '<span class="seg">.pdf</span>';
+    tagName.innerHTML = html;
+
+    const manual = filenameManual.value.trim();
+    const autoFilename = allValid
+      ? `${prefix}_${c}_CO_${coVal}_${t}_${dOk}.pdf`
+      : null;
+
+    const finalFilename = (manualOverride && manual.length > 0) ? manual : autoFilename;
+
+    tagStatus.textContent = finalFilename ? 'PRONTO' : 'INCOMPLETO';
+    tagStatus.style.color = finalFilename ? 'var(--ok)' : 'var(--danger)';
+
+    return { filename: finalFilename, allValid, autoFilename };
+  }
+
+  function refreshGenerateState(){
+    const { filename, allValid } = buildFilename();
+    btnGenerate.disabled = !(allValid && state.images.length > 0 && filename);
+  }
+
+  function updateManualFromAuto(){
+    const { autoFilename } = buildFilename();
+    if(!manualOverride && autoFilename){
+      filenameManual.value = autoFilename;
+    }
+  }
+
+  function onDataChange(){
+    updateManualFromAuto();
+    refreshGenerateState();
+  }
+
+  [cliente, co, tecnico, data].forEach(el => {
+    el.addEventListener('input', onDataChange);
+    el.addEventListener('change', onDataChange);
+  });
+
+  docTypeRadios.forEach(radio => {
+    radio.addEventListener('change', onDataChange);
+  });
+
+  filenameManual.addEventListener('input', () => {
+    manualOverride = true;
+    buildFilename();
+    refreshGenerateState();
+  });
+
+  $('btnRegenerate').addEventListener('click', () => {
+    manualOverride = false;
+    updateManualFromAuto();
+    refreshGenerateState();
+    buildFilename();
+  });
+
+  // --- CAMERA / CARICAMENTO ---
+  $('btnCamera').addEventListener('click', () => $('cameraInput').click());
+  $('btnUpload').addEventListener('click', () => $('fileInput').click());
+
+  function loadAndCompress(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Lettura file fallita'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Immagine non valida'));
+        img.onload = () => {
+          let { width, height } = img;
+          if(width > MAX_DIM || height > MAX_DIM){
+            const scale = MAX_DIM / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0,0,width,height);
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    for(const file of files){
+      try{
+        const dataUrl = await loadAndCompress(file);
+        let finalDataUrl = dataUrl;
+        let isCropped = false;
+        
+        try {
+          // Applica il ritaglio automatico
+          finalDataUrl = await cropImage(dataUrl, CROP_PADDING, CROP_THRESHOLD);
+          isCropped = true;
+        } catch(cropErr) {
+          console.warn('Ritaglio fallito, uso immagine originale:', cropErr);
+          finalDataUrl = dataUrl;
+          isCropped = false;
+        }
+        
+        state.images.push({ 
+          id: Date.now() + Math.random(), 
+          dataUrl: finalDataUrl,
+          isCropped: isCropped
+        });
+        renderThumbs();
+        refreshGenerateState();
+      } catch(err){
+        statusEl.textContent = 'Errore: ' + err.message;
+        statusEl.className = 'status error';
+      }
+    }
+  }
+
+  $('cameraInput').addEventListener('change', (e) => { 
+    if(e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
+    e.target.value = ''; 
+  });
+  
+  $('fileInput').addEventListener('change', (e) => { 
+    if(e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
+    e.target.value = ''; 
+  });
+
+  function renderThumbs(){
+    if(state.images.length === 0){
+      thumbWrap.innerHTML = '<div class="empty-note">Nessuna foto aggiunta</div>';
+      return;
+    }
+    thumbWrap.innerHTML = `<div class="thumbs">${
+      state.images.map((img,i) => `
+        <div class="thumb">
+          <img src="${img.dataUrl}" alt="foto ${i+1}">
+          <span class="num">${i+1}</span>
+          ${img.isCropped ? '<span class="crop-badge">✂️</span>' : ''}
+          <span class="rm" data-id="${img.id}" role="button" aria-label="Rimuovi foto ${i+1}">&times;</span>
+        </div>
+      `).join('')
+    }</div>`;
+
+    thumbWrap.querySelectorAll('.rm').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        state.images = state.images.filter(img => String(img.id) !== id);
+        renderThumbs();
+        refreshGenerateState();
+      });
+    });
+  }
+
+  // --- GENERAZIONE PDF CON DOWNLOAD AUTOMATICO ---
+  btnGenerate.addEventListener('click', async function(e) {
+    const { filename, allValid } = buildFilename();
+    if(!allValid || state.images.length === 0 || !filename) {
+      statusEl.textContent = '⚠️ Compila tutti i campi e aggiungi almeno una foto';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    this.disabled = true;
+    statusEl.textContent = '📄 Generazione PDF in corso...';
+    statusEl.className = 'status';
+
+    try{
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+
+      for(let i=0; i<state.images.length; i++){
+        if(i > 0) pdf.addPage();
+        
+        const imgData = state.images[i].dataUrl;
+        const dims = await getImageDims(imgData);
+        
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - margin * 2;
+        let w = maxW;
+        let h = (dims.h / dims.w) * w;
+        
+        if(h > maxH) {
+          h = maxH;
+          w = (dims.w / dims.h) * h;
+        }
+        
+        const x = (pageW - w) / 2;
+        const y = (pageH - h) / 2;
+        
+        pdf.addImage(imgData, 'JPEG', x, y, w, h, undefined, 'FAST');
+      }
+
+      // DOWNLOAD AUTOMATICO con il nome corretto
+      pdf.save(filename);
+      
+      statusEl.textContent = `✅ PDF salvato come: ${filename}`;
+      statusEl.className = 'status ok';
+      
+    } catch(err){
+      console.error('Errore generazione PDF:', err);
+      statusEl.textContent = '❌ Errore: ' + err.message;
+      statusEl.className = 'status error';
+    } finally {
+      this.disabled = false;
+      refreshGenerateState();
+    }
+  });
+
+  function getImageDims(dataUrl){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.width, h: img.height });
+      img.onerror = () => reject(new Error('Impossibile caricare l\'immagine'));
+      img.src = dataUrl;
+    });
+  }
+
+  // Inizializza
+  updateManualFromAuto();
+  refreshGenerateState();
+})();
+</script>
+</body>
+</html>
