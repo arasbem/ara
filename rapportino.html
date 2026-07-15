@@ -324,7 +324,7 @@
     <div class="panel-title">Dati intervento</div>
     
     <div class="radio-group">
-      <label><input type="radio" name="docType" value="CO" checked> CO (Contratto Ordine)</label>
+      <label><input type="radio" name="docType" value="CO" checked> CO (Conferma d'Ordine)</label>
       <label><input type="radio" name="docType" value="CM"> CM (Contratto Manutenzione)</label>
     </div>
 
@@ -390,7 +390,6 @@
   // STATO
   // ============================================================
   const state = { images: [] };
-  let manualOverride = false;
   let isGenerating = false;
   let lastAutoFilename = null;
 
@@ -529,11 +528,16 @@
     cropCtx2d.fillRect(0, cropRect.y, cropRect.x, cropRect.h);
     cropCtx2d.fillRect(cropRect.x + cropRect.w, cropRect.y, cropCanvas.width - (cropRect.x + cropRect.w), cropRect.h);
 
+    // Bordo del riquadro a doppio tratto (bianco spesso sotto + blu sopra):
+    // resta ben visibile sia su foto chiare che scure.
+    cropCtx2d.strokeStyle = '#ffffff';
+    cropCtx2d.lineWidth = 5;
+    cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
     cropCtx2d.strokeStyle = '#00549e';
-    cropCtx2d.lineWidth = 2;
+    cropCtx2d.lineWidth = 2.5;
     cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
 
-    cropCtx2d.strokeStyle = 'rgba(255,255,255,0.55)';
+    cropCtx2d.strokeStyle = 'rgba(255,255,255,0.7)';
     cropCtx2d.lineWidth = 1;
     for (let i = 1; i < 3; i++) {
       const gx = cropRect.x + (cropRect.w * i / 3);
@@ -542,11 +546,22 @@
       cropCtx2d.beginPath(); cropCtx2d.moveTo(cropRect.x, gy); cropCtx2d.lineTo(cropRect.x + cropRect.w, gy); cropCtx2d.stroke();
     }
 
+    // Maniglie d'angolo: cerchi bianchi con bordo blu spesso, molto più
+    // visibili e facili da individuare/afferrare rispetto a piccoli quadrati.
     const scale = getCanvasScale();
-    const HS = 14 * Math.max(scale.x, scale.y);
-    cropCtx2d.fillStyle = '#00549e';
+    const R = 11 * Math.max(scale.x, scale.y);
     getCorners().forEach(c => {
-      cropCtx2d.fillRect(c.x - HS / 2, c.y - HS / 2, HS, HS);
+      cropCtx2d.beginPath();
+      cropCtx2d.arc(c.x, c.y, R, 0, Math.PI * 2);
+      cropCtx2d.fillStyle = '#ffffff';
+      cropCtx2d.fill();
+      cropCtx2d.lineWidth = 3;
+      cropCtx2d.strokeStyle = '#00549e';
+      cropCtx2d.stroke();
+      cropCtx2d.beginPath();
+      cropCtx2d.arc(c.x, c.y, R * 0.4, 0, Math.PI * 2);
+      cropCtx2d.fillStyle = '#00549e';
+      cropCtx2d.fill();
     });
   }
 
@@ -906,15 +921,22 @@
     html += '<span class="seg">.pdf</span>';
     tagName.innerHTML = html;
 
-    const manual = filenameManual.value.trim();
-    
-    if (allValid) {
-      lastAutoFilename = `${prefix}_${c}_CO_${coVal}_${t}_${dOk}.pdf`;
-    } else {
-      lastAutoFilename = null;
+    const newAuto = allValid ? `${prefix}_${c}_CO_${coVal}_${t}_${dOk}.pdf` : null;
+
+    // La casella "Nome file PDF" segue automaticamente i dati inseriti finché
+    // l'utente non scrive un nome diverso da quello proposto: a quel punto
+    // il nome personalizzato resta invariato anche modificando altri campi,
+    // finché non si preme "Rigenera" (o si svuota la casella).
+    const currentManual = filenameManual.value.trim();
+    const isCustom = currentManual.length > 0 && currentManual !== (lastAutoFilename || '');
+
+    lastAutoFilename = newAuto;
+
+    if (!isCustom) {
+      filenameManual.value = newAuto || '';
     }
 
-    const finalFilename = (manualOverride && manual.length > 0) ? manual : lastAutoFilename;
+    const finalFilename = filenameManual.value.trim() || null;
 
     tagStatus.textContent = finalFilename ? '✅ PRONTO' : '⏳ INCOMPLETO';
     tagStatus.style.color = finalFilename ? '#1e8e5a' : '#d1293b';
@@ -929,17 +951,7 @@
     return { filename, allValid, hasPhotos };
   }
 
-  function updateManualFromAuto() {
-    if (!manualOverride && lastAutoFilename) {
-      filenameManual.value = lastAutoFilename;
-    }
-  }
-
   function onDataChange() {
-    buildFilename();
-    if (!manualOverride) {
-      filenameManual.value = lastAutoFilename || '';
-    }
     refreshGenerateState();
   }
 
@@ -956,14 +968,12 @@
   });
 
   filenameManual.addEventListener('input', function() {
-    manualOverride = true;
-    buildFilename();
     refreshGenerateState();
   });
 
   document.getElementById('btnRegenerate').addEventListener('click', function() {
-    manualOverride = false;
-    onDataChange();
+    filenameManual.value = '';
+    refreshGenerateState();
   });
 
   // ============================================================
