@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generatore Verbale Fotografico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    background:#eef1f4;
+    font-family:'Inter', system-ui, sans-serif;
+    margin:0;
+    padding:20px;
+    color:#182430;
+    transition: background 0.3s, color 0.3s;
+  }
+  body.dark-mode{
+    background:#1a1f2a;
+    color:#e8edf4;
+  }
+  body.dark-mode .panel{
+    background:#262d3a;
+    border-color:#3a4455;
+  }
+  body.dark-mode .panel-title{
+    color:#7ab7f0;
+  }
+  body.dark-mode .btn{
+    background:#2d3645;
+    border-color:#3a4455;
+    color:#e8edf4;
+  }
+  body.dark-mode .btn.primary{
+    background:#00549e;
+    border-color:#00549e;
+    color:#fff;
+  }
+  body.dark-mode .btn.danger{
+    background:#b80014;
+    border-color:#b80014;
+    color:#fff;
+  }
+  body.dark-mode input[type=text], body.dark-mode input[type=date]{
+    background:#1a1f2a;
+    border-color:#3a4455;
+    color:#e8edf4;
+  }
+  body.dark-mode input[type=text]:focus, body.dark-mode input[type=date]:focus{
+    border-color:#00549e;
+    box-shadow:0 0 0 3px rgba(0,84,158,0.2);
+  }
+  body.dark-mode .tag{
+    background:#1a2a3a;
+    border-color:#3a4455;
+  }
+  body.dark-mode .empty-note{
+    border-color:#3a4455;
+    color:#8899aa;
+  }
+  body.dark-mode .thumb{
+    border-color:#3a4455;
+    background:#1a1f2a;
+  }
+  body.dark-mode .thumb .rm{
+    background:rgba(26,31,42,0.92);
+    border-color:#3a4455;
+    color:#e8edf4;
+  }
+  body.dark-mode .tag .tag-name .val{
+    color:#7ab7f0;
+  }
+  body.dark-mode .tag .tag-name .miss{
+    color:#f06a7a;
+  }
+  body.dark-mode .tag .tag-name .seg{
+    color:#8899aa;
+  }
+  body.dark-mode .tag .tag-name .custom{
+    color:#5bcb8a;
+  }
+  body.dark-mode .tag .tag-name .fixed{
+    color:#8899aa;
+  }
+  body.dark-mode .tag-label{
+    color:#7ab7f0;
+  }
+  body.dark-mode .debug-info{
+    color:#8899aa;
+  }
+  body.dark-mode .status.ok{
+    color:#5bcb8a;
+  }
+  body.dark-mode .field label{
+    color:#8899aa;
+  }
+  body.dark-mode .header-logo .logo-text .brand{
+    color:#7ab7f0;
+  }
+  body.dark-mode .header-logo .logo-text .subtitle{
+    color:#8899aa;
+  }
+  body.dark-mode .header-right{
+    color:#8899aa;
+  }
+  body.dark-mode .header-right b{
+    color:#7ab7f0;
+  }
+  body.dark-mode .status.error{
+    color:#f06a7a;
+  }
+  .wrap{max-width:920px; margin:0 auto;}
+  .panel{
+    background:#fff;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    padding:22px;
+    margin-bottom:20px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .panel-title{
+    font-weight:600;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#003b70;
+    margin:0 0 18px;
+  }
+  .btn{
+    background:#f4f6f8;
+    border:1px solid #dde3e9;
+    padding:14px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  .btn.primary{
+    background:#00549e;
+    color:#fff;
+    border-color:#00549e;
+  }
+  .btn.primary:hover{background:#003b70;}
+  .btn:focus-visible{outline:2px solid #00549e; outline-offset:2px;}
+  .btn.primary:disabled{
+    background:#a9c2d8;
+    cursor:not-allowed;
+  }
+  .btn.danger{
+    background:#e2001a;
+    color:#fff;
+    border-color:#e2001a;
+  }
+  .btn.danger:hover{background:#b80014;}
+  .btn.danger:disabled{
+    background:#f0b4bc;
+    cursor:not-allowed;
+  }
+  .capture-buttons{display:flex; gap:10px; margin-bottom:16px;}
+  .capture-buttons .btn{flex:1; justify-content:center;}
+  #cameraInput,#fileInput{display:none;}
+  
+  .thumbs{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(76px,1fr));
+    gap:8px;
+  }
+  .thumb{
+    position:relative;
+    aspect-ratio:1;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    overflow:hidden;
+    background:#f4f6f8;
+  }
+  .thumb img{width:100%; height:100%; object-fit:cover;}
+  .thumb .rm{
+    position:absolute; top:2px; right:2px;
+    width:20px; height:20px;
+    background:rgba(255,255,255,0.92);
+    border:1px solid #dde3e9;
+    border-radius:2px;
+    cursor:pointer;
+    text-align:center;
+    font-size:13px;
+    line-height:18px;
+  }
+  .thumb .rm:hover{border-color:#e2001a; color:#e2001a;}
+  .thumb .num{
+    position:absolute; bottom:2px; left:2px;
+    font-size:9px;
+    background:rgba(255,255,255,0.92);
+    padding:1px 4px;
+    border-radius:2px;
+  }
+  .thumb .crop-badge{
+    position:absolute; top:2px; left:2px;
+    font-size:7px;
+    background:rgba(0,84,158,0.85);
+    color:#fff;
+    padding:1px 4px;
+    border-radius:2px;
+  }
+  .drop-zone.drag-over{
+    outline:2px dashed #00549e;
+    outline-offset:2px;
+    background:#e8f1fa;
+    border-radius:4px;
+  }
+  .empty-note{
+    font-size:12px;
+    color:#667384;
+    padding:20px;
+    text-align:center;
+    border:1px dashed #dde3e9;
+    border-radius:4px;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    color:#667384;
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:16px;}
+  input[type=text], input[type=date]{
+    width:100%;
+    background:#f4f6f8;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    font-size:14px;
+    padding:11px 12px;
+    outline:none;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  input[type=text]:focus, input[type=date]:focus{
+    border-color:#00549e;
+    box-shadow:0 0 0 3px rgba(0,84,158,0.12);
+  }
+  input[type=text]::placeholder{
+    color:#8899aa;
+    font-size:13px;
+    font-weight:400;
+  }
+  .radio-group{
+    display:flex;
+    gap:24px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .radio-group label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:500;
+    text-transform:none;
+    color:#182430;
+    cursor:pointer;
+  }
+  .radio-group input[type="radio"]{
+    width:18px; height:18px;
+    accent-color:#00549e;
+    cursor:pointer;
+  }
+  .tag{
+    margin-top:22px;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    background:#e8f1fa;
+    padding:14px 16px 14px 22px;
+    position:relative;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .tag::before{
+    content:'';
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:6px;
+    background:repeating-linear-gradient(-45deg, #00549e 0 4px, #e2001a 4px 8px);
+    border-radius:4px 0 0 4px;
+  }
+  .tag-label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:#003b70;
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .tag-name{
+    font-family:monospace;
+    font-size:13px;
+    word-break:break-all;
+    line-height:1.6;
+  }
+  .tag-name .seg{color:#667384;}
+  .tag-name .val{color:#003b70; font-weight:600;}
+  .tag-name .miss{color:#e2001a;}
+  .tag-name .custom{color:#1e8e5a; font-weight:600;}
+  .tag-name .fixed{color:#667384;}
+  .filename-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .filename-row .field{flex:1; min-width:200px; margin-bottom:0;}
+  .filename-row .btn{flex:0 0 auto; padding:11px 16px; font-size:12px;}
+  .generate-row .btn{width:100%;}
+  .status{
+    margin-top:10px;
+    font-size:12px;
+    color:#667384;
+    min-height:16px;
+  }
+  .status.ok{color:#1e8e5a;}
+  .status.error{color:#d1293b;}
+  footer{
+    max-width:920px;
+    margin:14px auto 0;
+    font-size:11px;
+    color:#667384;
+    text-align:center;
+  }
+  .debug-info{
+    font-size:10px;
+    color:#667384;
+    margin-top:5px;
+    font-family:monospace;
+  }
+
+  .crop-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,16,24,0.82);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  }
+  .crop-modal{
+    background:#fff;
+    border-radius:6px;
+    padding:16px;
+    max-width:95vw;
+    max-height:92vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transition: background 0.3s;
+  }
+  .crop-header{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:600;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#003b70;
+    margin-bottom:12px;
+  }
+  .crop-header span{color:#667384; font-weight:500; text-transform:none; letter-spacing:0;}
+  .crop-canvas-wrap{
+    touch-action:none;
+    line-height:0;
+    width:100%;
+    display:flex;
+    justify-content:center;
+  }
+  #cropCanvas{
+    touch-action:none;
+    cursor:move;
+    border:1px solid #dde3e9;
+    max-width:100%;
+    max-height:70vh;
+    display:block;
+  }
+  .crop-hint{
+    font-size:11px;
+    color:#667384;
+    margin-top:10px;
+    text-align:center;
+  }
+  .crop-actions{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+    width:100%;
+    flex-wrap:wrap;
+  }
+  .crop-actions .btn{flex:1 1 auto; justify-content:center; font-size:12px; padding:11px 10px; min-width:110px;}
+
+  .header-logo {
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .header-logo .logo-text {
+    display:flex;
+    flex-direction:column;
+  }
+  .header-logo .logo-text .brand {
+    font-size:24px;
+    font-weight:700;
+    color:#00549e;
+    letter-spacing:-0.5px;
+    line-height:1.1;
+    transition: color 0.3s;
+  }
+  .header-logo .logo-text .subtitle {
+    font-size:14px;
+    color:#667384;
+    font-weight:400;
+    transition: color 0.3s;
+  }
+  .header-right {
+    font-family:monospace;
+    font-size:11px;
+    color:#667384;
+    text-align:right;
+    transition: color 0.3s;
+  }
+  .header-right b {color:#003b70; transition: color 0.3s;}
+  
+  .theme-toggle {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    color:#667384;
+    cursor:pointer;
+    margin-left:auto;
+    padding:6px 12px;
+    border-radius:20px;
+    background:#f4f6f8;
+    border:1px solid #dde3e9;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  body.dark-mode .theme-toggle {
+    background:#2d3645;
+    border-color:#3a4455;
+    color:#8899aa;
+  }
+  .theme-toggle .icon {
+    font-size:16px;
+  }
+  .theme-toggle .label-text {
+    font-weight:500;
+  }
+
+  .inline-fields {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .inline-fields .field{margin-bottom:0;}
+
+  @media (max-width:600px) {
+    .header-logo .logo-text .brand {font-size:18px;}
+    .header-logo .logo-text .subtitle {font-size:12px;}
+    .header-right {font-size:10px;}
+    .radio-group{gap:12px;}
+    .radio-group label{font-size:12px;}
+    .inline-fields{grid-template-columns:1fr;}
+  }
+
+  .doc-type-hint {
+    font-size:12px;
+    color:#667384;
+    font-weight:400;
+    margin-left:6px;
+  }
+  body.dark-mode .doc-type-hint {
+    color:#8899aa;
+  }
+  
+  .field-label-with-example {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .field-label-with-example .example {
+    font-size:11px;
+    font-weight:400;
+    color:#667384;
+    text-transform:none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div class="header-logo">
+        <div class="logo-text">
+          <div class="brand">📋 Verbale Fotografico</div>
+          <div class="subtitle">Generazione PDF</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="header-right">Powered by <b>Andrea Arabia</b></div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Attiva/disattiva modalità scura">
+          <span class="icon" id="themeIcon">🌙</span>
+          <span class="label-text" id="themeLabel">Notte</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO -->
+  <div class="panel">
+    <div class="panel-title">Foto verbale</div>
+    <div class="capture-buttons">
+      <label class="btn primary" id="btnCamera">📷 Scatta foto
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+      </label>
+      <label class="btn" id="btnUpload">📤 Carica foto
+        <input type="file" id="fileInput" accept="image/*" multiple>
+      </label>
+    </div>
+    <div id="thumbWrap" class="drop-zone"><div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div></div>
+    <div class="debug-info" id="debugInfo"></div>
+  </div>
+
+  <!-- DATI -->
+  <div class="panel">
+    <div class="panel-title">Dati intervento</div>
+    
+    <div class="radio-group">
+      <label><input type="radio" name="docType" value="CO" checked> CO <span class="doc-type-hint">(Conferma d'Ordine)</span></label>
+      <label><input type="radio" name="docType" value="CM"> CM <span class="doc-type-hint">(Contratto Manutenzione)</span></label>
+      <label><input type="radio" name="docType" value="ESC"> ESC <span class="doc-type-hint">(c.m. xxx-PAS/anno)</span></label>
+      <label><input type="radio" name="docType" value="EAD"> EAD <span class="doc-type-hint">(c.m. xxx/anno)</span></label>
+      <label><input type="radio" name="docType" value="LGS"> LGS <span class="doc-type-hint">(c.m. xxx-H/anno)</span></label>
+    </div>
+
+    <div class="field">
+      <div class="field-label-with-example">
+        <label for="cliente">Cliente</label>
+        <span class="example">es. ROSSI SPA</span>
+      </div>
+      <input type="text" id="cliente" placeholder="Inserisci il nome del cliente">
+    </div>
+
+    <!-- Campi variabili per CO e CM -->
+    <div id="coCmFields">
+      <div class="field">
+        <div class="field-label-with-example">
+          <label for="co">Numero ordine <span id="coLabelHint">(CO)</span></label>
+          <span class="example" id="coExample">es. 1300123456</span>
+        </div>
+        <input type="text" id="co" placeholder="Inserisci il numero ordine">
+      </div>
+    </div>
+
+    <!-- Campi variabili per ESC, EAD, LGS -->
+    <div id="escEadLgsFields" style="display:none;">
+      <div class="inline-fields">
+        <div class="field">
+          <div class="field-label-with-example">
+            <label for="xxx">Numero xxx</label>
+            <span class="example" id="xxxExample">es. 123</span>
+          </div>
+          <input type="text" id="xxx" placeholder="Inserisci il numero">
+        </div>
+        <div class="field">
+          <div class="field-label-with-example">
+            <label for="anno">Anno</label>
+            <span class="example" id="annoExample">es. 2026</span>
+          </div>
+          <input type="text" id="anno" placeholder="Inserisci l'anno">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label-with-example">
+        <label for="tecnico">Cognome tecnico</label>
+        <span class="example">es. BIANCHI</span>
+      </div>
+      <input type="text" id="tecnico" placeholder="Inserisci il cognome del tecnico">
+    </div>
+
+    <div class="field">
+      <div class="field-label-with-example">
+        <label for="data">Data intervento</label>
+        <span class="example">seleziona dal calendario</span>
+      </div>
+      <input type="date" id="data">
+    </div>
+
+    <div class="filename-row">
+      <div class="field">
+        <label for="filenameManual">Nome file PDF <span style="font-weight:400;text-transform:none;color:#667384;">(modifica liberamente)</span></label>
+        <input type="text" id="filenameManual" placeholder="Generato automaticamente">
+      </div>
+    </div>
+
+    <div class="tag">
+      <div class="tag-label"><span>Anteprima nome file</span><span id="tagStatus">⏳ INCOMPLETO</span></div>
+      <div class="tag-name" id="tagName">…</div>
+    </div>
+  </div>
+
+  <!-- GENERA -->
+  <div class="panel generate-row">
+    <button class="btn danger" id="btnGenerate" disabled>📄 Genera PDF</button>
+    <div class="status" id="status">✅ Pronto per iniziare</div>
+  </div>
+
+</div>
+
+<footer>Elaborazione locale nel browser · nessuna foto viene caricata su server esterni</footer>
+
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-modal">
+    <div class="crop-header"><span>✂️ Ritaglia i bordi</span><span id="cropCounter"></span></div>
+    <div class="crop-canvas-wrap">
+      <canvas id="cropCanvas"></canvas>
+    </div>
+    <div class="crop-hint">Trascina gli angoli per ridimensionare, trascina dentro il riquadro per spostarlo</div>
+    <div class="crop-actions">
+      <button class="btn danger" id="btnCropDiscard">🗑️ Scarta foto</button>
+      <button class="btn" id="btnCropSkip">Usa intera</button>
+      <button class="btn primary" id="btnCropConfirm">✓ Conferma ritaglio</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============================================================
+  // STATO
+  // ============================================================
+  const state = { images: [] };
+  let isGenerating = false;
+  let lastAutoFilename = null;
+  let isCustomFilename = false;
+
+  // ============================================================
+  // DOM
+  // ============================================================
+  const $ = id => document.getElementById(id);
+  const cliente = $('cliente');
+  const co = $('co');
+  const coLabelHint = $('coLabelHint');
+  const coExample = $('coExample');
+  const xxx = $('xxx');
+  const anno = $('anno');
+  const xxxExample = $('xxxExample');
+  const annoExample = $('annoExample');
+  const tecnico = $('tecnico');
+  const data = $('data');
+  const docTypeRadios = document.querySelectorAll('input[name="docType"]');
+  const filenameManual = $('filenameManual');
+  const tagName = $('tagName');
+  const tagStatus = $('tagStatus');
+  const thumbWrap = $('thumbWrap');
+  const btnGenerate = $('btnGenerate');
+  const statusEl = $('status');
+  const debugInfo = $('debugInfo');
+  const btnCamera = $('btnCamera');
+  const btnUpload = $('btnUpload');
+  const cameraInput = $('cameraInput');
+  const fileInput = $('fileInput');
+  const themeToggle = $('themeToggle');
+  const themeIcon = $('themeIcon');
+  const themeLabel = $('themeLabel');
+  const coCmFields = $('coCmFields');
+  const escEadLgsFields = $('escEadLgsFields');
+
+  // Modale ritaglio
+  const cropOverlay = $('cropOverlay');
+  const cropCanvas = $('cropCanvas');
+  const cropCounter = $('cropCounter');
+  const btnCropConfirm = $('btnCropConfirm');
+  const btnCropSkip = $('btnCropSkip');
+  const btnCropDiscard = $('btnCropDiscard');
+
+  // ============================================================
+  // TEMA GIORNO/NOTTE
+  // ============================================================
+  let darkMode = false;
+
+  function toggleTheme() {
+    darkMode = !darkMode;
+    document.body.classList.toggle('dark-mode', darkMode);
+    themeIcon.textContent = darkMode ? '☀️' : '🌙';
+    themeLabel.textContent = darkMode ? 'Giorno' : 'Notte';
+    localStorage.setItem('verbaleDarkMode', darkMode ? 'dark' : 'light');
+  }
+
+  const savedTheme = localStorage.getItem('verbaleDarkMode');
+  if (savedTheme === 'dark') {
+    darkMode = true;
+    document.body.classList.add('dark-mode');
+    themeIcon.textContent = '☀️';
+    themeLabel.textContent = 'Giorno';
+  }
+
+  themeToggle.addEventListener('click', toggleTheme);
+
+  // ============================================================
+  // DATA DEFAULT
+  // ============================================================
+  function todayStr() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  data.value = todayStr();
+
+  // ============================================================
+  // GESTIONE TIPO DOCUMENTO
+  // ============================================================
+  function updateDocTypeHints() {
+    let docType = getDocType();
+    
+    if (docType === 'CO' || docType === 'CM') {
+      coCmFields.style.display = 'block';
+      escEadLgsFields.style.display = 'none';
+      coLabelHint.textContent = docType === 'CO' ? '(CO)' : '(CM)';
+      coExample.textContent = 'es. 1300123456';
+      co.placeholder = 'Inserisci il numero ordine';
+    } else {
+      coCmFields.style.display = 'none';
+      escEadLgsFields.style.display = 'block';
+      
+      switch(docType) {
+        case 'ESC':
+          xxxExample.textContent = 'es. 123';
+          annoExample.textContent = 'es. 2026';
+          xxx.placeholder = 'Inserisci il numero (es. 123)';
+          anno.placeholder = 'Inserisci l\'anno (es. 2026)';
+          break;
+        case 'EAD':
+          xxxExample.textContent = 'es. 456';
+          annoExample.textContent = 'es. 2026';
+          xxx.placeholder = 'Inserisci il numero (es. 456)';
+          anno.placeholder = 'Inserisci l\'anno (es. 2026)';
+          break;
+        case 'LGS':
+          xxxExample.textContent = 'es. 789';
+          annoExample.textContent = 'es. 2026';
+          xxx.placeholder = 'Inserisci il numero (es. 789)';
+          anno.placeholder = 'Inserisci l\'anno (es. 2026)';
+          break;
+      }
+    }
+  }
+
+  docTypeRadios.forEach(r => {
+    r.addEventListener('change', function() {
+      updateDocTypeHints();
+      onDataChange();
+    });
+  });
+
+  // ============================================================
+  // RITAGLIO INTERATTIVO
+  // ============================================================
+
+  function autoDetectRect(img) {
+    return new Promise((resolve) => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const w = canvas.width;
+        const h = canvas.height;
+
+        let minX = w, maxX = 0, minY = h, maxY = 0;
+        const threshold = 25;
+
+        for (let y = 0; y < h; y += 2) {
+          for (let x = 0; x < w; x += 2) {
+            const idx = (y * w + x) * 4;
+            const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+            if (gray < 255 - threshold) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+
+        if (maxX === 0 && maxY === 0) {
+          resolve({ x: 0, y: 0, w: w, h: h });
+          return;
+        }
+
+        const pad = 10;
+        const x = Math.max(0, minX - pad);
+        const y = Math.max(0, minY - pad);
+        const cw = Math.min(w - x, maxX - minX + 1 + pad * 2);
+        const ch = Math.min(h - y, maxY - minY + 1 + pad * 2);
+        resolve({ x, y, w: cw, h: ch });
+      } catch (e) {
+        resolve({ x: 0, y: 0, w: img.width, h: img.height });
+      }
+    });
+  }
+
+  let currentCropImage = null;
+  let cropRect = { x: 0, y: 0, w: 0, h: 0 };
+  let dragMode = null;
+  let dragStart = null;
+  let cropRectStart = null;
+  let cropResolve = null;
+  const cropCtx2d = cropCanvas.getContext('2d');
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function getCorners() {
+    return [
+      { x: cropRect.x, y: cropRect.y },
+      { x: cropRect.x + cropRect.w, y: cropRect.y },
+      { x: cropRect.x, y: cropRect.y + cropRect.h },
+      { x: cropRect.x + cropRect.w, y: cropRect.y + cropRect.h }
+    ];
+  }
+
+  function drawCrop() {
+    cropCtx2d.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    cropCtx2d.drawImage(currentCropImage, 0, 0, cropCanvas.width, cropCanvas.height);
+
+    cropCtx2d.fillStyle = 'rgba(0,0,0,0.55)';
+    cropCtx2d.fillRect(0, 0, cropCanvas.width, cropRect.y);
+    cropCtx2d.fillRect(0, cropRect.y + cropRect.h, cropCanvas.width, cropCanvas.height - (cropRect.y + cropRect.h));
+    cropCtx2d.fillRect(0, cropRect.y, cropRect.x, cropRect.h);
+    cropCtx2d.fillRect(cropRect.x + cropRect.w, cropRect.y, cropCanvas.width - (cropRect.x + cropRect.w), cropRect.h);
+
+    cropCtx2d.strokeStyle = '#ffffff';
+    cropCtx2d.lineWidth = 5;
+    cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+    cropCtx2d.strokeStyle = '#00549e';
+    cropCtx2d.lineWidth = 2.5;
+    cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+
+    cropCtx2d.strokeStyle = 'rgba(255,255,255,0.7)';
+    cropCtx2d.lineWidth = 1;
+    for (let i = 1; i < 3; i++) {
+      const gx = cropRect.x + (cropRect.w * i / 3);
+      cropCtx2d.beginPath(); cropCtx2d.moveTo(gx, cropRect.y); cropCtx2d.lineTo(gx, cropRect.y + cropRect.h); cropCtx2d.stroke();
+      const gy = cropRect.y + (cropRect.h * i / 3);
+      cropCtx2d.beginPath(); cropCtx2d.moveTo(cropRect.x, gy); cropCtx2d.lineTo(cropRect.x + cropRect.w, gy); cropCtx2d.stroke();
+    }
+
+    const scale = getCanvasScale();
+    const R = 11 * Math.max(scale.x, scale.y);
+    getCorners().forEach(c => {
+      cropCtx2d.beginPath();
+      cropCtx2d.arc(c.x, c.y, R, 0, Math.PI * 2);
+      cropCtx2d.fillStyle = '#ffffff';
+      cropCtx2d.fill();
+      cropCtx2d.lineWidth = 3;
+      cropCtx2d.strokeStyle = '#00549e';
+      cropCtx2d.stroke();
+      cropCtx2d.beginPath();
+      cropCtx2d.arc(c.x, c.y, R * 0.4, 0, Math.PI * 2);
+      cropCtx2d.fillStyle = '#00549e';
+      cropCtx2d.fill();
+    });
+  }
+
+  function getCanvasScale() {
+    const rect = cropCanvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return { x: 1, y: 1 };
+    return {
+      x: cropCanvas.width / rect.width,
+      y: cropCanvas.height / rect.height
+    };
+  }
+
+  function getPointerPos(e) {
+    const rect = cropCanvas.getBoundingClientRect();
+    const scale = getCanvasScale();
+    return { x: (e.clientX - rect.left) * scale.x, y: (e.clientY - rect.top) * scale.y };
+  }
+
+  const HIT_SCREEN_PX = 26;
+  function hitTestCorner(pos) {
+    const scale = getCanvasScale();
+    const corners = getCorners();
+    for (let i = 0; i < 4; i++) {
+      const hitX = HIT_SCREEN_PX * scale.x;
+      const hitY = HIT_SCREEN_PX * scale.y;
+      if (Math.abs(pos.x - corners[i].x) < hitX && Math.abs(pos.y - corners[i].y) < hitY) return i;
+    }
+    return -1;
+  }
+  function hitTestInside(pos) {
+    return pos.x > cropRect.x && pos.x < cropRect.x + cropRect.w && pos.y > cropRect.y && pos.y < cropRect.y + cropRect.h;
+  }
+
+  cropCanvas.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    cropCanvas.setPointerCapture(e.pointerId);
+    const pos = getPointerPos(e);
+    const corner = hitTestCorner(pos);
+    if (corner >= 0) dragMode = 'corner' + corner;
+    else if (hitTestInside(pos)) dragMode = 'move';
+    else dragMode = null;
+    dragStart = pos;
+    cropRectStart = { ...cropRect };
+  });
+
+  cropCanvas.addEventListener('pointermove', function(e) {
+    if (!dragMode) return;
+    e.preventDefault();
+    const pos = getPointerPos(e);
+    const dx = pos.x - dragStart.x;
+    const dy = pos.y - dragStart.y;
+    const MIN = 30;
+
+    if (dragMode === 'move') {
+      let nx = clamp(cropRectStart.x + dx, 0, cropCanvas.width - cropRectStart.w);
+      let ny = clamp(cropRectStart.y + dy, 0, cropCanvas.height - cropRectStart.h);
+      cropRect.x = nx; cropRect.y = ny;
+    } else {
+      const idx = parseInt(dragMode.replace('corner', ''), 10);
+      let { x, y, w, h } = cropRectStart;
+      let x2 = x + w, y2 = y + h;
+      if (idx === 0) { x = clamp(x + dx, 0, x2 - MIN); y = clamp(y + dy, 0, y2 - MIN); }
+      if (idx === 1) { x2 = clamp(x2 + dx, x + MIN, cropCanvas.width); y = clamp(y + dy, 0, y2 - MIN); }
+      if (idx === 2) { x = clamp(x + dx, 0, x2 - MIN); y2 = clamp(y2 + dy, y + MIN, cropCanvas.height); }
+      if (idx === 3) { x2 = clamp(x2 + dx, x + MIN, cropCanvas.width); y2 = clamp(y2 + dy, y + MIN, cropCanvas.height); }
+      cropRect = { x, y, w: x2 - x, h: y2 - y };
+    }
+    drawCrop();
+  });
+
+  function endDrag() { dragMode = null; }
+  cropCanvas.addEventListener('pointerup', endDrag);
+  cropCanvas.addEventListener('pointercancel', endDrag);
+
+  function openCropModal(dataUrl, label) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = function() {
+        currentCropImage = img;
+
+        const maxW = Math.min(800, window.innerWidth - 60);
+        const maxH = Math.min(600, window.innerHeight - 200);
+        let scale = Math.min(maxW / img.width, maxH / img.height, 1.5);
+        if (!isFinite(scale) || scale <= 0) scale = 1;
+
+        cropCanvas.width = Math.round(img.width * scale);
+        cropCanvas.height = Math.round(img.height * scale);
+        cropCanvas.style.width = Math.min(cropCanvas.width, maxW) + 'px';
+        cropCanvas.style.height = Math.min(cropCanvas.height, maxH) + 'px';
+
+        cropCounter.textContent = label || '';
+
+        autoDetectRect(img).then(rect => {
+          cropRect = { x: rect.x * scale, y: rect.y * scale, w: rect.w * scale, h: rect.h * scale };
+          drawCrop();
+          cropOverlay.style.display = 'flex';
+          cropResolve = resolve;
+        });
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  function closeCropModal() {
+    cropOverlay.style.display = 'none';
+    currentCropImage = null;
+  }
+
+  btnCropConfirm.addEventListener('click', function() {
+    const scaleX = currentCropImage.width / cropCanvas.width;
+    const scaleY = currentCropImage.height / cropCanvas.height;
+
+    const safety = 2;
+    const rx = cropRect.x + safety;
+    const ry = cropRect.y + safety;
+    const rw = Math.max(4, cropRect.w - safety * 2);
+    const rh = Math.max(4, cropRect.h - safety * 2);
+
+    let nx = Math.round(rx * scaleX);
+    let ny = Math.round(ry * scaleY);
+    let nw = Math.round(rw * scaleX);
+    let nh = Math.round(rh * scaleY);
+
+    nx = clamp(nx, 0, currentCropImage.width - 1);
+    ny = clamp(ny, 0, currentCropImage.height - 1);
+    nw = clamp(nw, 1, currentCropImage.width - nx);
+    nh = clamp(nh, 1, currentCropImage.height - ny);
+
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = nw;
+    outCanvas.height = nh;
+    const octx = outCanvas.getContext('2d');
+    octx.drawImage(currentCropImage, nx, ny, nw, nh, 0, 0, nw, nh);
+
+    const outDataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
+    const resolve = cropResolve;
+    closeCropModal();
+    if (resolve) resolve({ dataUrl: outDataUrl, cropped: true });
+  });
+
+  btnCropSkip.addEventListener('click', function() {
+    const outDataUrl = currentCropImage.src;
+    const resolve = cropResolve;
+    closeCropModal();
+    if (resolve) resolve({ dataUrl: outDataUrl, cropped: false });
+  });
+
+  btnCropDiscard.addEventListener('click', function() {
+    const resolve = cropResolve;
+    closeCropModal();
+    if (resolve) resolve(null);
+  });
+
+  // ============================================================
+  // COMPRESSIONE IMMAGINE
+  // ============================================================
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          let width = img.width;
+          let height = img.height;
+          const MAX = 1600;
+          if(width > MAX || height > MAX) {
+            const scale = MAX / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = function() {
+          reject(new Error('Immagine non valida'));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = function() {
+        reject(new Error('Lettura file fallita'));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ============================================================
+  // HANDLE FILES
+  // ============================================================
+  function isImageFile(f) {
+    if (f.type && f.type.startsWith('image/')) return true;
+    return /\.(jpe?g|png|gif|bmp|webp|heic|heif|tiff?|svg)$/i.test(f.name || '');
+  }
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(isImageFile);
+    if(files.length === 0) {
+      statusEl.textContent = '⚠️ Nessun file immagine valido';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    for(let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        statusEl.textContent = `📷 Elaborazione: ${file.name}...`;
+        statusEl.className = 'status';
+        debugInfo.textContent = `🔄 Elaborazione: ${file.name}`;
+
+        const compressed = await compressImage(file);
+        const label = files.length > 1 ? `(${i + 1}/${files.length})` : '';
+        const result = await openCropModal(compressed, label);
+
+        if (result === null) {
+          statusEl.textContent = `🗑️ ${file.name} scartata`;
+          statusEl.className = 'status';
+          debugInfo.textContent = `🗑️ ${file.name} scartata dall'utente`;
+          continue;
+        }
+
+        state.images.push({
+          id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          dataUrl: result.dataUrl,
+          isCropped: result.cropped
+        });
+        
+        renderThumbs();
+        refreshGenerateState();
+        statusEl.textContent = `✅ ${file.name} ${result.cropped ? '✂️ ritagliata' : ''}`;
+        statusEl.className = 'status ok';
+        debugInfo.textContent = `✅ Caricata: ${file.name} (${result.cropped ? 'ritagliata' : 'originale'})`;
+        
+      } catch(err) {
+        statusEl.textContent = `❌ Errore: ${file.name}`;
+        statusEl.className = 'status error';
+        debugInfo.textContent = `❌ Errore: ${file.name} - ${err.message}`;
+      }
+    }
+  }
+
+  // ============================================================
+  // EVENTI CAMERA/UPLOAD
+  // ============================================================
+  [btnCamera, btnUpload].forEach(label => {
+    label.setAttribute('tabindex', '0');
+    label.setAttribute('role', 'button');
+    label.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const input = this.querySelector('input[type="file"]');
+        if (input) input.click();
+      }
+    });
+  });
+
+  cameraInput.addEventListener('change', function() {
+    if(this.files && this.files.length > 0) {
+      handleFiles(this.files);
+    }
+    this.value = '';
+  });
+
+  fileInput.addEventListener('change', function() {
+    if(this.files && this.files.length > 0) {
+      handleFiles(this.files);
+    }
+    this.value = '';
+  });
+
+  // ============================================================
+  // TRASCINA E RILASCIA
+  // ============================================================
+  ['dragenter', 'dragover'].forEach(evt => {
+    thumbWrap.addEventListener(evt, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      thumbWrap.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    thumbWrap.addEventListener(evt, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      thumbWrap.classList.remove('drag-over');
+    });
+  });
+  thumbWrap.addEventListener('drop', function(e) {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFiles(files);
+    }
+  });
+
+  // ============================================================
+  // SANITIZZAZIONE
+  // ============================================================
+  function sanitize(str) {
+    return (str || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Z0-9]+/g, '')
+      .trim();
+  }
+
+  function sanitizeWithSlash(str) {
+    return (str || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Z0-9\/\-]+/g, '')
+      .trim();
+  }
+
+  function formatDate(isoStr) {
+    if(!isoStr) return null;
+    const [y,m,d] = isoStr.split('-');
+    return `${d}.${m}.${y}`;
+  }
+
+  function getDocType() {
+    for(const r of docTypeRadios) {
+      if(r.checked) return r.value;
+    }
+    return 'CO';
+  }
+
+  // ============================================================
+  // COSTRUZIONE NOME FILE
+  // ============================================================
+  function buildFilename() {
+    const docType = getDocType();
+    const c = sanitize(cliente.value);
+    const t = sanitize(tecnico.value);
+    const dOk = formatDate(data.value);
+    
+    let coVal = '';
+    let xxxVal = '';
+    let annoVal = '';
+    let prefix = 'VA';
+    let suffix = 'CO';
+
+    switch(docType) {
+      case 'CO':
+        prefix = 'VA';
+        coVal = sanitize(co.value);
+        suffix = 'CO';
+        break;
+      case 'CM':
+        prefix = 'VM';
+        coVal = sanitize(co.value);
+        suffix = 'CM';
+        break;
+      case 'ESC':
+        prefix = 'VM';
+        xxxVal = sanitizeWithSlash(xxx.value);
+        annoVal = sanitizeWithSlash(anno.value);
+        suffix = 'ESC';
+        break;
+      case 'EAD':
+        prefix = 'VM';
+        xxxVal = sanitizeWithSlash(xxx.value);
+        annoVal = sanitizeWithSlash(anno.value);
+        suffix = 'EAD';
+        break;
+      case 'LGS':
+        prefix = 'VM';
+        xxxVal = sanitizeWithSlash(xxx.value);
+        annoVal = sanitizeWithSlash(anno.value);
+        suffix = 'LGS';
+        break;
+      default:
+        prefix = 'VA';
+        coVal = sanitize(co.value);
+        suffix = 'CO';
+    }
+
+    // Validazione
+    const cValid = c.length > 0;
+    const tValid = t.length > 0;
+    const dValid = !!dOk;
+    let coValid = false;
+    let xxxValid = false;
+    let annoValid = false;
+
+    if (docType === 'CO' || docType === 'CM') {
+      coValid = coVal.length > 0;
+    } else {
+      xxxValid = xxxVal.length > 0;
+      annoValid = annoVal.length > 0;
+    }
+
+    const allValid = cValid && tValid && dValid && 
+      ((docType === 'CO' || docType === 'CM') ? coValid : (xxxValid && annoValid));
+
+    // Costruzione anteprima con colori
+    let html = '';
+    let parts = [];
+
+    if (docType === 'CO') {
+      parts = [
+        { value: 'VA', valid: true, fixed: true },
+        { value: c, valid: cValid, label: 'CLIENTE' },
+        { value: 'CO', valid: true, fixed: true },
+        { value: coVal, valid: coValid, label: 'xxx' },
+        { value: t, valid: tValid, label: 'TECNICO' },
+        { value: dOk, valid: dValid, label: 'DATA' }
+      ];
+    } else if (docType === 'CM') {
+      parts = [
+        { value: 'VM', valid: true, fixed: true },
+        { value: c, valid: cValid, label: 'CLIENTE' },
+        { value: 'CM', valid: true, fixed: true },
+        { value: coVal, valid: coValid, label: 'xxx' },
+        { value: t, valid: tValid, label: 'TECNICO' },
+        { value: dOk, valid: dValid, label: 'DATA' }
+      ];
+    } else if (docType === 'ESC') {
+      parts = [
+        { value: 'VM', valid: true, fixed: true },
+        { value: c, valid: cValid, label: 'CLIENTE' },
+        { value: 'c.m.', valid: true, fixed: true },
+        { value: xxxVal, valid: xxxValid, label: 'xxx' },
+        { value: '-PAS/', valid: true, fixed: true },
+        { value: annoVal, valid: annoValid, label: 'anno' },
+        { value: t, valid: tValid, label: 'TECNICO' },
+        { value: dOk, valid: dValid, label: 'DATA' }
+      ];
+    } else if (docType === 'EAD') {
+      parts = [
+        { value: 'VM', valid: true, fixed: true },
+        { value: c, valid: cValid, label: 'CLIENTE' },
+        { value: 'c.m.', valid: true, fixed: true },
+        { value: xxxVal, valid: xxxValid, label: 'xxx' },
+        { value: '/', valid: true, fixed: true },
+        { value: annoVal, valid: annoValid, label: 'anno' },
+        { value: t, valid: tValid, label: 'TECNICO' },
+        { value: dOk, valid: dValid, label: 'DATA' }
+      ];
+    } else if (docType === 'LGS') {
+      parts = [
+        { value: 'VM', valid: true, fixed: true },
+        { value: c, valid: cValid, label: 'CLIENTE' },
+        { value: 'c.m.', valid: true, fixed: true },
+        { value: xxxVal, valid: xxxValid, label: 'xxx' },
+        { value: '-H/', valid: true, fixed: true },
+        { value: annoVal, valid: annoValid, label: 'anno' },
+        { value: t, valid: tValid, label: 'TECNICO' },
+        { value: dOk, valid: dValid, label: 'DATA' }
+      ];
+    }
+    
+    parts.forEach((p, i) => {
+      if(i > 0) html += '<span class="seg">_</span>';
+      if (p.fixed) {
+        html += `<span class="fixed">${p.value}</span>`;
+      } else if (p.value) {
+        html += `<span class="val">${p.value}</span>`;
+      } else {
+        html += `<span class="miss">${p.label || '?'}</span>`;
+      }
+    });
+    html += '<span class="seg">.pdf</span>';
+
+    // Nome automatico
+    let newAuto = null;
+    if (allValid) {
+      switch(docType) {
+        case 'CO':
+          newAuto = `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf`;
+          break;
+        case 'CM':
+          newAuto = `VM_${c}_CM_${coVal}_${t}_${dOk}.pdf`;
+          break;
+        case 'ESC':
+          newAuto = `VM_${c}_c.m. ${xxxVal}-PAS/${annoVal}_${t}_${dOk}.pdf`;
+          break;
+        case 'EAD':
+          newAuto = `VM_${c}_c.m. ${xxxVal}/${annoVal}_${t}_${dOk}.pdf`;
+          break;
+        case 'LGS':
+          newAuto = `VM_${c}_c.m. ${xxxVal}-H/${annoVal}_${t}_${dOk}.pdf`;
+          break;
+        default:
+          newAuto = `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf`;
+      }
+    }
+
+    if (!isCustomFilename) {
+      filenameManual.value = newAuto || '';
+      lastAutoFilename = newAuto;
+    }
+
+    const finalFilename = filenameManual.value.trim() || null;
+
+    if (isCustomFilename && finalFilename) {
+      tagName.innerHTML = `<span class="custom">${finalFilename}</span>`;
+    } else {
+      tagName.innerHTML = html;
+    }
+
+    tagStatus.textContent = finalFilename ? '✅ PRONTO' : '⏳ INCOMPLETO';
+    tagStatus.style.color = finalFilename ? '#1e8e5a' : '#d1293b';
+
+    return { filename: finalFilename, allValid };
+  }
+
+  function refreshGenerateState() {
+    const { filename, allValid } = buildFilename();
+    const hasPhotos = state.images.length > 0;
+    btnGenerate.disabled = isGenerating || !(allValid && hasPhotos && filename);
+    return { filename, allValid, hasPhotos };
+  }
+
+  function onDataChange() {
+    refreshGenerateState();
+  }
+
+  // ============================================================
+  // EVENTI DATI
+  // ============================================================
+  [cliente, co, xxx, anno, tecnico, data].forEach(el => {
+    el.addEventListener('input', onDataChange);
+    el.addEventListener('change', onDataChange);
+  });
+
+  filenameManual.addEventListener('input', function() {
+    isCustomFilename = true;
+    refreshGenerateState();
+  });
+
+  filenameManual.addEventListener('blur', function() {
+    if (this.value.trim() === '') {
+      isCustomFilename = false;
+      refreshGenerateState();
+    }
+  });
+
+  // ============================================================
+  // RENDER MINIATURE
+  // ============================================================
+  function renderThumbs() {
+    if(state.images.length === 0) {
+      thumbWrap.innerHTML = '<div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div>';
+      return;
+    }
+    
+    let html = '<div class="thumbs">';
+    state.images.forEach((img, i) => {
+      html += `
+        <div class="thumb">
+          <img src="${img.dataUrl}" alt="foto ${i+1}">
+          <span class="num">${i+1}</span>
+          ${img.isCropped ? '<span class="crop-badge">✂️</span>' : ''}
+          <span class="rm" data-id="${img.id}">&times;</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+    thumbWrap.innerHTML = html;
+
+    thumbWrap.querySelectorAll('.rm').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        state.images = state.images.filter(img => String(img.id) !== id);
+        renderThumbs();
+        refreshGenerateState();
+        statusEl.textContent = '🗑️ Foto rimossa';
+        statusEl.className = 'status';
+        debugInfo.textContent = `🗑️ Foto rimossa. ${state.images.length} rimanenti.`;
+      });
+    });
+  }
+
+  // ============================================================
+  // GENERAZIONE PDF
+  // ============================================================
+  btnGenerate.addEventListener('click', async function() {
+    if(isGenerating) return;
+    
+    const { filename, allValid } = buildFilename();
+    
+    if(!allValid) {
+      statusEl.textContent = '⚠️ Compila tutti i campi';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    if(state.images.length === 0) {
+      statusEl.textContent = '⚠️ Aggiungi almeno una foto';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    if(!filename) {
+      statusEl.textContent = '⚠️ Nome file non valido';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    isGenerating = true;
+    this.disabled = true;
+    statusEl.textContent = '📄 Generazione PDF...';
+    statusEl.className = 'status';
+    debugInfo.textContent = `📄 Generazione PDF: ${filename}`;
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+
+      for(let i = 0; i < state.images.length; i++) {
+        if(i > 0) pdf.addPage();
+        
+        const imgData = state.images[i].dataUrl;
+        
+        const dims = await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width, h: img.height });
+          img.src = imgData;
+        });
+        
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - margin * 2;
+        let w = maxW;
+        let h = (dims.h / dims.w) * w;
+        if(h > maxH) { h = maxH; w = (dims.w / dims.h) * h; }
+        
+        pdf.addImage(imgData, 'JPEG', (pageW - w)/2, (pageH - h)/2, w, h);
+      }
+
+      const pdfBlob = pdf.output('blob');
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      let saved = false;
+
+      if (isIOSDevice && navigator.canShare) {
+        try {
+          const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+          if (navigator.canShare({ files: [pdfFile] })) {
+            await navigator.share({ files: [pdfFile], title: filename });
+            saved = true;
+            statusEl.textContent = `✅ PDF condiviso: ${filename}`;
+            statusEl.className = 'status ok';
+            debugInfo.textContent = `✅ Condiviso via foglio iOS con nome corretto: ${filename}`;
+          }
+        } catch (shareErr) {
+          if (shareErr.name === 'AbortError') {
+            saved = true;
+            statusEl.textContent = '↩️ Salvataggio annullato';
+            statusEl.className = 'status';
+            debugInfo.textContent = '↩️ Foglio di condivisione chiuso dall\'utente';
+          }
+        }
+      }
+
+      if (!saved) {
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+
+        statusEl.textContent = `✅ PDF scaricato: ${filename}`;
+        statusEl.className = 'status ok';
+        debugInfo.textContent = `✅ Download completato: ${filename}`;
+      }
+      
+    } catch(err) {
+      statusEl.textContent = `❌ Errore: ${err.message}`;
+      statusEl.className = 'status error';
+      debugInfo.textContent = `❌ Errore: ${err.message}`;
+    } finally {
+      isGenerating = false;
+      this.disabled = false;
+      refreshGenerateState();
+    }
+  });
+
+  // ============================================================
+  // INIZIALIZZAZIONE
+  // ============================================================
+  updateDocTypeHints();
+  onDataChange();
+  statusEl.textContent = '✅ Pronto per iniziare';
+  statusEl.className = 'status ok';
+  debugInfo.textContent = '✅ Inizializzato. Carica una foto per iniziare.';
+
+})();
+</script>
+</body>
+</html>
