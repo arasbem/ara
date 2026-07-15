@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generatore Verbale Fotografico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
   *{box-sizing:border-box;}
   body{
@@ -93,6 +94,61 @@
     line-height:18px;
   }
   .thumb .rm:hover{border-color:#e2001a; color:#e2001a;}
+  .thumb .ocr{
+    position:absolute; bottom:2px; right:2px;
+    width:20px; height:20px;
+    background:rgba(255,255,255,0.92);
+    border:1px solid #dde3e9;
+    border-radius:2px;
+    cursor:pointer;
+    text-align:center;
+    font-size:12px;
+    line-height:18px;
+  }
+  .thumb .ocr:hover{border-color:#00549e;}
+  .thumb .ocr:disabled, .thumb .ocr.busy{opacity:0.5; cursor:wait;}
+  .ocr-panel{
+    margin-top:12px;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    background:#f4f6f8;
+    padding:12px 14px;
+    display:none;
+  }
+  .ocr-panel.show{display:block;}
+  .ocr-panel .ocr-title{
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#003b70;
+    margin-bottom:6px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .ocr-panel .ocr-hint{
+    font-size:11px;
+    color:#667384;
+    margin-bottom:8px;
+  }
+  .ocr-panel textarea{
+    width:100%;
+    min-height:90px;
+    font-family:monospace;
+    font-size:12px;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    padding:8px;
+    resize:vertical;
+    background:#fff;
+  }
+  .ocr-panel .ocr-close{
+    cursor:pointer;
+    color:#667384;
+    font-size:16px;
+    line-height:1;
+  }
   .thumb .num{
     position:absolute; bottom:2px; left:2px;
     font-size:9px;
@@ -365,6 +421,11 @@
       </label>
     </div>
     <div id="thumbWrap" class="drop-zone"><div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div></div>
+    <div class="ocr-panel" id="ocrPanel">
+      <div class="ocr-title"><span>🔎 Testo riconosciuto (OCR)</span><span class="ocr-close" id="ocrClose">&times;</span></div>
+      <div class="ocr-hint">Lettura automatica: può contenere errori, specialmente su testo scritto a mano. Controlla e correggi i campi qui sopra; qui sotto trovi tutto il testo letto, nel caso ti serva copiare qualcosa a mano.</div>
+      <textarea id="ocrText" readonly></textarea>
+    </div>
     <div class="debug-info" id="debugInfo"></div>
   </div>
 
@@ -379,15 +440,15 @@
 
     <div class="field">
       <label for="cliente">Cliente</label>
-      <input type="text" id="cliente" placeholder="es. ROSSI SPA" value="ROSSI">
+      <input type="text" id="cliente" placeholder="es. ROSSI SPA">
     </div>
     <div class="field">
       <label for="co">Numero ordine (CO)</label>
-      <input type="text" id="co" placeholder="es. 1300123456" value="1300123456">
+      <input type="text" id="co" placeholder="es. 1300123456">
     </div>
     <div class="field">
       <label for="tecnico">Cognome tecnico</label>
-      <input type="text" id="tecnico" placeholder="es. BIANCHI" value="BIANCHI">
+      <input type="text" id="tecnico" placeholder="es. BIANCHI">
     </div>
     <div class="field">
       <label for="data">Data intervento</label>
@@ -459,6 +520,9 @@
   const statusEl = $('status');
   const debugInfo = $('debugInfo');
   const btnCamera = $('btnCamera');
+  const ocrPanel = $('ocrPanel');
+  const ocrText = $('ocrText');
+  const ocrClose = $('ocrClose');
   const btnUpload = $('btnUpload');
   const cameraInput = $('cameraInput');
   const fileInput = $('fileInput');
@@ -1049,6 +1113,7 @@
           <span class="num">${i+1}</span>
           ${img.isCropped ? '<span class="crop-badge">✂️</span>' : ''}
           <span class="rm" data-id="${img.id}">&times;</span>
+          <button type="button" class="ocr" data-id="${img.id}" title="Leggi dati dalla foto (OCR)">🔎</button>
         </div>
       `;
     });
@@ -1066,7 +1131,144 @@
         debugInfo.textContent = `🗑️ Foto rimossa. ${state.images.length} rimanenti.`;
       });
     });
+
+    thumbWrap.querySelectorAll('.ocr').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const img = state.images.find(im => String(im.id) === id);
+        if (img) runOCR(img.dataUrl, this);
+      });
+    });
   }
+
+  // ============================================================
+  // OCR (Tesseract.js) - LETTURA DATI DALLA FOTO
+  // ============================================================
+  // Nota: funziona bene su testo stampato/timbrato; su scrittura a mano
+  // il risultato va sempre controllato, per questo mostriamo anche il
+  // testo grezzo riconosciuto e non blocchiamo mai la compilazione manuale.
+
+  function parseDateToInput(str) {
+    // cerca pattern tipo 15/07/2026, 15-07-2026, 15.07.2026
+    const m = str.match(/\b(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})\b/);
+    if (!m) return null;
+    let [, d, mo, y] = m;
+    if (y.length === 2) y = '20' + y;
+    d = d.padStart(2, '0');
+    mo = mo.padStart(2, '0');
+    if (+d < 1 || +d > 31 || +mo < 1 || +mo > 12) return null;
+    return `${y}-${mo}-${d}`;
+  }
+
+  function parseCoNumber(str) {
+    // cerca prima un numero vicino alla parola "ordine"/"CO", altrimenti la sequenza di cifre più lunga
+    const nearLabel = str.match(/(?:ordine|c\.?o\.?)\D{0,10}(\d{6,12})/i);
+    if (nearLabel) return nearLabel[1];
+    const all = str.match(/\d{6,12}/g);
+    if (!all) return null;
+    return all.reduce((a, b) => b.length > a.length ? b : a, '');
+  }
+
+  function parseAfterLabel(str, labels) {
+    const lines = str.split(/\r?\n/);
+    for (const line of lines) {
+      for (const label of labels) {
+        const re = new RegExp(label + '\\s*[:\\-]?\\s*(.+)', 'i');
+        const m = line.match(re);
+        if (m && m[1].trim().length > 1) {
+          return m[1].trim().replace(/[^A-Za-zÀ-ÿ0-9 ]/g, '').trim();
+        }
+      }
+    }
+    return null;
+  }
+
+  function setOcrButtonBusy(btn, busy) {
+    if (!btn) return;
+    btn.disabled = busy;
+    btn.classList.toggle('busy', busy);
+    btn.textContent = busy ? '⏳' : '🔎';
+  }
+
+  // In alcuni ambienti "sandbox" (es. l'anteprima artifact di Claude.ai) la
+  // creazione del worker tramite Blob URL viene bloccata per motivi di
+  // sicurezza. Passando workerPath esplicito e workerBlobURL:false, il worker
+  // viene caricato come script normale invece che come blob, evitando l'errore
+  // "Failed to construct 'Worker' ... cannot be accessed from origin".
+  let ocrWorkerPromise = null;
+  function getOcrWorker() {
+    if (!ocrWorkerPromise) {
+      ocrWorkerPromise = Tesseract.createWorker('ita', 1, {
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+        workerBlobURL: false,
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            statusEl.textContent = `🔎 Lettura OCR... ${Math.round((m.progress||0)*100)}%`;
+          }
+        }
+      }).catch(err => {
+        ocrWorkerPromise = null; // permette di ritentare al prossimo click
+        throw err;
+      });
+    }
+    return ocrWorkerPromise;
+  }
+
+  async function runOCR(dataUrl, btn) {
+    if (typeof Tesseract === 'undefined') {
+      statusEl.textContent = '❌ Libreria OCR non caricata (serve connessione internet)';
+      statusEl.className = 'status error';
+      return;
+    }
+    setOcrButtonBusy(btn, true);
+    statusEl.textContent = '🔎 Lettura OCR in corso... (qualche secondo)';
+    statusEl.className = 'status';
+    debugInfo.textContent = '🔎 OCR: analisi immagine in corso...';
+
+    try {
+      const worker = await getOcrWorker();
+      const { data: { text } } = await worker.recognize(dataUrl);
+
+      ocrText.value = text.trim();
+      ocrPanel.classList.add('show');
+
+      const found = [];
+
+      const coVal = parseCoNumber(text);
+      if (coVal) { co.value = coVal; found.push('numero ordine'); }
+
+      const dateVal = parseDateToInput(text);
+      if (dateVal) { data.value = dateVal; found.push('data'); }
+
+      const clienteVal = parseAfterLabel(text, ['cliente', 'ditta', 'committente']);
+      if (clienteVal) { cliente.value = clienteVal.toUpperCase(); found.push('cliente'); }
+
+      const tecnicoVal = parseAfterLabel(text, ['tecnico', 'cognome']);
+      if (tecnicoVal) { tecnico.value = tecnicoVal.toUpperCase(); found.push('tecnico'); }
+
+      onDataChange();
+
+      if (found.length > 0) {
+        statusEl.textContent = `✅ OCR: trovati ${found.join(', ')}. Controlla i campi.`;
+        statusEl.className = 'status ok';
+      } else {
+        statusEl.textContent = '⚠️ OCR: nessun dato riconosciuto automaticamente. Guarda il testo letto qui sotto e compila a mano.';
+        statusEl.className = 'status error';
+      }
+      debugInfo.textContent = `✅ OCR completato. Campi trovati: ${found.join(', ') || 'nessuno'}.`;
+
+    } catch (err) {
+      statusEl.textContent = `❌ Errore OCR: ${err.message}`;
+      statusEl.className = 'status error';
+      debugInfo.textContent = `❌ Errore OCR: ${err.message}`;
+    } finally {
+      setOcrButtonBusy(btn, false);
+    }
+  }
+
+  ocrClose.addEventListener('click', function() {
+    ocrPanel.classList.remove('show');
+  });
 
   // ============================================================
   // GENERAZIONE PDF
