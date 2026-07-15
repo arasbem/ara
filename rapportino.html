@@ -198,6 +198,7 @@
   .tag-name .seg{color:#667384;}
   .tag-name .val{color:#003b70; font-weight:600;}
   .tag-name .miss{color:#e2001a;}
+  .tag-name .custom{color:#1e8e5a; font-weight:600;}
   .filename-row{
     display:flex;
     gap:10px;
@@ -267,12 +268,16 @@
   .crop-canvas-wrap{
     touch-action:none;
     line-height:0;
+    width:100%;
+    display:flex;
+    justify-content:center;
   }
   #cropCanvas{
     touch-action:none;
     cursor:move;
     border:1px solid #dde3e9;
     max-width:100%;
+    max-height:70vh;
     display:block;
   }
   .crop-hint{
@@ -289,18 +294,86 @@
     flex-wrap:wrap;
   }
   .crop-actions .btn{flex:1 1 auto; justify-content:center; font-size:12px; padding:11px 10px; min-width:110px;}
+
+  .header-logo {
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .header-logo svg {
+    width:48px;
+    height:48px;
+    flex-shrink:0;
+  }
+  .header-logo .logo-text {
+    display:flex;
+    flex-direction:column;
+  }
+  .header-logo .logo-text .brand {
+    font-size:24px;
+    font-weight:700;
+    color:#00549e;
+    letter-spacing:-0.5px;
+    line-height:1.1;
+  }
+  .header-logo .logo-text .subtitle {
+    font-size:14px;
+    color:#667384;
+    font-weight:400;
+  }
+  .header-right {
+    font-family:monospace;
+    font-size:11px;
+    color:#667384;
+    text-align:right;
+  }
+  .header-right b {color:#003b70;}
+  
+  @media (max-width:600px) {
+    .header-logo svg {width:36px; height:36px;}
+    .header-logo .logo-text .brand {font-size:18px;}
+    .header-logo .logo-text .subtitle {font-size:12px;}
+    .header-right {font-size:10px;}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <div class="panel">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <h1 style="font-size:22px; margin:0; color:#00549e;">dormakaba</h1>
-        <h2 style="font-size:16px; margin:0;">Verbale Fotografico</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div class="header-logo">
+        <!-- Logo dormakaba - versione fedele al sito ufficiale -->
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#00549e;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#003b70;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Sfondo -->
+          <rect x="20" y="30" width="160" height="140" rx="16" fill="url(#grad)"/>
+          <!-- Finestra interna -->
+          <rect x="35" y="50" width="130" height="100" rx="8" fill="#ffffff" opacity="0.92"/>
+          <!-- "D" stilizzata come chiave/porta -->
+          <rect x="55" y="65" width="90" height="70" rx="6" fill="none" stroke="#00549e" stroke-width="4"/>
+          <rect x="55" y="65" width="50" height="70" rx="6" fill="#00549e" opacity="0.12"/>
+          <!-- Maniglia -->
+          <circle cx="90" cy="100" r="9" fill="none" stroke="#00549e" stroke-width="3"/>
+          <circle cx="90" cy="100" r="3.5" fill="#00549e"/>
+          <!-- Linee decorative -->
+          <line x1="65" y1="83" x2="130" y2="83" stroke="#00549e" stroke-width="2" opacity="0.3"/>
+          <line x1="65" y1="117" x2="130" y2="117" stroke="#00549e" stroke-width="2" opacity="0.3"/>
+          <!-- Testo -->
+          <text x="100" y="148" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#00549e" text-anchor="middle" letter-spacing="1.5">dormakaba</text>
+          <text x="100" y="165" font-family="Arial, sans-serif" font-size="11" fill="#667384" text-anchor="middle" letter-spacing="1">ACCESS SOLUTIONS</text>
+        </svg>
+        <div class="logo-text">
+          <div class="brand">dormakaba</div>
+          <div class="subtitle">Verbale Fotografico</div>
+        </div>
       </div>
-      <div style="font-family:monospace; font-size:11px; color:#667384;">Powered by <b>Andrea Arabia</b></div>
+      <div class="header-right">Powered by <b>Andrea Arabia</b></div>
     </div>
   </div>
 
@@ -309,7 +382,7 @@
     <div class="panel-title">Foto verbale</div>
     <div class="capture-buttons">
       <label class="btn primary" id="btnCamera">📷 Scatta foto
-        <input type="file" id="cameraInput" accept="image/*">
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
       </label>
       <label class="btn" id="btnUpload">📤 Carica foto
         <input type="file" id="fileInput" accept="image/*" multiple>
@@ -347,7 +420,7 @@
 
     <div class="filename-row">
       <div class="field">
-        <label for="filenameManual">Nome file PDF</label>
+        <label for="filenameManual">Nome file PDF <span style="font-weight:400;text-transform:none;color:#667384;">(modifica liberamente)</span></label>
         <input type="text" id="filenameManual" placeholder="Generato automaticamente">
       </div>
       <button class="btn" id="btnRegenerate">🔄 Rigenera</button>
@@ -392,6 +465,7 @@
   const state = { images: [] };
   let isGenerating = false;
   let lastAutoFilename = null;
+  let isCustomFilename = false;
 
   // ============================================================
   // DOM
@@ -409,6 +483,11 @@
   const btnGenerate = $('btnGenerate');
   const statusEl = $('status');
   const debugInfo = $('debugInfo');
+  const btnRegenerate = $('btnRegenerate');
+  const btnCamera = $('btnCamera');
+  const btnUpload = $('btnUpload');
+  const cameraInput = $('cameraInput');
+  const fileInput = $('fileInput');
 
   // Modale ritaglio
   const cropOverlay = $('cropOverlay');
@@ -417,24 +496,6 @@
   const btnCropConfirm = $('btnCropConfirm');
   const btnCropSkip = $('btnCropSkip');
   const btnCropDiscard = $('btnCropDiscard');
-  const cameraInput = $('cameraInput');
-
-  // ============================================================
-  // RILEVAMENTO DISPOSITIVO MOBILE
-  // ============================================================
-  // L'attributo "capture" ha senso solo su smartphone/tablet con fotocamera.
-  // Su PC (soprattutto in ambienti aziendali con policy che bloccano la
-  // webcam) può impedire l'apertura della finestra di selezione file,
-  // dando l'impressione che il caricamento non funzioni. Lo applichiamo
-  // quindi solo quando rileviamo un vero dispositivo mobile.
-  function isMobileDevice() {
-    const ua = navigator.userAgent || '';
-    const touchMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1; // iPadOS
-    return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || touchMac;
-  }
-  if (isMobileDevice()) {
-    cameraInput.setAttribute('capture', 'environment');
-  }
 
   // ============================================================
   // DATA DEFAULT
@@ -447,11 +508,9 @@
   data.value = todayStr();
 
   // ============================================================
-  // RITAGLIO INTERATTIVO - rilevamento bordi (suggerimento) + maniglie manuali
+  // RITAGLIO INTERATTIVO
   // ============================================================
 
-  // Rileva l'area "utile" della foto (esclude i bordi chiari/uniformi)
-  // e la usa come proposta iniziale del riquadro di ritaglio.
   function autoDetectRect(img) {
     return new Promise((resolve) => {
       try {
@@ -528,8 +587,6 @@
     cropCtx2d.fillRect(0, cropRect.y, cropRect.x, cropRect.h);
     cropCtx2d.fillRect(cropRect.x + cropRect.w, cropRect.y, cropCanvas.width - (cropRect.x + cropRect.w), cropRect.h);
 
-    // Bordo del riquadro a doppio tratto (bianco spesso sotto + blu sopra):
-    // resta ben visibile sia su foto chiare che scure.
     cropCtx2d.strokeStyle = '#ffffff';
     cropCtx2d.lineWidth = 5;
     cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
@@ -546,8 +603,6 @@
       cropCtx2d.beginPath(); cropCtx2d.moveTo(cropRect.x, gy); cropCtx2d.lineTo(cropRect.x + cropRect.w, gy); cropCtx2d.stroke();
     }
 
-    // Maniglie d'angolo: cerchi bianchi con bordo blu spesso, molto più
-    // visibili e facili da individuare/afferrare rispetto a piccoli quadrati.
     const scale = getCanvasScale();
     const R = 11 * Math.max(scale.x, scale.y);
     getCorners().forEach(c => {
@@ -567,6 +622,7 @@
 
   function getCanvasScale() {
     const rect = cropCanvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return { x: 1, y: 1 };
     return {
       x: cropCanvas.width / rect.width,
       y: cropCanvas.height / rect.height
@@ -579,9 +635,6 @@
     return { x: (e.clientX - rect.left) * scale.x, y: (e.clientY - rect.top) * scale.y };
   }
 
-  // Tolleranza espressa in pixel "reali" a schermo (non in pixel del canvas),
-  // così un dito su mobile o un mouse su PC hanno sempre la stessa area di
-  // presa comoda, indipendentemente da quanto il canvas è stato scalato.
   const HIT_SCREEN_PX = 26;
   function hitTestCorner(pos) {
     const scale = getCanvasScale();
@@ -638,22 +691,21 @@
   cropCanvas.addEventListener('pointerup', endDrag);
   cropCanvas.addEventListener('pointercancel', endDrag);
 
-  // Apre il modale di ritaglio per una dataUrl e risolve con { dataUrl, cropped } oppure null se scartata
   function openCropModal(dataUrl, label) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = function() {
         currentCropImage = img;
 
-        const maxW = Math.max(240, Math.min(560, window.innerWidth - 60));
-        const maxH = Math.max(220, Math.min(520, window.innerHeight - 230));
+        const maxW = Math.min(800, window.innerWidth - 60);
+        const maxH = Math.min(600, window.innerHeight - 200);
         let scale = Math.min(maxW / img.width, maxH / img.height, 1.5);
         if (!isFinite(scale) || scale <= 0) scale = 1;
 
         cropCanvas.width = Math.round(img.width * scale);
         cropCanvas.height = Math.round(img.height * scale);
-        cropCanvas.style.width = cropCanvas.width + 'px';
-        cropCanvas.style.height = cropCanvas.height + 'px';
+        cropCanvas.style.width = Math.min(cropCanvas.width, maxW) + 'px';
+        cropCanvas.style.height = Math.min(cropCanvas.height, maxH) + 'px';
 
         cropCounter.textContent = label || '';
 
@@ -677,16 +729,12 @@
     const scaleX = currentCropImage.width / cropCanvas.width;
     const scaleY = currentCropImage.height / cropCanvas.height;
 
-    // Piccolo margine di sicurezza (in pixel del canvas visualizzato) per eliminare
-    // qualsiasi filo di bordo residuo dovuto all'interpolazione sui bordi del ritaglio
     const safety = 2;
     const rx = cropRect.x + safety;
     const ry = cropRect.y + safety;
     const rw = Math.max(4, cropRect.w - safety * 2);
     const rh = Math.max(4, cropRect.h - safety * 2);
 
-    // Coordinate intere: sorgente e destinazione della stessa dimensione, per evitare
-    // che il campionamento con interpolazione prenda pixel appena fuori dal ritaglio
     let nx = Math.round(rx * scaleX);
     let ny = Math.round(ry * scaleY);
     let nw = Math.round(rw * scaleX);
@@ -810,31 +858,34 @@
   }
 
   // ============================================================
-  // EVENTI CAMERA/UPLOAD
+  // EVENTI CAMERA/UPLOAD - USANDO LABEL (METODO PIÙ AFFIDABILE)
   // ============================================================
-  // Nota: l'apertura del selettore file avviene nativamente tramite
-  // <label for="..."> nell'HTML (nessun click sintetico via JS: più
-  // affidabile su tutti i browser/PC). Qui aggiungiamo solo il supporto
-  // da tastiera (Invio/Spazio) per accessibilità.
-  [$('btnCamera'), $('btnUpload')].forEach(label => {
+  // I bottoni sono label che contengono gli input file
+  // Il click sul label apre automaticamente il file input
+  // Questo è il metodo più affidabile su tutti i browser
+  
+  // Supporto da tastiera per accessibilità
+  [btnCamera, btnUpload].forEach(label => {
     label.setAttribute('tabindex', '0');
     label.setAttribute('role', 'button');
     label.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        this.click();
+        // Trova l'input all'interno del label e aprilo
+        const input = this.querySelector('input[type="file"]');
+        if (input) input.click();
       }
     });
   });
 
-  $('cameraInput').addEventListener('change', function() {
+  cameraInput.addEventListener('change', function() {
     if(this.files && this.files.length > 0) {
       handleFiles(this.files);
     }
     this.value = '';
   });
 
-  $('fileInput').addEventListener('change', function() {
+  fileInput.addEventListener('change', function() {
     if(this.files && this.files.length > 0) {
       handleFiles(this.files);
     }
@@ -842,7 +893,7 @@
   });
 
   // ============================================================
-  // TRASCINA E RILASCIA (drag & drop) - alternativa affidabile su PC
+  // TRASCINA E RILASCIA
   // ============================================================
   ['dragenter', 'dragover'].forEach(evt => {
     thumbWrap.addEventListener(evt, function(e) {
@@ -866,7 +917,7 @@
   });
 
   // ============================================================
-  // SANITIZZAZIONE
+  // SANITIZZAZIONE (SOLO PER IL NOME AUTOMATICO)
   // ============================================================
   function sanitize(str) {
     return (str || '')
@@ -902,6 +953,7 @@
 
     const allValid = c.length > 0 && coVal.length > 0 && t.length > 0 && dOk;
 
+    // Anteprima con colori (solo a scopo informativo)
     let html = '';
     const parts = [
       { value: prefix, valid: true },
@@ -919,24 +971,27 @@
         : `<span class="miss">${p.label || '?'}</span>`;
     });
     html += '<span class="seg">.pdf</span>';
-    tagName.innerHTML = html;
-
+    
+    // Nome automatico generato
     const newAuto = allValid ? `${prefix}_${c}_CO_${coVal}_${t}_${dOk}.pdf` : null;
 
-    // La casella "Nome file PDF" segue automaticamente i dati inseriti finché
-    // l'utente non scrive un nome diverso da quello proposto: a quel punto
-    // il nome personalizzato resta invariato anche modificando altri campi,
-    // finché non si preme "Rigenera" (o si svuota la casella).
+    // Gestione nome personalizzato
     const currentManual = filenameManual.value.trim();
-    const isCustom = currentManual.length > 0 && currentManual !== (lastAutoFilename || '');
-
-    lastAutoFilename = newAuto;
-
-    if (!isCustom) {
+    
+    // Se l'utente non ha personalizzato il nome, aggiorna con quello automatico
+    if (!isCustomFilename) {
       filenameManual.value = newAuto || '';
+      lastAutoFilename = newAuto;
     }
 
     const finalFilename = filenameManual.value.trim() || null;
+
+    // Mostra l'anteprima: se è personalizzato, mostralo in verde
+    if (isCustomFilename && finalFilename) {
+      tagName.innerHTML = `<span class="custom">${finalFilename}</span>`;
+    } else {
+      tagName.innerHTML = html;
+    }
 
     tagStatus.textContent = finalFilename ? '✅ PRONTO' : '⏳ INCOMPLETO';
     tagStatus.style.color = finalFilename ? '#1e8e5a' : '#d1293b';
@@ -967,13 +1022,25 @@
     r.addEventListener('change', onDataChange);
   });
 
+  // Gestione input manuale del nome file - LIBERO DA LIMITAZIONI
   filenameManual.addEventListener('input', function() {
+    const currentVal = this.value;
+    if (currentVal.length > 0) {
+      isCustomFilename = true;
+    } else {
+      isCustomFilename = false;
+    }
     refreshGenerateState();
   });
 
-  document.getElementById('btnRegenerate').addEventListener('click', function() {
+  // Pulsante Rigenera
+  btnRegenerate.addEventListener('click', function() {
+    isCustomFilename = false;
     filenameManual.value = '';
     refreshGenerateState();
+    statusEl.textContent = '🔄 Nome file rigenerato';
+    statusEl.className = 'status ok';
+    debugInfo.textContent = '🔄 Nome file rigenerato automaticamente';
   });
 
   // ============================================================
@@ -981,7 +1048,7 @@
   // ============================================================
   function renderThumbs() {
     if(state.images.length === 0) {
-      thumbWrap.innerHTML = '<div class="empty-note">Nessuna foto aggiunta</div>';
+      thumbWrap.innerHTML = '<div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div>';
       return;
     }
     
@@ -1071,13 +1138,6 @@
         pdf.addImage(imgData, 'JPEG', (pageW - w)/2, (pageH - h)/2, w, h);
       }
 
-      // ============================================================
-      // SALVATAGGIO: su iOS il download via <a download> viene spesso
-      // intercettato dal visualizzatore PDF di Safari, che ignora il nome
-      // file. Su iOS usiamo quindi il foglio di condivisione nativo
-      // (Web Share API), che passa il nome corretto e permette "Salva su File".
-      // Su Android/desktop il download diretto funziona già correttamente.
-      // ============================================================
       const pdfBlob = pdf.output('blob');
       const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1096,13 +1156,11 @@
           }
         } catch (shareErr) {
           if (shareErr.name === 'AbortError') {
-            // L'utente ha chiuso il foglio di condivisione senza salvare: non è un errore
             saved = true;
             statusEl.textContent = '↩️ Salvataggio annullato';
             statusEl.className = 'status';
             debugInfo.textContent = '↩️ Foglio di condivisione chiuso dall\'utente';
           }
-          // altri errori: si prosegue con il fallback sotto
         }
       }
 
