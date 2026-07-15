@@ -124,6 +124,10 @@
   body.dark-mode .radio-group label .doc-type-hint{
     color:#8b949e;
   }
+  body.dark-mode .radio-group label .doc-desc{
+    color:#8b949e;
+    font-weight:400;
+  }
   body.dark-mode .field-label-with-example .example{
     color:#8b949e;
   }
@@ -313,6 +317,10 @@
     color:#182430;
     cursor:pointer;
   }
+  .radio-group label .doc-desc{
+    font-weight:400;
+    color:#667384;
+  }
   .radio-group input[type="radio"]{
     width:18px; height:18px;
     accent-color:#00549e;
@@ -457,20 +465,27 @@
     align-items:center;
     gap:14px;
   }
+  .header-logo .logo-img {
+    height:40px;
+    width:auto;
+    flex-shrink:0;
+    display:block;
+    object-fit:contain;
+  }
   .header-logo .logo-text {
     display:flex;
     flex-direction:column;
   }
   .header-logo .logo-text .brand {
-    font-size:24px;
+    font-size:18px;
     font-weight:700;
     color:#00549e;
-    letter-spacing:-0.5px;
-    line-height:1.1;
+    letter-spacing:-0.3px;
+    line-height:1.2;
     transition: color 0.3s;
   }
   .header-logo .logo-text .subtitle {
-    font-size:14px;
+    font-size:12px;
     color:#667384;
     font-weight:400;
     transition: color 0.3s;
@@ -516,8 +531,9 @@
   .inline-fields .field{margin-bottom:0;}
 
   @media (max-width:600px) {
-    .header-logo .logo-text .brand {font-size:18px;}
-    .header-logo .logo-text .subtitle {font-size:12px;}
+    .header-logo .logo-img {height:30px;}
+    .header-logo .logo-text .brand {font-size:15px;}
+    .header-logo .logo-text .subtitle {font-size:10px;}
     .header-right {font-size:10px;}
     .radio-group{gap:12px;}
     .radio-group label{font-size:12px;}
@@ -542,6 +558,14 @@
     color:#667384;
     text-transform:none;
   }
+
+  .radio-group label .doc-desc {
+    font-weight:400;
+    color:#667384;
+  }
+  body.dark-mode .radio-group label .doc-desc {
+    color:#8b949e;
+  }
 </style>
 </head>
 <body>
@@ -550,8 +574,9 @@
   <div class="panel">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
       <div class="header-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Dormakaba_logo_one_line_RGB_ff_%281%29.jpg" alt="Dormakaba Logo" class="logo-img" onerror="this.style.display='none'">
         <div class="logo-text">
-          <div class="brand">📋 Verbale Fotografico</div>
+          <div class="brand">Verbale Fotografico</div>
           <div class="subtitle">Generazione PDF</div>
         </div>
       </div>
@@ -586,10 +611,9 @@
     
     <div class="radio-group">
       <label><input type="radio" name="docType" value="CO" checked> CO <span class="doc-type-hint">(Conferma d'Ordine)</span></label>
-      <label><input type="radio" name="docType" value="CM"> CM <span class="doc-type-hint">(Contratto Manutenzione)</span></label>
-      <label><input type="radio" name="docType" value="ESC"> ESC <span class="doc-type-hint">(c.m. xxx-PAS/anno)</span></label>
-      <label><input type="radio" name="docType" value="EAD"> EAD <span class="doc-type-hint">(c.m. xxx/anno)</span></label>
-      <label><input type="radio" name="docType" value="LGS"> LGS <span class="doc-type-hint">(c.m. xxx-H/anno)</span></label>
+      <label><input type="radio" name="docType" value="ESC"> CM ESC <span class="doc-desc">(Tornelli)</span></label>
+      <label><input type="radio" name="docType" value="EAD"> CM EAD <span class="doc-desc">(Lettori)</span></label>
+      <label><input type="radio" name="docType" value="LGS"> CM LGS <span class="doc-desc">(Maniglie alberghi)</span></label>
     </div>
 
     <div class="field">
@@ -600,8 +624,8 @@
       <input type="text" id="cliente" placeholder="Inserisci il nome del cliente">
     </div>
 
-    <!-- Campi variabili per CO e CM -->
-    <div id="coCmFields">
+    <!-- Campi variabili per CO -->
+    <div id="coFields">
       <div class="field">
         <div class="field-label-with-example">
           <label for="co">Numero ordine <span id="coLabelHint">(CO)</span></label>
@@ -724,7 +748,7 @@
   const themeToggle = $('themeToggle');
   const themeIcon = $('themeIcon');
   const themeLabel = $('themeLabel');
-  const coCmFields = $('coCmFields');
+  const coFields = $('coFields');
   const escEadLgsFields = $('escEadLgsFields');
 
   // Modale ritaglio
@@ -774,14 +798,14 @@
   function updateDocTypeHints() {
     let docType = getDocType();
     
-    if (docType === 'CO' || docType === 'CM') {
-      coCmFields.style.display = 'block';
+    if (docType === 'CO') {
+      coFields.style.display = 'block';
       escEadLgsFields.style.display = 'none';
-      coLabelHint.textContent = docType === 'CO' ? '(CO)' : '(CM)';
+      coLabelHint.textContent = '(CO)';
       coExample.textContent = 'es. 1300123456';
       co.placeholder = 'Inserisci il numero ordine';
     } else {
-      coCmFields.style.display = 'none';
+      coFields.style.display = 'none';
       escEadLgsFields.style.display = 'block';
       
       switch(docType) {
@@ -1275,11 +1299,6 @@
         coVal = sanitize(co.value);
         suffix = 'CO';
         break;
-      case 'CM':
-        prefix = 'VM';
-        coVal = sanitize(co.value);
-        suffix = 'CM';
-        break;
       case 'ESC':
         prefix = 'VM';
         xxxVal = sanitizeWithSlash(xxx.value);
@@ -1312,7 +1331,7 @@
     let xxxValid = false;
     let annoValid = false;
 
-    if (docType === 'CO' || docType === 'CM') {
+    if (docType === 'CO') {
       coValid = coVal.length > 0;
     } else {
       xxxValid = xxxVal.length > 0;
@@ -1320,7 +1339,7 @@
     }
 
     const allValid = cValid && tValid && dValid && 
-      ((docType === 'CO' || docType === 'CM') ? coValid : (xxxValid && annoValid));
+      (docType === 'CO' ? coValid : (xxxValid && annoValid));
 
     // Costruzione anteprima con colori
     let html = '';
@@ -1331,15 +1350,6 @@
         { value: 'VA', valid: true, fixed: true },
         { value: c, valid: cValid, label: 'CLIENTE' },
         { value: 'CO', valid: true, fixed: true },
-        { value: coVal, valid: coValid, label: 'xxx' },
-        { value: t, valid: tValid, label: 'TECNICO' },
-        { value: dOk, valid: dValid, label: 'DATA' }
-      ];
-    } else if (docType === 'CM') {
-      parts = [
-        { value: 'VM', valid: true, fixed: true },
-        { value: c, valid: cValid, label: 'CLIENTE' },
-        { value: 'CM', valid: true, fixed: true },
         { value: coVal, valid: coValid, label: 'xxx' },
         { value: t, valid: tValid, label: 'TECNICO' },
         { value: dOk, valid: dValid, label: 'DATA' }
@@ -1397,9 +1407,6 @@
       switch(docType) {
         case 'CO':
           newAuto = `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf`;
-          break;
-        case 'CM':
-          newAuto = `VM_${c}_CM_${coVal}_${t}_${dOk}.pdf`;
           break;
         case 'ESC':
           newAuto = `VM_${c}_c.m. ${xxxVal}-PAS/${annoVal}_${t}_${dOk}.pdf`;
