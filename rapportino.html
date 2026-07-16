@@ -1340,86 +1340,42 @@
     const allValid = cValid && tValid && dValid && 
       (docType === 'CO' ? coValid : (xxxValid && annoValid));
 
-    // Costruzione anteprima con colori
+    // Costruzione anteprima con colori (nessun underscore automatico tra i segmenti:
+    // ogni segmento fisso include già il proprio separatore corretto)
+    const spanFixed = v => `<span class="fixed">${v}</span>`;
+    const spanVal = (v, valid, label) => valid
+      ? `<span class="val">${v}</span>`
+      : `<span class="miss">${label}</span>`;
+    const US = '<span class="seg">_</span>';
+
     let html = '';
-    let parts = [];
+    let newAuto = null;
 
     if (docType === 'CO') {
-      parts = [
-        { value: 'VA', valid: true, fixed: true },
-        { value: c, valid: cValid, label: 'CLIENTE' },
-        { value: 'CO', valid: true, fixed: true },
-        { value: coVal, valid: coValid, label: 'xxx' },
-        { value: t, valid: tValid, label: 'TECNICO' },
-        { value: dOk, valid: dValid, label: 'DATA' }
-      ];
-    } else if (docType === 'ESC') {
-      parts = [
-        { value: 'VM', valid: true, fixed: true },
-        { value: c, valid: cValid, label: 'CLIENTE' },
-        { value: 'c.m.', valid: true, fixed: true },
-        { value: xxxVal, valid: xxxValid, label: 'xxx' },
-        { value: '-PAS/', valid: true, fixed: true },
-        { value: annoVal, valid: annoValid, label: 'anno' },
-        { value: t, valid: tValid, label: 'TECNICO' },
-        { value: dOk, valid: dValid, label: 'DATA' }
-      ];
-    } else if (docType === 'EAD') {
-      parts = [
-        { value: 'VM', valid: true, fixed: true },
-        { value: c, valid: cValid, label: 'CLIENTE' },
-        { value: 'c.m.', valid: true, fixed: true },
-        { value: xxxVal, valid: xxxValid, label: 'xxx' },
-        { value: '/', valid: true, fixed: true },
-        { value: annoVal, valid: annoValid, label: 'anno' },
-        { value: t, valid: tValid, label: 'TECNICO' },
-        { value: dOk, valid: dValid, label: 'DATA' }
-      ];
-    } else if (docType === 'LGS') {
-      parts = [
-        { value: 'VM', valid: true, fixed: true },
-        { value: c, valid: cValid, label: 'CLIENTE' },
-        { value: 'c.m.', valid: true, fixed: true },
-        { value: xxxVal, valid: xxxValid, label: 'xxx' },
-        { value: '-H/', valid: true, fixed: true },
-        { value: annoVal, valid: annoValid, label: 'anno' },
-        { value: t, valid: tValid, label: 'TECNICO' },
-        { value: dOk, valid: dValid, label: 'DATA' }
-      ];
-    }
-    
-    parts.forEach((p, i) => {
-      if(i > 0) html += '<span class="seg">_</span>';
-      if (p.fixed) {
-        html += `<span class="fixed">${p.value}</span>`;
-      } else if (p.value) {
-        html += `<span class="val">${p.value}</span>`;
-      } else {
-        html += `<span class="miss">${p.label || '?'}</span>`;
-      }
-    });
-    html += '<span class="seg">.pdf</span>';
+      html = spanFixed('VA') + US +
+             spanVal(c, cValid, 'CLIENTE') + US +
+             spanFixed('CO') + US +
+             spanVal(coVal, coValid, 'xxx') + US +
+             spanVal(t, tValid, 'TECNICO') + US +
+             spanVal(dOk, dValid, 'DATA');
+      newAuto = allValid ? `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf` : null;
+    } else {
+      let mid;
+      if (docType === 'ESC') mid = '-PAS/';
+      else if (docType === 'EAD') mid = '/';
+      else mid = '-H/';
 
-    // Nome automatico
-    let newAuto = null;
-    if (allValid) {
-      switch(docType) {
-        case 'CO':
-          newAuto = `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf`;
-          break;
-        case 'ESC':
-          newAuto = `VM_${c}_c.m. ${xxxVal}-PAS/${annoVal}_${t}_${dOk}.pdf`;
-          break;
-        case 'EAD':
-          newAuto = `VM_${c}_c.m. ${xxxVal}/${annoVal}_${t}_${dOk}.pdf`;
-          break;
-        case 'LGS':
-          newAuto = `VM_${c}_c.m. ${xxxVal}-H/${annoVal}_${t}_${dOk}.pdf`;
-          break;
-        default:
-          newAuto = `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf`;
-      }
+      html = spanFixed('VM') + US +
+             spanVal(c, cValid, 'CLIENTE') + US +
+             spanFixed('c.m. ') +
+             spanVal(xxxVal, xxxValid, 'xxx') +
+             spanFixed(mid) +
+             spanVal(annoVal, annoValid, 'anno') + US +
+             spanVal(t, tValid, 'TECNICO') + US +
+             spanVal(dOk, dValid, 'DATA');
+      newAuto = allValid ? `VM_${c}_c.m. ${xxxVal}${mid}${annoVal}_${t}_${dOk}.pdf` : null;
     }
+    html += '<span class="seg">.pdf</span>';
 
     if (!isCustomFilename) {
       filenameManual.value = newAuto || '';
