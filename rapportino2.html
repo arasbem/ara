@@ -1,2268 +1,1762 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Generatore Verbale Fotografico</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-    </script>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            background: #eef1f4;
-            font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #182430;
-            transition: background 0.3s, color 0.3s;
-        }
-        body.dark-mode {
-            background: #0d1117;
-            color: #e6edf3;
-        }
-        body.dark-mode .panel {
-            background: #161b22;
-            border-color: #30363d;
-        }
-        body.dark-mode .panel-title {
-            color: #58a6ff;
-        }
-        body.dark-mode .btn {
-            background: #21262d;
-            border-color: #30363d;
-            color: #e6edf3;
-        }
-        body.dark-mode .btn.primary {
-            background: #1f6feb;
-            border-color: #1f6feb;
-            color: #fff;
-        }
-        body.dark-mode .btn.primary:hover {
-            background: #1158c7;
-        }
-        body.dark-mode .btn.danger {
-            background: #da3633;
-            border-color: #da3633;
-            color: #fff;
-        }
-        body.dark-mode .btn.danger:hover {
-            background: #b62324;
-        }
-        body.dark-mode .btn.success {
-            background: #238636;
-            border-color: #238636;
-            color: #fff;
-        }
-        body.dark-mode .btn.success:hover {
-            background: #1a7a2e;
-        }
-        body.dark-mode input[type=text],
-        body.dark-mode input[type=date] {
-            background: #0d1117;
-            border-color: #30363d;
-            color: #e6edf3;
-        }
-        body.dark-mode input[type=text]:focus,
-        body.dark-mode input[type=date]:focus {
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
-        }
-        body.dark-mode input[type=text]::placeholder {
-            color: #8b949e;
-        }
-        body.dark-mode .tag {
-            background: #0d1f2d;
-            border-color: #30363d;
-        }
-        body.dark-mode .empty-note {
-            border-color: #30363d;
-            color: #8b949e;
-        }
-        body.dark-mode .thumb {
-            border-color: #30363d;
-            background: #0d1117;
-        }
-        body.dark-mode .thumb .rm {
-            background: rgba(22, 27, 34, 0.92);
-            border-color: #30363d;
-            color: #e6edf3;
-        }
-        body.dark-mode .thumb .rm:hover {
-            border-color: #da3633;
-            color: #da3633;
-        }
-        body.dark-mode .tag .tag-name .val {
-            color: #58a6ff;
-        }
-        body.dark-mode .tag .tag-name .miss {
-            color: #f85149;
-        }
-        body.dark-mode .tag .tag-name .seg {
-            color: #8b949e;
-        }
-        body.dark-mode .tag .tag-name .custom {
-            color: #3fb950;
-        }
-        body.dark-mode .tag .tag-name .fixed {
-            color: #8b949e;
-        }
-        body.dark-mode .tag-label {
-            color: #58a6ff;
-        }
-        body.dark-mode .debug-info {
-            color: #8b949e;
-        }
-        body.dark-mode .status.ok {
-            color: #3fb950;
-        }
-        body.dark-mode .field label {
-            color: #8b949e;
-        }
-        body.dark-mode .header-logo .logo-text .brand {
-            color: #58a6ff;
-        }
-        body.dark-mode .header-logo .logo-text .subtitle {
-            color: #8b949e;
-        }
-        body.dark-mode .header-right {
-            color: #8b949e;
-        }
-        body.dark-mode .header-right b {
-            color: #58a6ff;
-        }
-        body.dark-mode .status.error {
-            color: #f85149;
-        }
-        body.dark-mode .radio-group label {
-            color: #e6edf3;
-        }
-        body.dark-mode .radio-group label .doc-type-hint {
-            color: #8b949e;
-        }
-        body.dark-mode .radio-group label .doc-desc {
-            color: #8b949e;
-            font-weight: 400;
-        }
-        body.dark-mode .field-label-with-example .example {
-            color: #8b949e;
-        }
-        body.dark-mode .crop-modal {
-            background: #161b22;
-        }
-        body.dark-mode .crop-header {
-            color: #58a6ff;
-        }
-        body.dark-mode .crop-header span {
-            color: #8b949e;
-        }
-        body.dark-mode .crop-hint {
-            color: #8b949e;
-        }
-        body.dark-mode .theme-toggle {
-            background: #21262d;
-            border-color: #30363d;
-            color: #8b949e;
-        }
-        body.dark-mode .theme-toggle:hover {
-            background: #30363d;
-        }
-        body.dark-mode footer {
-            color: #8b949e;
-        }
-        body.dark-mode .status {
-            color: #8b949e;
-        }
-        body.dark-mode .filename-row .field label span {
-            color: #8b949e !important;
-        }
-        body.dark-mode .radio-group input[type="radio"] {
-            accent-color: #58a6ff;
-        }
-        body.dark-mode .crop-scan-toggle {
-            border-color: #30363d;
-        }
-        body.dark-mode .crop-scan-toggle .toggle-track {
-            background: #21262d;
-        }
-        body.dark-mode .crop-scan-toggle .toggle-track.active {
-            background: #1f6feb;
-        }
-        body.dark-mode .crop-scan-toggle .toggle-label {
-            color: #8b949e;
-        }
-        body.dark-mode .crop-scan-toggle .toggle-label.active {
-            color: #58a6ff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generatore Verbale Fotografico</title>
+<script async src="https://docs.opencv.org/4.x/opencv.js" id="opencvScript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    background:#eef1f4;
+    font-family:'Inter', system-ui, sans-serif;
+    margin:0;
+    padding:20px;
+    color:#182430;
+    transition: background 0.3s, color 0.3s;
+  }
+  body.dark-mode{
+    background:#0d1117;
+    color:#e6edf3;
+  }
+  body.dark-mode .panel{
+    background:#161b22;
+    border-color:#30363d;
+  }
+  body.dark-mode .panel-title{
+    color:#58a6ff;
+  }
+  body.dark-mode .btn{
+    background:#21262d;
+    border-color:#30363d;
+    color:#e6edf3;
+  }
+  body.dark-mode .btn.primary{
+    background:#1f6feb;
+    border-color:#1f6feb;
+    color:#fff;
+  }
+  body.dark-mode .btn.primary:hover{background:#1158c7;}
+  body.dark-mode .btn.danger{
+    background:#da3633;
+    border-color:#da3633;
+    color:#fff;
+  }
+  body.dark-mode .btn.danger:hover{background:#b62324;}
+  body.dark-mode input[type=text], body.dark-mode input[type=date]{
+    background:#0d1117;
+    border-color:#30363d;
+    color:#e6edf3;
+  }
+  body.dark-mode input[type=text]:focus, body.dark-mode input[type=date]:focus{
+    border-color:#58a6ff;
+    box-shadow:0 0 0 3px rgba(88,166,255,0.15);
+  }
+  body.dark-mode input[type=text]::placeholder{
+    color:#8b949e;
+  }
+  body.dark-mode .tag{
+    background:#0d1f2d;
+    border-color:#30363d;
+  }
+  body.dark-mode .empty-note{
+    border-color:#30363d;
+    color:#8b949e;
+  }
+  body.dark-mode .thumb{
+    border-color:#30363d;
+    background:#0d1117;
+  }
+  body.dark-mode .thumb .rm{
+    background:rgba(22,27,34,0.92);
+    border-color:#30363d;
+    color:#e6edf3;
+  }
+  body.dark-mode .thumb .rm:hover{
+    border-color:#da3633;
+    color:#da3633;
+  }
+  body.dark-mode .tag .tag-name .val{
+    color:#58a6ff;
+  }
+  body.dark-mode .tag .tag-name .miss{
+    color:#f85149;
+  }
+  body.dark-mode .tag .tag-name .seg{
+    color:#8b949e;
+  }
+  body.dark-mode .tag .tag-name .custom{
+    color:#3fb950;
+  }
+  body.dark-mode .tag .tag-name .fixed{
+    color:#8b949e;
+  }
+  body.dark-mode .tag-label{
+    color:#58a6ff;
+  }
+  body.dark-mode .debug-info{
+    color:#8b949e;
+  }
+  body.dark-mode .status.ok{
+    color:#3fb950;
+  }
+  body.dark-mode .field label{
+    color:#8b949e;
+  }
+  body.dark-mode .header-logo .logo-text .brand{
+    color:#58a6ff;
+  }
+  body.dark-mode .header-logo .logo-text .subtitle{
+    color:#8b949e;
+  }
+  body.dark-mode .header-right{
+    color:#8b949e;
+  }
+  body.dark-mode .header-right b{
+    color:#58a6ff;
+  }
+  body.dark-mode .status.error{
+    color:#f85149;
+  }
+  body.dark-mode .radio-group label{
+    color:#e6edf3;
+  }
+  body.dark-mode .radio-group label .doc-type-hint{
+    color:#8b949e;
+  }
+  body.dark-mode .radio-group label .doc-desc{
+    color:#8b949e;
+    font-weight:400;
+  }
+  body.dark-mode .field-label-with-example .example{
+    color:#8b949e;
+  }
+  body.dark-mode .crop-modal{
+    background:#161b22;
+  }
+  body.dark-mode .crop-header{
+    color:#58a6ff;
+  }
+  body.dark-mode .crop-header span{
+    color:#8b949e;
+  }
+  body.dark-mode .crop-hint{
+    color:#8b949e;
+  }
+  body.dark-mode .theme-toggle{
+    background:#21262d;
+    border-color:#30363d;
+    color:#8b949e;
+  }
+  body.dark-mode .theme-toggle:hover{
+    background:#30363d;
+  }
+  body.dark-mode footer{
+    color:#8b949e;
+  }
+  body.dark-mode .status{
+    color:#8b949e;
+  }
+  body.dark-mode .filename-row .field label span{
+    color:#8b949e !important;
+  }
+  body.dark-mode .radio-group input[type="radio"]{
+    accent-color:#58a6ff;
+  }
+  .wrap{max-width:920px; margin:0 auto;}
+  .panel{
+    background:#fff;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    padding:22px;
+    margin-bottom:20px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .panel-title{
+    font-weight:600;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#003b70;
+    margin:0 0 18px;
+  }
+  .btn{
+    background:#f4f6f8;
+    border:1px solid #dde3e9;
+    padding:14px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  .btn.primary{
+    background:#00549e;
+    color:#fff;
+    border-color:#00549e;
+  }
+  .btn.primary:hover{background:#003b70;}
+  .btn:focus-visible{outline:2px solid #00549e; outline-offset:2px;}
+  .btn.primary:disabled{
+    background:#a9c2d8;
+    cursor:not-allowed;
+  }
+  .btn.danger{
+    background:#e2001a;
+    color:#fff;
+    border-color:#e2001a;
+  }
+  .btn.danger:hover{background:#b80014;}
+  .btn.danger:disabled{
+    background:#f0b4bc;
+    cursor:not-allowed;
+  }
+  .capture-buttons{display:flex; gap:10px; margin-bottom:16px;}
+  .capture-buttons .btn{flex:1; justify-content:center;}
+  #cameraInput,#fileInput{display:none;}
+  
+  .thumbs{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(76px,1fr));
+    gap:8px;
+  }
+  .thumb{
+    position:relative;
+    aspect-ratio:1;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    overflow:hidden;
+    background:#f4f6f8;
+  }
+  .thumb img{width:100%; height:100%; object-fit:cover;}
+  .thumb .rm{
+    position:absolute; top:2px; right:2px;
+    width:20px; height:20px;
+    background:rgba(255,255,255,0.92);
+    border:1px solid #dde3e9;
+    border-radius:2px;
+    cursor:pointer;
+    text-align:center;
+    font-size:13px;
+    line-height:18px;
+  }
+  .thumb .rm:hover{border-color:#e2001a; color:#e2001a;}
+  .thumb .num{
+    position:absolute; bottom:2px; left:2px;
+    font-size:9px;
+    background:rgba(255,255,255,0.92);
+    padding:1px 4px;
+    border-radius:2px;
+  }
+  .thumb .crop-badge{
+    position:absolute; top:2px; left:2px;
+    font-size:7px;
+    background:rgba(0,84,158,0.85);
+    color:#fff;
+    padding:1px 4px;
+    border-radius:2px;
+  }
+  .drop-zone.drag-over{
+    outline:2px dashed #00549e;
+    outline-offset:2px;
+    background:#e8f1fa;
+    border-radius:4px;
+  }
+  .empty-note{
+    font-size:12px;
+    color:#667384;
+    padding:20px;
+    text-align:center;
+    border:1px dashed #dde3e9;
+    border-radius:4px;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    color:#667384;
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:16px;}
+  input[type=text], input[type=date]{
+    width:100%;
+    background:#f4f6f8;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    font-size:14px;
+    padding:11px 12px;
+    outline:none;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  input[type=text]:focus, input[type=date]:focus{
+    border-color:#00549e;
+    box-shadow:0 0 0 3px rgba(0,84,158,0.12);
+  }
+  input[type=text]::placeholder{
+    color:#8899aa;
+    font-size:13px;
+    font-weight:400;
+  }
+  .radio-group{
+    display:flex;
+    gap:24px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .radio-group label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:600;
+    text-transform:none;
+    color:#182430;
+    cursor:pointer;
+  }
+  .radio-group label .doc-desc{
+    font-weight:400;
+    color:#667384;
+  }
+  .radio-group input[type="radio"]{
+    width:18px; height:18px;
+    accent-color:#00549e;
+    cursor:pointer;
+  }
+  .tag{
+    margin-top:22px;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    background:#e8f1fa;
+    padding:14px 16px 14px 22px;
+    position:relative;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .tag::before{
+    content:'';
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:6px;
+    background:repeating-linear-gradient(-45deg, #00549e 0 4px, #e2001a 4px 8px);
+    border-radius:4px 0 0 4px;
+  }
+  .tag-label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:#003b70;
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .tag-name{
+    font-family:monospace;
+    font-size:13px;
+    word-break:break-all;
+    line-height:1.6;
+  }
+  .tag-name .seg{color:#667384;}
+  .tag-name .val{color:#003b70; font-weight:600;}
+  .tag-name .miss{color:#e2001a;}
+  .tag-name .custom{color:#1e8e5a; font-weight:600;}
+  .tag-name .fixed{color:#667384;}
+  .filename-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .filename-row .field{flex:1; min-width:200px; margin-bottom:0;}
+  .filename-row .btn{flex:0 0 auto; padding:11px 16px; font-size:12px;}
+  .generate-row .btn{width:100%;}
+  .status{
+    margin-top:10px;
+    font-size:12px;
+    color:#667384;
+    min-height:16px;
+  }
+  .status.ok{color:#1e8e5a;}
+  .status.error{color:#d1293b;}
+  footer{
+    max-width:920px;
+    margin:14px auto 0;
+    font-size:11px;
+    color:#667384;
+    text-align:center;
+  }
+  .debug-info{
+    font-size:10px;
+    color:#667384;
+    margin-top:5px;
+    font-family:monospace;
+  }
 
-        .wrap {
-            max-width: 920px;
-            margin: 0 auto;
-        }
-        .panel {
-            background: #fff;
-            border: 1px solid #dde3e9;
-            border-radius: 4px;
-            padding: 22px;
-            margin-bottom: 20px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .panel-title {
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #003b70;
-            margin: 0 0 18px;
-        }
-        .btn {
-            background: #f4f6f8;
-            border: 1px solid #dde3e9;
-            padding: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
-        }
-        .btn.primary {
-            background: #00549e;
-            color: #fff;
-            border-color: #00549e;
-        }
-        .btn.primary:hover {
-            background: #003b70;
-        }
-        .btn:focus-visible {
-            outline: 2px solid #00549e;
-            outline-offset: 2px;
-        }
-        .btn.primary:disabled {
-            background: #a9c2d8;
-            cursor: not-allowed;
-        }
-        .btn.danger {
-            background: #e2001a;
-            color: #fff;
-            border-color: #e2001a;
-        }
-        .btn.danger:hover {
-            background: #b80014;
-        }
-        .btn.danger:disabled {
-            background: #f0b4bc;
-            cursor: not-allowed;
-        }
-        .btn.success {
-            background: #1e8e5a;
-            color: #fff;
-            border-color: #1e8e5a;
-        }
-        .btn.success:hover {
-            background: #157347;
-        }
-        .btn.success:disabled {
-            background: #8fbfa6;
-            cursor: not-allowed;
-        }
-        .btn svg {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-        }
-        .capture-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .capture-buttons .btn {
-            flex: 1;
-            justify-content: center;
-            min-width: 120px;
-        }
-        #cameraInput,
-        #fileInput {
-            display: none;
-        }
+  .crop-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,16,24,0.82);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  }
+  .crop-modal{
+    background:#fff;
+    border-radius:6px;
+    padding:16px;
+    max-width:95vw;
+    max-height:92vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transition: background 0.3s;
+  }
+  .crop-header{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:600;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#003b70;
+    margin-bottom:12px;
+  }
+  .crop-header span{color:#667384; font-weight:500; text-transform:none; letter-spacing:0;}
+  .crop-canvas-wrap{
+    touch-action:none;
+    line-height:0;
+    width:100%;
+    display:flex;
+    justify-content:center;
+  }
+  #cropCanvas{
+    touch-action:none;
+    cursor:move;
+    border:1px solid #dde3e9;
+    max-width:100%;
+    max-height:70vh;
+    display:block;
+  }
+  .crop-hint{
+    font-size:11px;
+    color:#667384;
+    margin-top:10px;
+    text-align:center;
+  }
+  .crop-actions{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+    width:100%;
+    flex-wrap:wrap;
+  }
+  .crop-actions .btn{flex:1 1 auto; justify-content:center; font-size:12px; padding:11px 10px; min-width:110px;}
 
-        .thumbs {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-            gap: 8px;
-        }
-        .thumb {
-            position: relative;
-            aspect-ratio: 1;
-            border: 1px solid #dde3e9;
-            border-radius: 4px;
-            overflow: hidden;
-            background: #f4f6f8;
-        }
-        .thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .thumb .rm {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 20px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid #dde3e9;
-            border-radius: 2px;
-            cursor: pointer;
-            text-align: center;
-            font-size: 13px;
-            line-height: 18px;
-        }
-        .thumb .rm:hover {
-            border-color: #e2001a;
-            color: #e2001a;
-        }
-        .thumb .num {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            font-size: 9px;
-            background: rgba(255, 255, 255, 0.92);
-            padding: 1px 4px;
-            border-radius: 2px;
-        }
-        .thumb .crop-badge {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            font-size: 7px;
-            background: rgba(0, 84, 158, 0.85);
-            color: #fff;
-            padding: 1px 4px;
-            border-radius: 2px;
-        }
-        .thumb .scan-badge {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            font-size: 7px;
-            background: rgba(30, 142, 90, 0.85);
-            color: #fff;
-            padding: 1px 4px;
-            border-radius: 2px;
-        }
-        .drop-zone.drag-over {
-            outline: 2px dashed #00549e;
-            outline-offset: 2px;
-            background: #e8f1fa;
-            border-radius: 4px;
-        }
-        .empty-note {
-            font-size: 12px;
-            color: #667384;
-            padding: 20px;
-            text-align: center;
-            border: 1px dashed #dde3e9;
-            border-radius: 4px;
-        }
-        label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #667384;
-            margin-bottom: 6px;
-        }
-        .field {
-            margin-bottom: 16px;
-        }
-        input[type=text],
-        input[type=date] {
-            width: 100%;
-            background: #f4f6f8;
-            border: 1px solid #dde3e9;
-            border-radius: 4px;
-            font-size: 14px;
-            padding: 11px 12px;
-            outline: none;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
-        }
-        input[type=text]:focus,
-        input[type=date]:focus {
-            border-color: #00549e;
-            box-shadow: 0 0 0 3px rgba(0, 84, 158, 0.12);
-        }
-        input[type=text]::placeholder {
-            color: #8899aa;
-            font-size: 13px;
-            font-weight: 400;
-        }
-        .radio-group {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .radio-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: none;
-            color: #182430;
-            cursor: pointer;
-        }
-        .radio-group label .doc-desc {
-            font-weight: 400;
-            color: #667384;
-        }
-        .radio-group input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #00549e;
-            cursor: pointer;
-        }
-        .tag {
-            margin-top: 22px;
-            border: 1px solid #dde3e9;
-            border-radius: 4px;
-            background: #e8f1fa;
-            padding: 14px 16px 14px 22px;
-            position: relative;
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .tag::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 6px;
-            background: repeating-linear-gradient(-45deg, #00549e 0 4px, #e2001a 4px 8px);
-            border-radius: 4px 0 0 4px;
-        }
-        .tag-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .14em;
-            color: #003b70;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .tag-name {
-            font-family: monospace;
-            font-size: 13px;
-            word-break: break-all;
-            line-height: 1.6;
-        }
-        .tag-name .seg {
-            color: #667384;
-        }
-        .tag-name .val {
-            color: #003b70;
-            font-weight: 600;
-        }
-        .tag-name .miss {
-            color: #e2001a;
-        }
-        .tag-name .custom {
-            color: #1e8e5a;
-            font-weight: 600;
-        }
-        .tag-name .fixed {
-            color: #667384;
-        }
-        .filename-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-        .filename-row .field {
-            flex: 1;
-            min-width: 200px;
-            margin-bottom: 0;
-        }
-        .filename-row .btn {
-            flex: 0 0 auto;
-            padding: 11px 16px;
-            font-size: 12px;
-        }
-        .generate-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-        .generate-row .btn {
-            flex: 1;
-            min-width: 160px;
-            justify-content: center;
-        }
-        .generate-row .btn.email-btn {
-            flex: 0.7;
-            min-width: 120px;
-            background: #1e8e5a;
-            border-color: #1e8e5a;
-            color: #fff;
-        }
-        .generate-row .btn.email-btn:hover {
-            background: #157347;
-            border-color: #157347;
-        }
-        .generate-row .btn.email-btn:disabled {
-            background: #8fbfa6;
-            border-color: #8fbfa6;
-            cursor: not-allowed;
-        }
-        .status {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #667384;
-            min-height: 16px;
-            width: 100%;
-        }
-        .status.ok {
-            color: #1e8e5a;
-        }
-        .status.error {
-            color: #d1293b;
-        }
-        footer {
-            max-width: 920px;
-            margin: 14px auto 0;
-            font-size: 11px;
-            color: #667384;
-            text-align: center;
-        }
-        .debug-info {
-            font-size: 10px;
-            color: #667384;
-            margin-top: 5px;
-            font-family: monospace;
-        }
 
-        .crop-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(10, 16, 24, 0.82);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        .crop-modal {
-            background: #fff;
-            border-radius: 6px;
-            padding: 16px;
-            max-width: 95vw;
-            max-height: 92vh;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: background 0.3s;
-        }
-        .crop-header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #003b70;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .crop-header span {
-            color: #667384;
-            font-weight: 500;
-            text-transform: none;
-            letter-spacing: 0;
-        }
-        .crop-canvas-wrap {
-            touch-action: none;
-            line-height: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            position: relative;
-        }
-        #cropCanvas {
-            touch-action: none;
-            cursor: move;
-            border: 1px solid #dde3e9;
-            max-width: 100%;
-            max-height: 65vh;
-            display: block;
-        }
-        .crop-hint {
-            font-size: 11px;
-            color: #667384;
-            margin-top: 10px;
-            text-align: center;
-        }
-        .crop-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 14px;
-            width: 100%;
-            flex-wrap: wrap;
-        }
-        .crop-actions .btn {
-            flex: 1 1 auto;
-            justify-content: center;
-            font-size: 12px;
-            padding: 11px 10px;
-            min-width: 100px;
-        }
+  .scan-option{
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:12px;
+    padding:9px 12px;
+    border:1px solid #dde3e9;
+    border-radius:4px;
+    background:#f4f6f8;
+    color:#182430;
+    font-size:11px !important;
+    font-weight:600 !important;
+    text-transform:none !important;
+    cursor:pointer;
+  }
+  .scan-option input{width:17px;height:17px;accent-color:#00549e;cursor:pointer;}
+  .dark-mode .scan-option{background:#21262d;border-color:#30363d;color:#e6edf3;}
+  .dark-mode .scan-option input{accent-color:#58a6ff;}
+  #btnEmail{background:#00549e;color:#fff;border-color:#00549e;}
+  #btnEmail:disabled{opacity:.5;cursor:not-allowed;}
 
-        .crop-scan-toggle {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 14px;
-            border: 1px solid #dde3e9;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(4px);
-            font-size: 12px;
-            font-weight: 500;
-            transition: border-color 0.3s, background 0.3s;
-        }
-        .crop-scan-toggle .toggle-track {
-            width: 40px;
-            height: 22px;
-            border-radius: 12px;
-            background: #dde3e9;
-            cursor: pointer;
-            position: relative;
-            transition: background 0.3s;
-            flex-shrink: 0;
-        }
-        .crop-scan-toggle .toggle-track .toggle-knob {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #fff;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.25s ease, background 0.3s;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-        .crop-scan-toggle .toggle-track.active .toggle-knob {
-            transform: translateX(18px);
-            background: #fff;
-        }
-        .crop-scan-toggle .toggle-track.active {
-            background: #00549e;
-        }
-        .crop-scan-toggle .toggle-label {
-            font-size: 12px;
-            color: #667384;
-            font-weight: 500;
-            transition: color 0.3s;
-            white-space: nowrap;
-        }
-        .crop-scan-toggle .toggle-label.active {
-            color: #00549e;
-        }
-        .crop-scan-toggle .toggle-label .icon {
-            margin-right: 4px;
-        }
+  .header-logo {
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .header-logo .logo-img {
+    height:40px;
+    width:auto;
+    flex-shrink:0;
+    display:block;
+    object-fit:contain;
+  }
+  .header-logo .logo-text {
+    display:flex;
+    flex-direction:column;
+  }
+  .header-logo .logo-text .brand {
+    font-size:18px;
+    font-weight:700;
+    color:#00549e;
+    letter-spacing:-0.3px;
+    line-height:1.2;
+    transition: color 0.3s;
+  }
+  .header-logo .logo-text .subtitle {
+    font-size:12px;
+    color:#667384;
+    font-weight:400;
+    transition: color 0.3s;
+  }
+  .header-right {
+    font-family:monospace;
+    font-size:11px;
+    color:#667384;
+    text-align:right;
+    transition: color 0.3s;
+  }
+  .header-right b {color:#003b70; transition: color 0.3s;}
+  
+  .theme-toggle {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    color:#667384;
+    cursor:pointer;
+    margin-left:auto;
+    padding:6px 12px;
+    border-radius:20px;
+    background:#f4f6f8;
+    border:1px solid #dde3e9;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  .theme-toggle:hover{
+    background:#e8edf4;
+  }
+  .theme-toggle .icon {
+    font-size:16px;
+  }
+  .theme-toggle .label-text {
+    font-weight:500;
+  }
 
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .header-logo .logo-img {
-            height: 40px;
-            width: auto;
-            flex-shrink: 0;
-            display: block;
-            object-fit: contain;
-        }
-        .header-logo .logo-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .header-logo .logo-text .brand {
-            font-size: 18px;
-            font-weight: 700;
-            color: #00549e;
-            letter-spacing: -0.3px;
-            line-height: 1.2;
-            transition: color 0.3s;
-        }
-        .header-logo .logo-text .subtitle {
-            font-size: 12px;
-            color: #667384;
-            font-weight: 400;
-            transition: color 0.3s;
-        }
-        .header-right {
-            font-family: monospace;
-            font-size: 11px;
-            color: #667384;
-            text-align: right;
-            transition: color 0.3s;
-        }
-        .header-right b {
-            color: #003b70;
-            transition: color 0.3s;
-        }
+  .inline-fields {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .inline-fields .field{margin-bottom:0;}
 
-        .theme-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #667384;
-            cursor: pointer;
-            margin-left: auto;
-            padding: 6px 12px;
-            border-radius: 20px;
-            background: #f4f6f8;
-            border: 1px solid #dde3e9;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
-        }
-        .theme-toggle:hover {
-            background: #e8edf4;
-        }
-        .theme-toggle .icon {
-            font-size: 16px;
-        }
-        .theme-toggle .label-text {
-            font-weight: 500;
-        }
+  @media (max-width:600px) {
+    .header-logo .logo-img {height:30px;}
+    .header-logo .logo-text .brand {font-size:15px;}
+    .header-logo .logo-text .subtitle {font-size:10px;}
+    .header-right {font-size:10px;}
+    .radio-group{gap:12px;}
+    .radio-group label{font-size:12px;}
+    .inline-fields{grid-template-columns:1fr;}
+  }
 
-        .inline-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .inline-fields .field {
-            margin-bottom: 0;
-        }
+  .doc-type-hint {
+    font-size:12px;
+    color:#667384;
+    font-weight:400;
+    margin-left:6px;
+  }
+  
+  .field-label-with-example {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .field-label-with-example .example {
+    font-size:11px;
+    font-weight:400;
+    color:#667384;
+    text-transform:none;
+  }
 
-        @media (max-width: 600px) {
-            .header-logo .logo-img {
-                height: 30px;
-            }
-            .header-logo .logo-text .brand {
-                font-size: 15px;
-            }
-            .header-logo .logo-text .subtitle {
-                font-size: 10px;
-            }
-            .header-right {
-                font-size: 10px;
-            }
-            .radio-group {
-                gap: 12px;
-            }
-            .radio-group label {
-                font-size: 12px;
-            }
-            .inline-fields {
-                grid-template-columns: 1fr;
-            }
-            .generate-row .btn {
-                flex: 1 1 100%;
-            }
-            .generate-row .btn.email-btn {
-                flex: 1 1 100%;
-            }
-            .crop-actions .btn {
-                min-width: 70px;
-                font-size: 11px;
-                padding: 9px 8px;
-            }
-            .crop-scan-toggle {
-                padding: 6px 10px;
-                font-size: 11px;
-            }
-            .crop-scan-toggle .toggle-track {
-                width: 34px;
-                height: 20px;
-            }
-            .crop-scan-toggle .toggle-track .toggle-knob {
-                width: 16px;
-                height: 16px;
-            }
-            .crop-scan-toggle .toggle-track.active .toggle-knob {
-                transform: translateX(14px);
-            }
-            .capture-buttons .btn {
-                min-width: 80px;
-                font-size: 12px;
-                padding: 12px;
-            }
-        }
-
-        .doc-type-hint {
-            font-size: 12px;
-            color: #667384;
-            font-weight: 400;
-            margin-left: 6px;
-        }
-
-        .field-label-with-example {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .field-label-with-example .example {
-            font-size: 11px;
-            font-weight: 400;
-            color: #667384;
-            text-transform: none;
-        }
-
-        .radio-group label .doc-desc {
-            font-weight: 400;
-            color: #667384;
-        }
-        body.dark-mode .radio-group label .doc-desc {
-            color: #8b949e;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            width: 100%;
-        }
-        .status-bar .status {
-            margin-top: 0;
-            flex: 1;
-        }
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* spinner */
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 0.6s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        .btn .spinner {
-            width: 14px;
-            height: 14px;
-            border-width: 2px;
-        }
-        .btn.primary .spinner {
-            border-color: rgba(255, 255, 255, 0.2);
-            border-top-color: #fff;
-        }
-        .btn.danger .spinner {
-            border-color: rgba(255, 255, 255, 0.2);
-            border-top-color: #fff;
-        }
-        .btn.success .spinner {
-            border-color: rgba(255, 255, 255, 0.2);
-            border-top-color: #fff;
-        }
-    </style>
+  .radio-group label .doc-desc {
+    font-weight:400;
+    color:#667384;
+  }
+  body.dark-mode .radio-group label .doc-desc {
+    color:#8b949e;
+  }
+</style>
 </head>
 <body>
-    <div class="wrap">
+<div class="wrap">
 
-        <!-- HEADER -->
-        <div class="panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                <div class="header-logo">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Dormakaba_logo_one_line_RGB_ff_%281%29.jpg" alt="Dormakaba Logo" class="logo-img" onerror="this.style.display='none'">
-                    <div class="logo-text">
-                        <span class="brand">Verbale Fotografico</span>
-                        <span class="subtitle">Scanner intelligente · PDF</span>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="header-right">Powered by <b>Andrea Arabia</b></div>
-                    <button class="theme-toggle" id="themeToggle" aria-label="Attiva/disattiva modalità scura">
-                        <span class="icon" id="themeIcon">🌙</span>
-                        <span class="label-text" id="themeLabel">Notte</span>
-                    </button>
-                </div>
-            </div>
+  <div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div class="header-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Dormakaba_logo_one_line_RGB_ff_%281%29.jpg" alt="Dormakaba Logo" class="logo-img" onerror="this.style.display='none'">
+        <div class="logo-text">
+        
         </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="header-right">Powered by <b>Andrea Arabia</b></div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Attiva/disattiva modalità scura">
+          <span class="icon" id="themeIcon">🌙</span>
+          <span class="label-text" id="themeLabel">Notte</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
-        <!-- FOTO -->
-        <div class="panel">
-            <div class="panel-title">📷 Foto verbale</div>
-            <div class="capture-buttons">
-                <label class="btn primary" id="btnCamera">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    Scatta foto
-                    <input type="file" id="cameraInput" accept="image/*" capture="environment">
-                </label>
-                <label class="btn" id="btnUpload">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    Carica foto
-                    <input type="file" id="fileInput" accept="image/*" multiple>
-                </label>
-            </div>
-            <div id="thumbWrap" class="drop-zone"><div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div></div>
-            <div class="debug-info" id="debugInfo"></div>
-        </div>
+  <!-- FOTO -->
+  <div class="panel">
+    <div class="panel-title">Foto verbale</div>
+    <div class="capture-buttons">
+      <label class="btn primary" id="btnCamera">📷 Scatta foto
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+      </label>
+      <label class="btn" id="btnUpload">📤 Carica foto
+        <input type="file" id="fileInput" accept="image/*" multiple>
+      </label>
+    </div>
+    <div id="thumbWrap" class="drop-zone"><div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div></div>
+    <div class="debug-info" id="debugInfo"></div>
+  </div>
 
-        <!-- DATI -->
-        <div class="panel">
-            <div class="panel-title">Dati intervento</div>
-
-            <div class="radio-group">
-                <label><input type="radio" name="docType" value="CO" checked> CO <span class="doc-type-hint">(Conferma d'Ordine)</span></label>
-                <label><input type="radio" name="docType" value="ESC"> CM-ESC <span class="doc-desc">(Hardware/Software)</span></label>
-                <label><input type="radio" name="docType" value="EAD"> CM-EAD <span class="doc-desc">(Lettori)</span></label>
-                <label><input type="radio" name="docType" value="LGS"> CM-LGS <span class="doc-desc">(Maniglie alberghi)</span></label>
-            </div>
-
-            <div class="field">
-                <div class="field-label-with-example">
-                    <label for="cliente">Cliente</label>
-                    <span class="example">es. ROSSI SPA</span>
-                </div>
-                <input type="text" id="cliente" placeholder="Inserisci il nome del cliente">
-            </div>
-
-            <div id="coFields">
-                <div class="field">
-                    <div class="field-label-with-example">
-                        <label for="co">Numero ordine <span id="coLabelHint">(CO)</span></label>
-                        <span class="example" id="coExample">es. 1300123456</span>
-                    </div>
-                    <input type="text" id="co" placeholder="Inserisci il numero ordine">
-                </div>
-            </div>
-
-            <div id="escEadLgsFields" style="display:none;">
-                <div class="inline-fields">
-                    <div class="field">
-                        <div class="field-label-with-example">
-                            <label for="xxx">Numero xxx</label>
-                            <span class="example" id="xxxExample">es. 123</span>
-                        </div>
-                        <input type="text" id="xxx" placeholder="Inserisci il numero">
-                    </div>
-                    <div class="field">
-                        <div class="field-label-with-example">
-                            <label for="anno">Anno</label>
-                            <span class="example" id="annoExample">es. 2026</span>
-                        </div>
-                        <input type="text" id="anno" placeholder="Inserisci l'anno">
-                    </div>
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="field-label-with-example">
-                    <label for="tecnico">Cognome tecnico</label>
-                    <span class="example">es. BIANCHI</span>
-                </div>
-                <input type="text" id="tecnico" placeholder="Inserisci il cognome del tecnico">
-            </div>
-
-            <div class="field">
-                <div class="field-label-with-example">
-                    <label for="data">Data intervento</label>
-                    <span class="example">seleziona dal calendario</span>
-                </div>
-                <input type="date" id="data">
-            </div>
-
-            <div class="filename-row">
-                <div class="field">
-                    <label for="filenameManual">Nome file PDF <span style="font-weight:400;text-transform:none;color:#667384;">(modifica liberamente)</span></label>
-                    <input type="text" id="filenameManual" placeholder="Generato automaticamente">
-                </div>
-            </div>
-
-            <div class="tag">
-                <div class="tag-label"><span>Anteprima nome file</span><span id="tagStatus">⏳ INCOMPLETO</span></div>
-                <div class="tag-name" id="tagName">…</div>
-            </div>
-        </div>
-
-        <!-- GENERA -->
-        <div class="panel generate-row">
-            <button class="btn danger" id="btnGenerate" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                Genera PDF
-            </button>
-            <button class="btn success email-btn" id="btnEmail" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                Invia email
-            </button>
-            <div class="status-bar">
-                <div class="status" id="status">✅ Pronto per iniziare</div>
-            </div>
-        </div>
-
+  <!-- DATI -->
+  <div class="panel">
+    <div class="panel-title">Dati intervento</div>
+    
+    <div class="radio-group">
+      <label><input type="radio" name="docType" value="CO" checked> CO <span class="doc-type-hint">(Conferma d'Ordine)</span></label>
+      <label><input type="radio" name="docType" value="ESC"> CM-ESC <span class="doc-desc">(Hardware/Software)</span></label>
+      <label><input type="radio" name="docType" value="EAD"> CM-EAD <span class="doc-desc">(Lettori)</span></label>
+      <label><input type="radio" name="docType" value="LGS"> CM-LGS <span class="doc-desc">(Maniglie alberghi)</span></label>
     </div>
 
-    <footer>Elaborazione locale nel browser · nessuna foto viene caricata su server esterni</footer>
-
-    <!-- MODALE RITAGLIO -->
-    <div class="crop-overlay" id="cropOverlay">
-        <div class="crop-modal">
-            <div class="crop-header">
-                <span>✂️ Ritaglia i bordi</span>
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                    <span id="cropCounter"></span>
-                    <div class="crop-scan-toggle" id="scanToggle">
-                        <span class="toggle-label" id="scanLabel">🔲 Normale</span>
-                        <span class="toggle-track" id="scanTrack">
-                            <span class="toggle-knob"></span>
-                        </span>
-                        <span class="toggle-label active" id="scanLabelOn">📄 Scansione</span>
-                    </div>
-                </div>
-            </div>
-            <div class="crop-canvas-wrap">
-                <canvas id="cropCanvas"></canvas>
-            </div>
-            <div class="crop-hint">Trascina gli angoli per ridimensionare, trascina dentro il riquadro per spostarlo</div>
-            <div class="crop-actions">
-                <button class="btn danger" id="btnCropDiscard">🗑️ Scarta foto</button>
-                <button class="btn" id="btnCropSkip">Usa intera</button>
-                <button class="btn primary" id="btnCropConfirm">✓ Conferma ritaglio</button>
-            </div>
-        </div>
+    <div class="field">
+      <div class="field-label-with-example">
+        <label for="cliente">Cliente</label>
+        <span class="example">es. ROSSI SPA</span>
+      </div>
+      <input type="text" id="cliente" placeholder="Inserisci il nome del cliente">
     </div>
 
-    <script>
-        (function() {
-            'use strict';
+    <!-- Campi variabili per CO -->
+    <div id="coFields">
+      <div class="field">
+        <div class="field-label-with-example">
+          <label for="co">Numero ordine <span id="coLabelHint">(CO)</span></label>
+          <span class="example" id="coExample">es. 1300123456</span>
+        </div>
+        <input type="text" id="co" placeholder="Inserisci il numero ordine">
+      </div>
+    </div>
 
-            // ============================================================
-            // STATO
-            // ============================================================
-            const state = { images: [] };
-            let isGenerating = false;
-            let lastAutoFilename = null;
-            let isCustomFilename = false;
+    <!-- Campi variabili per ESC, EAD, LGS -->
+    <div id="escEadLgsFields" style="display:none;">
+      <div class="inline-fields">
+        <div class="field">
+          <div class="field-label-with-example">
+            <label for="xxx">Numero xxx</label>
+            <span class="example" id="xxxExample">es. 123</span>
+          </div>
+          <input type="text" id="xxx" placeholder="Inserisci il numero">
+        </div>
+        <div class="field">
+          <div class="field-label-with-example">
+            <label for="anno">Anno</label>
+            <span class="example" id="annoExample">es. 2026</span>
+          </div>
+          <input type="text" id="anno" placeholder="Inserisci l'anno">
+        </div>
+      </div>
+    </div>
 
-            // ============================================================
-            // DOM
-            // ============================================================
-            const $ = id => document.getElementById(id);
-            const cliente = $('cliente');
-            const co = $('co');
-            const coLabelHint = $('coLabelHint');
-            const coExample = $('coExample');
-            const xxx = $('xxx');
-            const anno = $('anno');
-            const xxxExample = $('xxxExample');
-            const annoExample = $('annoExample');
-            const tecnico = $('tecnico');
-            const data = $('data');
-            const docTypeRadios = document.querySelectorAll('input[name="docType"]');
-            const filenameManual = $('filenameManual');
-            const tagName = $('tagName');
-            const tagStatus = $('tagStatus');
-            const thumbWrap = $('thumbWrap');
-            const btnGenerate = $('btnGenerate');
-            const btnEmail = $('btnEmail');
-            const statusEl = $('status');
-            const debugInfo = $('debugInfo');
-            const btnCamera = $('btnCamera');
-            const btnUpload = $('btnUpload');
-            const cameraInput = $('cameraInput');
-            const fileInput = $('fileInput');
-            const themeToggle = $('themeToggle');
-            const themeIcon = $('themeIcon');
-            const themeLabel = $('themeLabel');
-            const coFields = $('coFields');
-            const escEadLgsFields = $('escEadLgsFields');
+    <div class="field">
+      <div class="field-label-with-example">
+        <label for="tecnico">Cognome tecnico</label>
+        <span class="example">es. BIANCHI</span>
+      </div>
+      <input type="text" id="tecnico" placeholder="Inserisci il cognome del tecnico">
+    </div>
 
-            // Modale ritaglio
-            const cropOverlay = $('cropOverlay');
-            const cropCanvas = $('cropCanvas');
-            const cropCounter = $('cropCounter');
-            const btnCropConfirm = $('btnCropConfirm');
-            const btnCropSkip = $('btnCropSkip');
-            const btnCropDiscard = $('btnCropDiscard');
-            const scanTrack = $('scanTrack');
-            const scanLabel = $('scanLabel');
-            const scanLabelOn = $('scanLabelOn');
+    <div class="field">
+      <div class="field-label-with-example">
+        <label for="data">Data intervento</label>
+        <span class="example">seleziona dal calendario</span>
+      </div>
+      <input type="date" id="data">
+    </div>
 
-            let scanMode = true; // default: scansione attiva
+    <div class="filename-row">
+      <div class="field">
+        <label for="filenameManual">Nome file PDF <span style="font-weight:400;text-transform:none;color:#667384;">(modifica liberamente)</span></label>
+        <input type="text" id="filenameManual" placeholder="Generato automaticamente">
+      </div>
+    </div>
 
-            // ============================================================
-            // TEMA
-            // ============================================================
-            let darkMode = false;
+    <div class="tag">
+      <div class="tag-label"><span>Anteprima nome file</span><span id="tagStatus">⏳ INCOMPLETO</span></div>
+      <div class="tag-name" id="tagName">…</div>
+    </div>
+  </div>
 
-            function toggleTheme() {
-                darkMode = !darkMode;
-                document.body.classList.toggle('dark-mode', darkMode);
-                themeIcon.textContent = darkMode ? '☀️' : '🌙';
-                themeLabel.textContent = darkMode ? 'Giorno' : 'Notte';
-                localStorage.setItem('verbaleDarkMode', darkMode ? 'dark' : 'light');
+  <!-- GENERA -->
+  <div class="panel generate-row">
+    <button class="btn danger" id="btnGenerate" disabled>📄 Genera PDF</button>
+    <button class="btn primary" id="btnEmail" disabled>📧 Invia PDF via email</button>
+    <div class="status" id="status">✅ Pronto per iniziare</div>
+  </div>
+
+</div>
+
+<footer>Elaborazione locale nel browser · nessuna foto viene caricata su server esterni</footer>
+
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-modal">
+    <div class="crop-header"><span>✂️ Ritaglia i bordi</span><span id="cropCounter"></span></div>
+    <div class="crop-canvas-wrap">
+      <canvas id="cropCanvas"></canvas>
+    </div>
+    <div class="crop-hint">I bordi vengono rilevati automaticamente come in uno scanner. Puoi correggerli trascinando gli angoli.</div>
+    <label class="scan-option"><input type="checkbox" id="enhanceScan" checked> 🪄 Migliora automaticamente in bianco e nero (contrasto + nitidezza)</label>
+    <div class="crop-actions">
+      <button class="btn danger" id="btnCropDiscard">🗑️ Scarta foto</button>
+      <button class="btn" id="btnCropSkip">Usa intera</button>
+      <button class="btn primary" id="btnCropConfirm">✓ Conferma scansione</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============================================================
+  // STATO
+  // ============================================================
+  const state = { images: [] };
+  let isGenerating = false;
+  let lastAutoFilename = null;
+  let isCustomFilename = false;
+  let lastPdfBlob = null;
+  let lastPdfFilename = null;
+
+  // ============================================================
+  // DOM
+  // ============================================================
+  const $ = id => document.getElementById(id);
+  const cliente = $('cliente');
+  const co = $('co');
+  const coLabelHint = $('coLabelHint');
+  const coExample = $('coExample');
+  const xxx = $('xxx');
+  const anno = $('anno');
+  const xxxExample = $('xxxExample');
+  const annoExample = $('annoExample');
+  const tecnico = $('tecnico');
+  const data = $('data');
+  const docTypeRadios = document.querySelectorAll('input[name="docType"]');
+  const filenameManual = $('filenameManual');
+  const tagName = $('tagName');
+  const tagStatus = $('tagStatus');
+  const thumbWrap = $('thumbWrap');
+  const btnGenerate = $('btnGenerate');
+  const btnEmail = $('btnEmail');
+  const enhanceScan = $('enhanceScan');
+  const statusEl = $('status');
+  const debugInfo = $('debugInfo');
+  const btnCamera = $('btnCamera');
+  const btnUpload = $('btnUpload');
+  const cameraInput = $('cameraInput');
+  const fileInput = $('fileInput');
+  const themeToggle = $('themeToggle');
+  const themeIcon = $('themeIcon');
+  const themeLabel = $('themeLabel');
+  const coFields = $('coFields');
+  const escEadLgsFields = $('escEadLgsFields');
+
+  // Modale ritaglio
+  const cropOverlay = $('cropOverlay');
+  const cropCanvas = $('cropCanvas');
+  const cropCounter = $('cropCounter');
+  const btnCropConfirm = $('btnCropConfirm');
+  const btnCropSkip = $('btnCropSkip');
+  const btnCropDiscard = $('btnCropDiscard');
+
+  // ============================================================
+  // TEMA GIORNO/NOTTE
+  // ============================================================
+  let darkMode = false;
+
+  function toggleTheme() {
+    darkMode = !darkMode;
+    document.body.classList.toggle('dark-mode', darkMode);
+    themeIcon.textContent = darkMode ? '☀️' : '🌙';
+    themeLabel.textContent = darkMode ? 'Giorno' : 'Notte';
+    localStorage.setItem('verbaleDarkMode', darkMode ? 'dark' : 'light');
+  }
+
+  const savedTheme = localStorage.getItem('verbaleDarkMode');
+  if (savedTheme === 'dark') {
+    darkMode = true;
+    document.body.classList.add('dark-mode');
+    themeIcon.textContent = '☀️';
+    themeLabel.textContent = 'Giorno';
+  }
+
+  themeToggle.addEventListener('click', toggleTheme);
+
+  // ============================================================
+  // DATA DEFAULT
+  // ============================================================
+  function todayStr() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  data.value = todayStr();
+
+  // ============================================================
+  // GESTIONE TIPO DOCUMENTO
+  // ============================================================
+  function updateDocTypeHints() {
+    let docType = getDocType();
+    
+    if (docType === 'CO') {
+      coFields.style.display = 'block';
+      escEadLgsFields.style.display = 'none';
+      coLabelHint.textContent = '(CO)';
+      coExample.textContent = 'es. 1300123456';
+      co.placeholder = 'Inserisci il numero ordine';
+    } else {
+      coFields.style.display = 'none';
+      escEadLgsFields.style.display = 'block';
+      
+      switch(docType) {
+        case 'ESC':
+          xxxExample.textContent = 'es. 123';
+          annoExample.textContent = 'es. 2026';
+          xxx.placeholder = 'Inserisci il numero (es. 123)';
+          anno.placeholder = 'Inserisci l\'anno (es. 2026)';
+          break;
+        case 'EAD':
+          xxxExample.textContent = 'es. 456';
+          annoExample.textContent = 'es. 2026';
+          xxx.placeholder = 'Inserisci il numero (es. 456)';
+          anno.placeholder = 'Inserisci l\'anno (es. 2026)';
+          break;
+        case 'LGS':
+          xxxExample.textContent = 'es. 789';
+          annoExample.textContent = 'es. 2026';
+          xxx.placeholder = 'Inserisci il numero (es. 789)';
+          anno.placeholder = 'Inserisci l\'anno (es. 2026)';
+          break;
+      }
+    }
+  }
+
+  docTypeRadios.forEach(r => {
+    r.addEventListener('change', function() {
+      updateDocTypeHints();
+      onDataChange();
+    });
+  });
+
+  // ============================================================
+  // RITAGLIO INTERATTIVO
+  // ============================================================
+
+  // ============================================================
+  // RILEVAMENTO AUTOMATICO FOGLIO / DOCUMENTO
+  // ============================================================
+  function fallbackDetectRect(img) {
+    try {
+      const canvas = document.createElement('canvas');
+      const maxSide = 900;
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d', {willReadFrequently:true});
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const id = ctx.getImageData(0,0,canvas.width,canvas.height);
+      const d = id.data, w=canvas.width, h=canvas.height;
+      let minX=w, minY=h, maxX=-1, maxY=-1;
+      const threshold=235;
+      for(let y=0;y<h;y+=3){
+        for(let x=0;x<w;x+=3){
+          const i=(y*w+x)*4;
+          const g=(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114);
+          if(g < threshold){
+            if(x<minX)minX=x; if(x>maxX)maxX=x;
+            if(y<minY)minY=y; if(y>maxY)maxY=y;
+          }
+        }
+      }
+      if(maxX<0 || maxY<0) return {x:0,y:0,w:img.width,h:img.height};
+      const pad=8/scale;
+      const x=Math.max(0,minX/scale-pad), y=Math.max(0,minY/scale-pad);
+      const right=Math.min(img.width,(maxX+1)/scale+pad);
+      const bottom=Math.min(img.height,(maxY+1)/scale+pad);
+      return {x,y,w:right-x,h:bottom-y};
+    } catch(e) {
+      return {x:0,y:0,w:img.width,h:img.height};
+    }
+  }
+
+  function autoDetectRect(img) {
+    return new Promise((resolve) => {
+      const fallback = () => resolve(fallbackDetectRect(img));
+
+      try {
+        if (typeof cv === 'undefined' || !cv.Mat) {
+          fallback();
+          return;
+        }
+
+        const maxSide = 1400;
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * scale));
+        c.height = Math.max(1, Math.round(img.height * scale));
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+
+        const src = cv.imread(c);
+        const gray = new cv.Mat();
+        const blur = new cv.Mat();
+        const edges = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+        cv.GaussianBlur(gray, blur, new cv.Size(5,5), 0);
+        cv.Canny(blur, edges, 60, 180);
+
+        const contours = new cv.MatVector();
+        const hierarchy = new cv.Mat();
+        cv.findContours(edges, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+
+        const imgArea = c.width*c.height;
+        let best = null, bestScore = 0;
+
+        for(let i=0;i<contours.size();i++){
+          const cnt = contours.get(i);
+          const peri = cv.arcLength(cnt,true);
+          const approx = new cv.Mat();
+          cv.approxPolyDP(cnt, approx, 0.02*peri, true);
+          const area = Math.abs(cv.contourArea(approx));
+          if(approx.rows === 4 && area > imgArea*0.15){
+            const rect = cv.boundingRect(approx);
+            const fill = area / Math.max(1, rect.width*rect.height);
+            const score = area * (0.65 + 0.35*fill);
+            if(score > bestScore){
+              bestScore = score;
+              best = {x:rect.x,y:rect.y,w:rect.width,h:rect.height};
             }
-            const savedTheme = localStorage.getItem('verbaleDarkMode');
-            if (savedTheme === 'dark') {
-                darkMode = true;
-                document.body.classList.add('dark-mode');
-                themeIcon.textContent = '☀️';
-                themeLabel.textContent = 'Giorno';
-            }
-            themeToggle.addEventListener('click', toggleTheme);
-
-            // ============================================================
-            // DATA DEFAULT
-            // ============================================================
-            function todayStr() {
-                const d = new Date();
-                const pad = n => String(n).padStart(2, '0');
-                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-            }
-            data.value = todayStr();
-
-            // ============================================================
-            // TIPO DOCUMENTO
-            // ============================================================
-            function updateDocTypeHints() {
-                const docType = getDocType();
-                if (docType === 'CO') {
-                    coFields.style.display = 'block';
-                    escEadLgsFields.style.display = 'none';
-                    coLabelHint.textContent = '(CO)';
-                    coExample.textContent = 'es. 1300123456';
-                    co.placeholder = 'Inserisci il numero ordine';
-                } else {
-                    coFields.style.display = 'none';
-                    escEadLgsFields.style.display = 'block';
-                    switch (docType) {
-                        case 'ESC':
-                            xxxExample.textContent = 'es. 123';
-                            annoExample.textContent = 'es. 2026';
-                            xxx.placeholder = 'Inserisci il numero (es. 123)';
-                            anno.placeholder = 'Inserisci l\'anno (es. 2026)';
-                            break;
-                        case 'EAD':
-                            xxxExample.textContent = 'es. 456';
-                            annoExample.textContent = 'es. 2026';
-                            xxx.placeholder = 'Inserisci il numero (es. 456)';
-                            anno.placeholder = 'Inserisci l\'anno (es. 2026)';
-                            break;
-                        case 'LGS':
-                            xxxExample.textContent = 'es. 789';
-                            annoExample.textContent = 'es. 2026';
-                            xxx.placeholder = 'Inserisci il numero (es. 789)';
-                            anno.placeholder = 'Inserisci l\'anno (es. 2026)';
-                            break;
-                    }
-                }
-            }
-            docTypeRadios.forEach(r => {
-                r.addEventListener('change', function() {
-                    updateDocTypeHints();
-                    onDataChange();
-                });
-            });
-
-            // ============================================================
-            // TOGGLE SCANSIONE
-            // ============================================================
-            scanTrack.addEventListener('click', function() {
-                scanMode = !scanMode;
-                this.classList.toggle('active', scanMode);
-                scanLabel.classList.toggle('active', !scanMode);
-                scanLabelOn.classList.toggle('active', scanMode);
-                // Se c'è un'immagine correntemente mostrata, ridisegna con la nuova modalità
-                if (currentCropImage) {
-                    drawCrop();
-                }
-            });
-
-            // ============================================================
-            // AUTO-DETECT DOCUMENT (algoritmo semplificato ma efficace)
-            // ============================================================
-            function autoDetectDocument(img) {
-                return new Promise((resolve) => {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const w = img.width,
-                            h = img.height;
-                        const scale = Math.min(800 / w, 800 / h, 1);
-                        const sw = Math.round(w * scale);
-                        const sh = Math.round(h * scale);
-                        canvas.width = sw;
-                        canvas.height = sh;
-                        ctx.drawImage(img, 0, 0, sw, sh);
-                        const imageData = ctx.getImageData(0, 0, sw, sh);
-                        const data = imageData.data;
-
-                        // 1. Campiona il colore di sfondo dagli angoli
-                        const corners = [
-                            [0, 0],
-                            [sw - 1, 0],
-                            [0, sh - 1],
-                            [sw - 1, sh - 1]
-                        ];
-                        const bgSamples = [];
-                        for (const [cx, cy] of corners) {
-                            const idx = (cy * sw + cx) * 4;
-                            bgSamples.push([data[idx], data[idx + 1], data[idx + 2]]);
-                        }
-                        const bg = [0, 0, 0];
-                        for (let i = 0; i < 3; i++) {
-                            bg[i] = bgSamples.reduce((s, c) => s + c[i], 0) / bgSamples.length;
-                        }
-
-                        // 2. Trova i pixel che differiscono dallo sfondo (soglia adattiva)
-                        const threshold = 28;
-                        let minX = sw,
-                            maxX = 0,
-                            minY = sh,
-                            maxY = 0;
-                        let found = false;
-                        const step = 2;
-
-                        for (let y = 0; y < sh; y += step) {
-                            for (let x = 0; x < sw; x += step) {
-                                const idx = (y * sw + x) * 4;
-                                const diff = Math.abs(data[idx] - bg[0]) + Math.abs(data[idx + 1] - bg[1]) + Math.abs(data[
-                                    idx + 2] - bg[2]);
-                                if (diff > threshold) {
-                                    if (x < minX) minX = x;
-                                    if (x > maxX) maxX = x;
-                                    if (y < minY) minY = y;
-                                    if (y > maxY) maxY = y;
-                                    found = true;
-                                }
-                            }
-                        }
-
-                        if (!found || maxX - minX < 20 || maxY - minY < 20) {
-                            // fallback: cerca usando una soglia più bassa
-                            const fallbackThreshold = 15;
-                            minX = sw;
-                            maxX = 0;
-                            minY = sh;
-                            maxY = 0;
-                            for (let y = 0; y < sh; y += step) {
-                                for (let x = 0; x < sw; x += step) {
-                                    const idx = (y * sw + x) * 4;
-                                    const diff = Math.abs(data[idx] - bg[0]) + Math.abs(data[idx + 1] - bg[1]) + Math
-                                        .abs(data[idx + 2] - bg[2]);
-                                    if (diff > fallbackThreshold) {
-                                        if (x < minX) minX = x;
-                                        if (x > maxX) maxX = x;
-                                        if (y < minY) minY = y;
-                                        if (y > maxY) maxY = y;
-                                        found = true;
-                                    }
-                                }
-                            }
-                            if (!found || maxX - minX < 20 || maxY - minY < 20) {
-                                resolve({ x: 0, y: 0, w: w, h: h });
-                                return;
-                            }
-                        }
-
-                        // 3. Aggiungi padding e riporta alle coordinate originali
-                        const pad = Math.max(8, Math.min((maxX - minX) * 0.04, 30));
-                        const x = Math.max(0, (minX - pad) / scale);
-                        const y = Math.max(0, (minY - pad) / scale);
-                        const cw = Math.min(w - x, (maxX - minX + pad * 2) / scale);
-                        const ch = Math.min(h - y, (maxY - minY + pad * 2) / scale);
-
-                        resolve({ x, y, w: Math.max(20, cw), h: Math.max(20, ch) });
-                    } catch (e) {
-                        resolve({ x: 0, y: 0, w: img.width, h: img.height });
-                    }
-                });
-            }
-
-            // ============================================================
-            // ENHANCE SCAN (bianco e nero + contrasto)
-            // ============================================================
-            function enhanceScanImage(imgData, w, h) {
-                const data = imgData.data;
-                // 1. Converti in scala di grigi + calcola luminosità
-                const gray = new Float32Array(w * h);
-                let sum = 0;
-                for (let i = 0; i < w * h; i++) {
-                    const idx = i * 4;
-                    const g = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-                    gray[i] = g;
-                    sum += g;
-                }
-                const mean = sum / (w * h);
-
-                // 2. Calcola deviazione standard per contrasto
-                let sqSum = 0;
-                for (let i = 0; i < w * h; i++) {
-                    sqSum += (gray[i] - mean) * (gray[i] - mean);
-                }
-                const std = Math.sqrt(sqSum / (w * h));
-
-                // 3. Contrast stretching + threshold adattivo (Otsu semplificato)
-                const low = Math.max(0, mean - std * 1.2);
-                const high = Math.min(255, mean + std * 1.2);
-                const range = high - low;
-
-                // Calcola soglia Otsu semplificata
-                let hist = new Array(256).fill(0);
-                for (let i = 0; i < w * h; i++) {
-                    const v = Math.round(Math.max(0, Math.min(255, gray[i])));
-                    hist[v]++;
-                }
-                let total = w * h;
-                let sumB = 0;
-                let wB = 0;
-                let wF = 0;
-                let maxVar = 0;
-                let otsuThreshold = 128;
-                for (let t = 0; t < 256; t++) {
-                    wB += hist[t];
-                    if (wB === 0) continue;
-                    wF = total - wB;
-                    if (wF === 0) break;
-                    sumB += t * hist[t];
-                    const mB = sumB / wB;
-                    const mF = (sum - sumB) / wF;
-                    const varBetween = wB * wF * (mB - mF) * (mB - mF);
-                    if (varBetween > maxVar) {
-                        maxVar = varBetween;
-                        otsuThreshold = t;
-                    }
-                }
-
-                // 4. Applica threshold + sharpen leggero
-                const sharpen = 0.4;
-                const out = new Uint8ClampedArray(data.length);
-                for (let i = 0; i < w * h; i++) {
-                    const idx = i * 4;
-                    let val = gray[i];
-                    // Contrast stretch
-                    if (range > 0) {
-                        val = (val - low) / range * 255;
-                    }
-                    val = Math.max(0, Math.min(255, val));
-
-                    // Threshold con un mix di Otsu e soglia fissa
-                    const thresh = otsuThreshold * 0.6 + 128 * 0.4;
-                    const bw = val > thresh ? 255 : 0;
-
-                    // Sharpening leggero: guarda i vicini
-                    let sharpVal = bw;
-                    if (i > w && i < w * h - w - 1 && i % w > 0 && i % w < w - 1) {
-                        const up = gray[i - w];
-                        const down = gray[i + w];
-                        const left = gray[i - 1];
-                        const right = gray[i + 1];
-                        const laplacian = 4 * gray[i] - up - down - left - right;
-                        sharpVal = bw + sharpen * laplacian;
-                        sharpVal = Math.max(0, Math.min(255, sharpVal));
-                    }
-
-                    const finalVal = Math.round(sharpVal);
-                    out[idx] = finalVal;
-                    out[idx + 1] = finalVal;
-                    out[idx + 2] = finalVal;
-                    out[idx + 3] = 255;
-                }
-                return out;
-            }
-
-            // ============================================================
-            // RITAGLIO INTERATTIVO
-            // ============================================================
-            let currentCropImage = null;
-            let cropRect = { x: 0, y: 0, w: 0, h: 0 };
-            let dragMode = null;
-            let dragStart = null;
-            let cropRectStart = null;
-            let cropResolve = null;
-            let cropImageDataUrl = null;
-            const cropCtx2d = cropCanvas.getContext('2d');
-
-            function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-
-            function getCorners() {
-                return [
-                    { x: cropRect.x, y: cropRect.y },
-                    { x: cropRect.x + cropRect.w, y: cropRect.y },
-                    { x: cropRect.x, y: cropRect.y + cropRect.h },
-                    { x: cropRect.x + cropRect.w, y: cropRect.y + cropRect.h }
-                ];
-            }
-
-            function getCanvasScale() {
-                const rect = cropCanvas.getBoundingClientRect();
-                if (rect.width === 0 || rect.height === 0) return { x: 1, y: 1 };
-                return {
-                    x: cropCanvas.width / rect.width,
-                    y: cropCanvas.height / rect.height
-                };
-            }
-
-            function drawCrop() {
-                if (!currentCropImage) return;
-                cropCtx2d.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
-
-                // Disegna l'immagine
-                cropCtx2d.drawImage(currentCropImage, 0, 0, cropCanvas.width, cropCanvas.height);
-
-                // Se modalità scansione, applica l'enhancement in sovraimpressione
-                if (scanMode) {
-                    try {
-                        const imgData = cropCtx2d.getImageData(0, 0, cropCanvas.width, cropCanvas.height);
-                        const enhanced = enhanceScanImage(imgData, cropCanvas.width, cropCanvas.height);
-                        const outData = new ImageData(enhanced, cropCanvas.width, cropCanvas.height);
-                        cropCtx2d.putImageData(outData, 0, 0);
-                    } catch (e) { /* fallback: mostra normale */ }
-                }
-
-                // Overlay scuro fuori dal rettangolo
-                cropCtx2d.fillStyle = 'rgba(0,0,0,0.55)';
-                cropCtx2d.fillRect(0, 0, cropCanvas.width, cropRect.y);
-                cropCtx2d.fillRect(0, cropRect.y + cropRect.h, cropCanvas.width, cropCanvas.height - (cropRect.y + cropRect.h));
-                cropCtx2d.fillRect(0, cropRect.y, cropRect.x, cropRect.h);
-                cropCtx2d.fillRect(cropRect.x + cropRect.w, cropRect.y, cropCanvas.width - (cropRect.x + cropRect.w), cropRect.h);
-
-                // Riquadro bianco con bordo blu
-                cropCtx2d.strokeStyle = '#ffffff';
-                cropCtx2d.lineWidth = 5;
-                cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-                cropCtx2d.strokeStyle = '#00549e';
-                cropCtx2d.lineWidth = 2.5;
-                cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-
-                // Griglia
-                cropCtx2d.strokeStyle = 'rgba(255,255,255,0.7)';
-                cropCtx2d.lineWidth = 1;
-                for (let i = 1; i < 3; i++) {
-                    const gx = cropRect.x + (cropRect.w * i / 3);
-                    cropCtx2d.beginPath();
-                    cropCtx2d.moveTo(gx, cropRect.y);
-                    cropCtx2d.lineTo(gx, cropRect.y + cropRect.h);
-                    cropCtx2d.stroke();
-                    const gy = cropRect.y + (cropRect.h * i / 3);
-                    cropCtx2d.beginPath();
-                    cropCtx2d.moveTo(cropRect.x, gy);
-                    cropCtx2d.lineTo(cropRect.x + cropRect.w, gy);
-                    cropCtx2d.stroke();
-                }
-
-                // Maniglie agli angoli
-                const scale = getCanvasScale();
-                const R = 11 * Math.max(scale.x, scale.y);
-                getCorners().forEach(c => {
-                    cropCtx2d.beginPath();
-                    cropCtx2d.arc(c.x, c.y, R, 0, Math.PI * 2);
-                    cropCtx2d.fillStyle = '#ffffff';
-                    cropCtx2d.fill();
-                    cropCtx2d.lineWidth = 3;
-                    cropCtx2d.strokeStyle = '#00549e';
-                    cropCtx2d.stroke();
-                    cropCtx2d.beginPath();
-                    cropCtx2d.arc(c.x, c.y, R * 0.4, 0, Math.PI * 2);
-                    cropCtx2d.fillStyle = '#00549e';
-                    cropCtx2d.fill();
-                });
-            }
-
-            function getPointerPos(e) {
-                const rect = cropCanvas.getBoundingClientRect();
-                const scale = getCanvasScale();
-                return { x: (e.clientX - rect.left) * scale.x, y: (e.clientY - rect.top) * scale.y };
-            }
-
-            const HIT_SCREEN_PX = 26;
-
-            function hitTestCorner(pos) {
-                const scale = getCanvasScale();
-                const corners = getCorners();
-                for (let i = 0; i < 4; i++) {
-                    const hitX = HIT_SCREEN_PX * scale.x;
-                    const hitY = HIT_SCREEN_PX * scale.y;
-                    if (Math.abs(pos.x - corners[i].x) < hitX && Math.abs(pos.y - corners[i].y) < hitY) return i;
-                }
-                return -1;
-            }
-
-            function hitTestInside(pos) {
-                return pos.x > cropRect.x && pos.x < cropRect.x + cropRect.w &&
-                    pos.y > cropRect.y && pos.y < cropRect.y + cropRect.h;
-            }
-
-            cropCanvas.addEventListener('pointerdown', function(e) {
-                e.preventDefault();
-                cropCanvas.setPointerCapture(e.pointerId);
-                const pos = getPointerPos(e);
-                const corner = hitTestCorner(pos);
-                if (corner >= 0) dragMode = 'corner' + corner;
-                else if (hitTestInside(pos)) dragMode = 'move';
-                else dragMode = null;
-                dragStart = pos;
-                cropRectStart = { ...cropRect };
-            });
-
-            cropCanvas.addEventListener('pointermove', function(e) {
-                if (!dragMode) return;
-                e.preventDefault();
-                const pos = getPointerPos(e);
-                const dx = pos.x - dragStart.x;
-                const dy = pos.y - dragStart.y;
-                const MIN = 30;
-
-                if (dragMode === 'move') {
-                    let nx = clamp(cropRectStart.x + dx, 0, cropCanvas.width - cropRectStart.w);
-                    let ny = clamp(cropRectStart.y + dy, 0, cropCanvas.height - cropRectStart.h);
-                    cropRect.x = nx;
-                    cropRect.y = ny;
-                } else {
-                    const idx = parseInt(dragMode.replace('corner', ''), 10);
-                    let { x, y, w, h } = cropRectStart;
-                    let x2 = x + w,
-                        y2 = y + h;
-                    if (idx === 0) { x = clamp(x + dx, 0, x2 - MIN);
-                        y = clamp(y + dy, 0, y2 - MIN); }
-                    if (idx === 1) { x2 = clamp(x2 + dx, x + MIN, cropCanvas.width);
-                        y = clamp(y + dy, 0, y2 - MIN); }
-                    if (idx === 2) { x = clamp(x + dx, 0, x2 - MIN);
-                        y2 = clamp(y2 + dy, y + MIN, cropCanvas.height); }
-                    if (idx === 3) { x2 = clamp(x2 + dx, x + MIN, cropCanvas.width);
-                        y2 = clamp(y2 + dy, y + MIN, cropCanvas.height); }
-                    cropRect = { x, y, w: x2 - x, h: y2 - y };
-                }
-                drawCrop();
-            });
-
-            function endDrag() { dragMode = null; }
-            cropCanvas.addEventListener('pointerup', endDrag);
-            cropCanvas.addEventListener('pointercancel', endDrag);
-
-            // ============================================================
-            // APRI MODALE RITAGLIO con auto-detect
-            // ============================================================
-            function openCropModal(dataUrl, label) {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = function() {
-                        currentCropImage = img;
-                        cropImageDataUrl = dataUrl;
-
-                        const maxW = Math.min(800, window.innerWidth - 60);
-                        const maxH = Math.min(600, window.innerHeight - 200);
-                        let scale = Math.min(maxW / img.width, maxH / img.height, 1.5);
-                        if (!isFinite(scale) || scale <= 0) scale = 1;
-
-                        cropCanvas.width = Math.round(img.width * scale);
-                        cropCanvas.height = Math.round(img.height * scale);
-                        cropCanvas.style.width = Math.min(cropCanvas.width, maxW) + 'px';
-                        cropCanvas.style.height = Math.min(cropCanvas.height, maxH) + 'px';
-
-                        cropCounter.textContent = label || '';
-
-                        // AUTO-DETECT: rileva i bordi del documento
-                        autoDetectDocument(img).then(rect => {
-                            cropRect = {
-                                x: rect.x * scale,
-                                y: rect.y * scale,
-                                w: rect.w * scale,
-                                h: rect.h * scale
-                            };
-                            // Assicura che il rettangolo stia nei limiti
-                            cropRect.x = clamp(cropRect.x, 0, cropCanvas.width - 20);
-                            cropRect.y = clamp(cropRect.y, 0, cropCanvas.height - 20);
-                            cropRect.w = clamp(cropRect.w, 30, cropCanvas.width - cropRect.x);
-                            cropRect.h = clamp(cropRect.h, 30, cropCanvas.height - cropRect.y);
-                            drawCrop();
-                            cropOverlay.style.display = 'flex';
-                            cropResolve = resolve;
-                        });
-                    };
-                    img.src = dataUrl;
-                });
-            }
-
-            function closeCropModal() {
-                cropOverlay.style.display = 'none';
-                currentCropImage = null;
-            }
-
-            // ============================================================
-            // CONFERMA RITAGLIO
-            // ============================================================
-            btnCropConfirm.addEventListener('click', function() {
-                const scaleX = currentCropImage.width / cropCanvas.width;
-                const scaleY = currentCropImage.height / cropCanvas.height;
-
-                const safety = 2;
-                const rx = cropRect.x + safety;
-                const ry = cropRect.y + safety;
-                const rw = Math.max(4, cropRect.w - safety * 2);
-                const rh = Math.max(4, cropRect.h - safety * 2);
-
-                let nx = Math.round(rx * scaleX);
-                let ny = Math.round(ry * scaleY);
-                let nw = Math.round(rw * scaleX);
-                let nh = Math.round(rh * scaleY);
-
-                nx = clamp(nx, 0, currentCropImage.width - 1);
-                ny = clamp(ny, 0, currentCropImage.height - 1);
-                nw = clamp(nw, 1, currentCropImage.width - nx);
-                nh = clamp(nh, 1, currentCropImage.height - ny);
-
-                const outCanvas = document.createElement('canvas');
-                outCanvas.width = nw;
-                outCanvas.height = nh;
-                const octx = outCanvas.getContext('2d');
-
-                // Se modalità scansione, applica l'enhancement durante il ritaglio
-                if (scanMode) {
-                    // Disegna l'immagine ritagliata
-                    octx.drawImage(currentCropImage, nx, ny, nw, nh, 0, 0, nw, nh);
-                    // Applica enhancement
-                    const imgData = octx.getImageData(0, 0, nw, nh);
-                    const enhanced = enhanceScanImage(imgData, nw, nh);
-                    const outData = new ImageData(enhanced, nw, nh);
-                    octx.putImageData(outData, 0, 0);
-                } else {
-                    octx.drawImage(currentCropImage, nx, ny, nw, nh, 0, 0, nw, nh);
-                }
-
-                const outDataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
-                const resolve = cropResolve;
-                closeCropModal();
-                if (resolve) resolve({ dataUrl: outDataUrl, cropped: true, scanned: scanMode });
-            });
-
-            btnCropSkip.addEventListener('click', function() {
-                // Usa l'immagine intera, con eventuale enhancement
-                const resolve = cropResolve;
-                if (scanMode && currentCropImage) {
-                    // Applica enhancement all'immagine intera
-                    const outCanvas = document.createElement('canvas');
-                    outCanvas.width = currentCropImage.width;
-                    outCanvas.height = currentCropImage.height;
-                    const octx = outCanvas.getContext('2d');
-                    octx.drawImage(currentCropImage, 0, 0);
-                    const imgData = octx.getImageData(0, 0, currentCropImage.width, currentCropImage.height);
-                    const enhanced = enhanceScanImage(imgData, currentCropImage.width, currentCropImage.height);
-                    const outData = new ImageData(enhanced, currentCropImage.width, currentCropImage.height);
-                    octx.putImageData(outData, 0, 0);
-                    const outDataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
-                    closeCropModal();
-                    if (resolve) resolve({ dataUrl: outDataUrl, cropped: false, scanned: true });
-                } else {
-                    const outDataUrl = currentCropImage.src;
-                    closeCropModal();
-                    if (resolve) resolve({ dataUrl: outDataUrl, cropped: false, scanned: false });
-                }
-            });
-
-            btnCropDiscard.addEventListener('click', function() {
-                const resolve = cropResolve;
-                closeCropModal();
-                if (resolve) resolve(null);
-            });
-
-            // ============================================================
-            // COMPRESSIONE
-            // ============================================================
-            function compressImage(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = new Image();
-                        img.onload = function() {
-                            let width = img.width;
-                            let height = img.height;
-                            const MAX = 1600;
-                            if (width > MAX || height > MAX) {
-                                const scale = MAX / Math.max(width, height);
-                                width = Math.round(width * scale);
-                                height = Math.round(height * scale);
-                            }
-                            const canvas = document.createElement('canvas');
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(0, 0, width, height);
-                            ctx.drawImage(img, 0, 0, width, height);
-                            resolve(canvas.toDataURL('image/jpeg', 0.85));
-                        };
-                        img.onerror = function() { reject(new Error('Immagine non valida')); };
-                        img.src = e.target.result;
-                    };
-                    reader.onerror = function() { reject(new Error('Lettura file fallita')); };
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            // ============================================================
-            // HANDLE FILES
-            // ============================================================
-            function isImageFile(f) {
-                if (f.type && f.type.startsWith('image/')) return true;
-                return /\.(jpe?g|png|gif|bmp|webp|heic|heif|tiff?|svg)$/i.test(f.name || '');
-            }
-
-            async function handleFiles(fileList) {
-                const files = Array.from(fileList).filter(isImageFile);
-                if (files.length === 0) {
-                    statusEl.textContent = '⚠️ Nessun file immagine valido';
-                    statusEl.className = 'status error';
-                    return;
-                }
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    try {
-                        statusEl.textContent = `📷 Elaborazione: ${file.name}...`;
-                        statusEl.className = 'status';
-                        debugInfo.textContent = `🔄 Elaborazione: ${file.name}`;
-
-                        const compressed = await compressImage(file);
-                        const label = files.length > 1 ? `(${i + 1}/${files.length})` : '';
-                        const result = await openCropModal(compressed, label);
-
-                        if (result === null) {
-                            statusEl.textContent = `🗑️ ${file.name} scartata`;
-                            statusEl.className = 'status';
-                            debugInfo.textContent = `🗑️ ${file.name} scartata dall'utente`;
-                            continue;
-                        }
-
-                        state.images.push({
-                            id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                            dataUrl: result.dataUrl,
-                            isCropped: result.cropped,
-                            isScanned: result.scanned || false
-                        });
-
-                        renderThumbs();
-                        refreshGenerateState();
-                        statusEl.textContent =
-                            `✅ ${file.name} ${result.cropped ? '✂️ ritagliata' : ''}${result.scanned ? ' 📄 scansione' : ''}`;
-                        statusEl.className = 'status ok';
-                        debugInfo.textContent =
-                            `✅ Caricata: ${file.name} (${result.cropped ? 'ritagliata' : 'originale'}${result.scanned ? ' + scansione' : ''})`;
-
-                    } catch (err) {
-                        statusEl.textContent = `❌ Errore: ${file.name}`;
-                        statusEl.className = 'status error';
-                        debugInfo.textContent = `❌ Errore: ${file.name} - ${err.message}`;
-                    }
-                }
-            }
-
-            // ============================================================
-            // EVENTI CAMERA/UPLOAD
-            // ============================================================
-            [btnCamera, btnUpload].forEach(label => {
-                label.setAttribute('tabindex', '0');
-                label.setAttribute('role', 'button');
-                label.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        const input = this.querySelector('input[type="file"]');
-                        if (input) input.click();
-                    }
-                });
-            });
-
-            cameraInput.addEventListener('change', function() {
-                if (this.files && this.files.length > 0) {
-                    handleFiles(this.files);
-                }
-                this.value = '';
-            });
-
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files.length > 0) {
-                    handleFiles(this.files);
-                }
-                this.value = '';
-            });
-
-            // ============================================================
-            // DRAG & DROP
-            // ============================================================
-            ['dragenter', 'dragover'].forEach(evt => {
-                thumbWrap.addEventListener(evt, function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    thumbWrap.classList.add('drag-over');
-                });
-            });
-            ['dragleave', 'drop'].forEach(evt => {
-                thumbWrap.addEventListener(evt, function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    thumbWrap.classList.remove('drag-over');
-                });
-            });
-            thumbWrap.addEventListener('drop', function(e) {
-                const files = e.dataTransfer && e.dataTransfer.files;
-                if (files && files.length > 0) {
-                    handleFiles(files);
-                }
-            });
-
-            // ============================================================
-            // SANITIZZAZIONE
-            // ============================================================
-            function sanitize(str) {
-                return (str || '')
-                    .toUpperCase()
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^A-Z0-9 ]+/g, '')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-            }
-
-            function sanitizeWithSlash(str) {
-                return (str || '')
-                    .toUpperCase()
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^A-Z0-9\/\-]+/g, '')
-                    .trim();
-            }
-
-            function formatDate(isoStr) {
-                if (!isoStr) return null;
-                const [y, m, d] = isoStr.split('-');
-                return `${d}.${m}.${y}`;
-            }
-
-            function getDocType() {
-                for (const r of docTypeRadios) {
-                    if (r.checked) return r.value;
-                }
-                return 'CO';
-            }
-
-            // ============================================================
-            // COSTRUZIONE NOME FILE
-            // ============================================================
-            function buildFilename() {
-                const docType = getDocType();
-                const c = sanitize(cliente.value);
-                const t = sanitize(tecnico.value);
-                const dOk = formatDate(data.value);
-
-                let coVal = '';
-                let xxxVal = '';
-                let annoVal = '';
-                let prefix = 'VA';
-                let suffix = 'CO';
-
-                switch (docType) {
-                    case 'CO':
-                        prefix = 'VA';
-                        coVal = sanitize(co.value);
-                        suffix = 'CO';
-                        break;
-                    case 'ESC':
-                        prefix = 'VM';
-                        xxxVal = sanitizeWithSlash(xxx.value);
-                        annoVal = sanitizeWithSlash(anno.value);
-                        suffix = 'ESC';
-                        break;
-                    case 'EAD':
-                        prefix = 'VM';
-                        xxxVal = sanitizeWithSlash(xxx.value);
-                        annoVal = sanitizeWithSlash(anno.value);
-                        suffix = 'EAD';
-                        break;
-                    case 'LGS':
-                        prefix = 'VM';
-                        xxxVal = sanitizeWithSlash(xxx.value);
-                        annoVal = sanitizeWithSlash(anno.value);
-                        suffix = 'LGS';
-                        break;
-                    default:
-                        prefix = 'VA';
-                        coVal = sanitize(co.value);
-                        suffix = 'CO';
-                }
-
-                const cValid = c.length > 0;
-                const tValid = t.length > 0;
-                const dValid = !!dOk;
-                let coValid = false;
-                let xxxValid = false;
-                let annoValid = false;
-
-                if (docType === 'CO') {
-                    coValid = coVal.length > 0;
-                } else {
-                    xxxValid = xxxVal.length > 0;
-                    annoValid = annoVal.length > 0;
-                }
-
-                const allValid = cValid && tValid && dValid &&
-                    (docType === 'CO' ? coValid : (xxxValid && annoValid));
-
-                const spanFixed = v => `<span class="fixed">${v}</span>`;
-                const spanVal = (v, valid, label) => valid ?
-                    `<span class="val">${v}</span>` :
-                    `<span class="miss">${label}</span>`;
-                const US = '<span class="seg">_</span>';
-
-                let html = '';
-                let newAuto = null;
-
-                if (docType === 'CO') {
-                    html = spanFixed('VA') + US +
-                        spanVal(c, cValid, 'CLIENTE') + US +
-                        spanFixed('CO') + US +
-                        spanVal(coVal, coValid, 'xxx') + US +
-                        spanVal(t, tValid, 'TECNICO') + US +
-                        spanVal(dOk, dValid, 'DATA');
-                    newAuto = allValid ? `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf` : null;
-                } else {
-                    let mid;
-                    if (docType === 'ESC') mid = '-PAS/';
-                    else if (docType === 'EAD') mid = '/';
-                    else mid = '-H/';
-
-                    html = spanFixed('VM') + US +
-                        spanVal(c, cValid, 'CLIENTE') + US +
-                        spanFixed('c.m. ') +
-                        spanVal(xxxVal, xxxValid, 'xxx') +
-                        spanFixed(mid) +
-                        spanVal(annoVal, annoValid, 'anno') + US +
-                        spanVal(t, tValid, 'TECNICO') + US +
-                        spanVal(dOk, dValid, 'DATA');
-                    newAuto = allValid ? `VM_${c}_c.m. ${xxxVal}${mid}${annoVal}_${t}_${dOk}.pdf` : null;
-                }
-                html += '<span class="seg">.pdf</span>';
-
-                if (!isCustomFilename) {
-                    filenameManual.value = newAuto || '';
-                    lastAutoFilename = newAuto;
-                }
-
-                const finalFilename = filenameManual.value.trim() || null;
-
-                if (isCustomFilename && finalFilename) {
-                    tagName.innerHTML = `<span class="custom">${finalFilename}</span>`;
-                } else {
-                    tagName.innerHTML = html;
-                }
-
-                tagStatus.textContent = finalFilename ? '✅ PRONTO' : '⏳ INCOMPLETO';
-                tagStatus.style.color = finalFilename ? '#1e8e5a' : '#d1293b';
-
-                return { filename: finalFilename, allValid };
-            }
-
-            function refreshGenerateState() {
-                const { filename, allValid } = buildFilename();
-                const hasPhotos = state.images.length > 0;
-                const enabled = !isGenerating && allValid && hasPhotos && filename;
-                btnGenerate.disabled = !enabled;
-                btnEmail.disabled = !enabled;
-                return { filename, allValid, hasPhotos };
-            }
-
-            function onDataChange() {
-                refreshGenerateState();
-            }
-
-            // ============================================================
-            // EVENTI DATI
-            // ============================================================
-            [cliente, co, xxx, anno, tecnico, data].forEach(el => {
-                el.addEventListener('input', onDataChange);
-                el.addEventListener('change', onDataChange);
-            });
-
-            filenameManual.addEventListener('input', function() {
-                isCustomFilename = true;
-                refreshGenerateState();
-            });
-
-            filenameManual.addEventListener('blur', function() {
-                if (this.value.trim() === '') {
-                    isCustomFilename = false;
-                    refreshGenerateState();
-                }
-            });
-
-            // ============================================================
-            // RENDER MINIATURE
-            // ============================================================
-            function renderThumbs() {
-                if (state.images.length === 0) {
-                    thumbWrap.innerHTML =
-                        '<div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div>';
-                    return;
-                }
-
-                let html = '<div class="thumbs">';
-                state.images.forEach((img, i) => {
-                    html += `
-                        <div class="thumb">
-                            <img src="${img.dataUrl}" alt="foto ${i+1}">
-                            <span class="num">${i+1}</span>
-                            ${img.isCropped ? '<span class="crop-badge">✂️</span>' : ''}
-                            ${img.isScanned ? '<span class="scan-badge">📄</span>' : ''}
-                            <span class="rm" data-id="${img.id}">&times;</span>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                thumbWrap.innerHTML = html;
-
-                thumbWrap.querySelectorAll('.rm').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        state.images = state.images.filter(img => String(img.id) !== id);
-                        renderThumbs();
-                        refreshGenerateState();
-                        statusEl.textContent = '🗑️ Foto rimossa';
-                        statusEl.className = 'status';
-                        debugInfo.textContent = `🗑️ Foto rimossa. ${state.images.length} rimanenti.`;
-                    });
-                });
-            }
-
-            // ============================================================
-            // GENERAZIONE PDF (con supporto email)
-            // ============================================================
-            async function generatePDF() {
-                const { filename, allValid } = buildFilename();
-                if (!allValid) {
-                    statusEl.textContent = '⚠️ Compila tutti i campi';
-                    statusEl.className = 'status error';
-                    return null;
-                }
-                if (state.images.length === 0) {
-                    statusEl.textContent = '⚠️ Aggiungi almeno una foto';
-                    statusEl.className = 'status error';
-                    return null;
-                }
-                if (!filename) {
-                    statusEl.textContent = '⚠️ Nome file non valido';
-                    statusEl.className = 'status error';
-                    return null;
-                }
-
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                    const pageW = pdf.internal.pageSize.getWidth();
-                    const pageH = pdf.internal.pageSize.getHeight();
-                    const margin = 10;
-
-                    for (let i = 0; i < state.images.length; i++) {
-                        if (i > 0) pdf.addPage();
-                        const imgData = state.images[i].dataUrl;
-                        const dims = await new Promise((resolve) => {
-                            const img = new Image();
-                            img.onload = () => resolve({ w: img.width, h: img.height });
-                            img.src = imgData;
-                        });
-                        const maxW = pageW - margin * 2;
-                        const maxH = pageH - margin * 2;
-                        let w = maxW;
-                        let h = (dims.h / dims.w) * w;
-                        if (h > maxH) { h = maxH;
-                            w = (dims.w / dims.h) * h; }
-                        pdf.addImage(imgData, 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
-                    }
-
-                    const pdfBlob = pdf.output('blob');
-                    return { blob: pdfBlob, filename };
-                } catch (err) {
-                    statusEl.textContent = `❌ Errore PDF: ${err.message}`;
-                    statusEl.className = 'status error';
-                    debugInfo.textContent = `❌ Errore PDF: ${err.message}`;
-                    return null;
-                }
-            }
-
-            async function downloadPDF() {
-                if (isGenerating) return;
-                isGenerating = true;
-                btnGenerate.disabled = true;
-                btnEmail.disabled = true;
-
-                statusEl.textContent = '📄 Generazione PDF...';
-                statusEl.className = 'status';
-                debugInfo.textContent = '📄 Generazione PDF in corso...';
-
-                try {
-                    const result = await generatePDF();
-                    if (!result) { isGenerating = false;
-                        refreshGenerateState(); return; }
-
-                    const { blob, filename } = result;
-                    const blobUrl = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = blobUrl;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
-
-                    statusEl.textContent = `✅ PDF scaricato: ${filename}`;
-                    statusEl.className = 'status ok';
-                    debugInfo.textContent = `✅ Download completato: ${filename}`;
-                } catch (err) {
-                    statusEl.textContent = `❌ Errore: ${err.message}`;
-                    statusEl.className = 'status error';
-                    debugInfo.textContent = `❌ Errore: ${err.message}`;
-                } finally {
-                    isGenerating = false;
-                    refreshGenerateState();
-                }
-            }
-
-            async function shareByEmail() {
-                if (isGenerating) return;
-                isGenerating = true;
-                btnGenerate.disabled = true;
-                btnEmail.disabled = true;
-
-                statusEl.textContent = '📧 Preparazione email...';
-                statusEl.className = 'status';
-                debugInfo.textContent = '📧 Preparazione condivisione email...';
-
-                try {
-                    const result = await generatePDF();
-                    if (!result) { isGenerating = false;
-                        refreshGenerateState(); return; }
-
-                    const { blob, filename } = result;
-
-                    // 1. Prova con Web Share API (mobile + desktop con supporto)
-                    if (navigator.canShare && navigator.canShare({ files: [] })) {
-                        try {
-                            const pdfFile = new File([blob], filename, { type: 'application/pdf' });
-                            await navigator.share({
-                                files: [pdfFile],
-                                title: filename,
-                                subject: `Verbale fotografico: ${filename}`,
-                                text: `Allego il verbale fotografico "${filename}".`
-                            });
-                            statusEl.textContent = `📧 Email condivisa: ${filename}`;
-                            statusEl.className = 'status ok';
-                            debugInfo.textContent = `✅ Condiviso via email: ${filename}`;
-                            isGenerating = false;
-                            refreshGenerateState();
-                            return;
-                        } catch (shareErr) {
-                            if (shareErr.name === 'AbortError') {
-                                statusEl.textContent = '↩️ Condivisione annullata';
-                                statusEl.className = 'status';
-                                debugInfo.textContent = '↩️ Foglio di condivisione chiuso';
-                                isGenerating = false;
-                                refreshGenerateState();
-                                return;
-                            }
-                            // Fallback a mailto
-                        }
-                    }
-
-                    // 2. Fallback: mailto con il nome del file e istruzioni
-                    const subject = encodeURIComponent(`Verbale fotografico: ${filename}`);
-                    const body = encodeURIComponent(
-                        `Buongiorno,\n\nAllego il verbale fotografico "${filename}".\n\nIl file PDF è stato generato e deve essere allegato manualmente a questa email.\n\nCordiali saluti.`
-                    );
-                    const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
-
-                    // Scarica anche il PDF per allegarlo manualmente
-                    const blobUrl = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = blobUrl;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
-
-                    // Apri il client email
-                    window.open(mailtoUrl, '_blank');
-
-                    statusEl.textContent = `📧 Email aperta. Allega il file PDF "${filename}" scaricato.`;
-                    statusEl.className = 'status ok';
-                    debugInfo.textContent = `✅ Email preparata: ${filename}`;
-
-                } catch (err) {
-                    statusEl.textContent = `❌ Errore: ${err.message}`;
-                    statusEl.className = 'status error';
-                    debugInfo.textContent = `❌ Errore: ${err.message}`;
-                } finally {
-                    isGenerating = false;
-                    refreshGenerateState();
-                }
-            }
-
-            btnGenerate.addEventListener('click', downloadPDF);
-            btnEmail.addEventListener('click', shareByEmail);
-
-            // ============================================================
-            // INIZIALIZZAZIONE
-            // ============================================================
-            updateDocTypeHints();
-            onDataChange();
-            statusEl.textContent = '✅ Pronto per iniziare';
-            statusEl.className = 'status ok';
-            debugInfo.textContent = '✅ Inizializzato. Carica una foto per iniziare.';
-
-            // Avvia con scanMode attivo
-            scanTrack.classList.add('active');
-            scanLabel.classList.remove('active');
-            scanLabelOn.classList.add('active');
-
-            // ============================================================
-            // TOUCH SUPPORT MIGLIORATO
-            // ============================================================
-            // Previeni lo scroll durante il drag sul canvas
-            cropCanvas.addEventListener('touchstart', function(e) {
-                if (e.target === cropCanvas) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-            cropCanvas.addEventListener('touchmove', function(e) {
-                if (e.target === cropCanvas) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-        })();
-    </script>
+          }
+          approx.delete(); cnt.delete();
+        }
+
+        src.delete(); gray.delete(); blur.delete(); edges.delete();
+        contours.delete(); hierarchy.delete();
+
+        if(!best) { fallback(); return; }
+
+        const pad = Math.max(3, Math.round(Math.min(c.width,c.height)*0.008));
+        const x=Math.max(0,best.x-pad), y=Math.max(0,best.y-pad);
+        const r=Math.min(c.width,best.x+best.w+pad);
+        const b=Math.min(c.height,best.y+best.h+pad);
+        resolve({
+          x:x/scale, y:y/scale, w:(r-x)/scale, h:(b-y)/scale
+        });
+      } catch(e) {
+        fallback();
+      }
+    });
+  }
+
+  let currentCropImage = null;
+  let cropRect = { x: 0, y: 0, w: 0, h: 0 };
+  let dragMode = null;
+  let dragStart = null;
+  let cropRectStart = null;
+  let cropResolve = null;
+  const cropCtx2d = cropCanvas.getContext('2d');
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function getCorners() {
+    return [
+      { x: cropRect.x, y: cropRect.y },
+      { x: cropRect.x + cropRect.w, y: cropRect.y },
+      { x: cropRect.x, y: cropRect.y + cropRect.h },
+      { x: cropRect.x + cropRect.w, y: cropRect.y + cropRect.h }
+    ];
+  }
+
+  function drawCrop() {
+    cropCtx2d.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    cropCtx2d.drawImage(currentCropImage, 0, 0, cropCanvas.width, cropCanvas.height);
+
+    cropCtx2d.fillStyle = 'rgba(0,0,0,0.55)';
+    cropCtx2d.fillRect(0, 0, cropCanvas.width, cropRect.y);
+    cropCtx2d.fillRect(0, cropRect.y + cropRect.h, cropCanvas.width, cropCanvas.height - (cropRect.y + cropRect.h));
+    cropCtx2d.fillRect(0, cropRect.y, cropRect.x, cropRect.h);
+    cropCtx2d.fillRect(cropRect.x + cropRect.w, cropRect.y, cropCanvas.width - (cropRect.x + cropRect.w), cropRect.h);
+
+    cropCtx2d.strokeStyle = '#ffffff';
+    cropCtx2d.lineWidth = 5;
+    cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+    cropCtx2d.strokeStyle = '#00549e';
+    cropCtx2d.lineWidth = 2.5;
+    cropCtx2d.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+
+    cropCtx2d.strokeStyle = 'rgba(255,255,255,0.7)';
+    cropCtx2d.lineWidth = 1;
+    for (let i = 1; i < 3; i++) {
+      const gx = cropRect.x + (cropRect.w * i / 3);
+      cropCtx2d.beginPath(); cropCtx2d.moveTo(gx, cropRect.y); cropCtx2d.lineTo(gx, cropRect.y + cropRect.h); cropCtx2d.stroke();
+      const gy = cropRect.y + (cropRect.h * i / 3);
+      cropCtx2d.beginPath(); cropCtx2d.moveTo(cropRect.x, gy); cropCtx2d.lineTo(cropRect.x + cropRect.w, gy); cropCtx2d.stroke();
+    }
+
+    const scale = getCanvasScale();
+    const R = 11 * Math.max(scale.x, scale.y);
+    getCorners().forEach(c => {
+      cropCtx2d.beginPath();
+      cropCtx2d.arc(c.x, c.y, R, 0, Math.PI * 2);
+      cropCtx2d.fillStyle = '#ffffff';
+      cropCtx2d.fill();
+      cropCtx2d.lineWidth = 3;
+      cropCtx2d.strokeStyle = '#00549e';
+      cropCtx2d.stroke();
+      cropCtx2d.beginPath();
+      cropCtx2d.arc(c.x, c.y, R * 0.4, 0, Math.PI * 2);
+      cropCtx2d.fillStyle = '#00549e';
+      cropCtx2d.fill();
+    });
+  }
+
+  function getCanvasScale() {
+    const rect = cropCanvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return { x: 1, y: 1 };
+    return {
+      x: cropCanvas.width / rect.width,
+      y: cropCanvas.height / rect.height
+    };
+  }
+
+  function getPointerPos(e) {
+    const rect = cropCanvas.getBoundingClientRect();
+    const scale = getCanvasScale();
+    return { x: (e.clientX - rect.left) * scale.x, y: (e.clientY - rect.top) * scale.y };
+  }
+
+  const HIT_SCREEN_PX = 26;
+  function hitTestCorner(pos) {
+    const scale = getCanvasScale();
+    const corners = getCorners();
+    for (let i = 0; i < 4; i++) {
+      const hitX = HIT_SCREEN_PX * scale.x;
+      const hitY = HIT_SCREEN_PX * scale.y;
+      if (Math.abs(pos.x - corners[i].x) < hitX && Math.abs(pos.y - corners[i].y) < hitY) return i;
+    }
+    return -1;
+  }
+  function hitTestInside(pos) {
+    return pos.x > cropRect.x && pos.x < cropRect.x + cropRect.w && pos.y > cropRect.y && pos.y < cropRect.y + cropRect.h;
+  }
+
+  cropCanvas.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    cropCanvas.setPointerCapture(e.pointerId);
+    const pos = getPointerPos(e);
+    const corner = hitTestCorner(pos);
+    if (corner >= 0) dragMode = 'corner' + corner;
+    else if (hitTestInside(pos)) dragMode = 'move';
+    else dragMode = null;
+    dragStart = pos;
+    cropRectStart = { ...cropRect };
+  });
+
+  cropCanvas.addEventListener('pointermove', function(e) {
+    if (!dragMode) return;
+    e.preventDefault();
+    const pos = getPointerPos(e);
+    const dx = pos.x - dragStart.x;
+    const dy = pos.y - dragStart.y;
+    const MIN = 30;
+
+    if (dragMode === 'move') {
+      let nx = clamp(cropRectStart.x + dx, 0, cropCanvas.width - cropRectStart.w);
+      let ny = clamp(cropRectStart.y + dy, 0, cropCanvas.height - cropRectStart.h);
+      cropRect.x = nx; cropRect.y = ny;
+    } else {
+      const idx = parseInt(dragMode.replace('corner', ''), 10);
+      let { x, y, w, h } = cropRectStart;
+      let x2 = x + w, y2 = y + h;
+      if (idx === 0) { x = clamp(x + dx, 0, x2 - MIN); y = clamp(y + dy, 0, y2 - MIN); }
+      if (idx === 1) { x2 = clamp(x2 + dx, x + MIN, cropCanvas.width); y = clamp(y + dy, 0, y2 - MIN); }
+      if (idx === 2) { x = clamp(x + dx, 0, x2 - MIN); y2 = clamp(y2 + dy, y + MIN, cropCanvas.height); }
+      if (idx === 3) { x2 = clamp(x2 + dx, x + MIN, cropCanvas.width); y2 = clamp(y2 + dy, y + MIN, cropCanvas.height); }
+      cropRect = { x, y, w: x2 - x, h: y2 - y };
+    }
+    drawCrop();
+  });
+
+  function endDrag() { dragMode = null; }
+  cropCanvas.addEventListener('pointerup', endDrag);
+  cropCanvas.addEventListener('pointercancel', endDrag);
+
+  function openCropModal(dataUrl, label) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = function() {
+        currentCropImage = img;
+
+        const maxW = Math.min(800, window.innerWidth - 60);
+        const maxH = Math.min(600, window.innerHeight - 200);
+        let scale = Math.min(maxW / img.width, maxH / img.height, 1.5);
+        if (!isFinite(scale) || scale <= 0) scale = 1;
+
+        cropCanvas.width = Math.round(img.width * scale);
+        cropCanvas.height = Math.round(img.height * scale);
+        cropCanvas.style.width = Math.min(cropCanvas.width, maxW) + 'px';
+        cropCanvas.style.height = Math.min(cropCanvas.height, maxH) + 'px';
+
+        cropCounter.textContent = label || '';
+
+        autoDetectRect(img).then(rect => {
+          cropRect = { x: rect.x * scale, y: rect.y * scale, w: rect.w * scale, h: rect.h * scale };
+          drawCrop();
+          cropOverlay.style.display = 'flex';
+          cropResolve = resolve;
+        });
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  function closeCropModal() {
+    cropOverlay.style.display = 'none';
+    currentCropImage = null;
+  }
+
+  btnCropConfirm.addEventListener('click', function() {
+    const scaleX = currentCropImage.width / cropCanvas.width;
+    const scaleY = currentCropImage.height / cropCanvas.height;
+
+    const safety = 2;
+    const rx = cropRect.x + safety;
+    const ry = cropRect.y + safety;
+    const rw = Math.max(4, cropRect.w - safety * 2);
+    const rh = Math.max(4, cropRect.h - safety * 2);
+
+    let nx = Math.round(rx * scaleX);
+    let ny = Math.round(ry * scaleY);
+    let nw = Math.round(rw * scaleX);
+    let nh = Math.round(rh * scaleY);
+
+    nx = clamp(nx, 0, currentCropImage.width - 1);
+    ny = clamp(ny, 0, currentCropImage.height - 1);
+    nw = clamp(nw, 1, currentCropImage.width - nx);
+    nh = clamp(nh, 1, currentCropImage.height - ny);
+
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = nw;
+    outCanvas.height = nh;
+    const octx = outCanvas.getContext('2d');
+    octx.drawImage(currentCropImage, nx, ny, nw, nh, 0, 0, nw, nh);
+
+    const outDataUrl = enhanceScan.checked
+      ? enhanceDocumentCanvas(outCanvas)
+      : outCanvas.toDataURL('image/jpeg', 0.92);
+    const resolve = cropResolve;
+    closeCropModal();
+    if (resolve) resolve({ dataUrl: outDataUrl, cropped: true, enhanced: enhanceScan.checked });
+  });
+
+  btnCropSkip.addEventListener('click', function() {
+    const c = document.createElement('canvas');
+    c.width = currentCropImage.width;
+    c.height = currentCropImage.height;
+    c.getContext('2d').drawImage(currentCropImage,0,0);
+    const outDataUrl = enhanceScan.checked
+      ? enhanceDocumentCanvas(c)
+      : currentCropImage.src;
+    const resolve = cropResolve;
+    closeCropModal();
+    if (resolve) resolve({ dataUrl: outDataUrl, cropped: false, enhanced: enhanceScan.checked });
+  });
+
+  btnCropDiscard.addEventListener('click', function() {
+    const resolve = cropResolve;
+    closeCropModal();
+    if (resolve) resolve(null);
+  });
+
+  // ============================================================
+  // COMPRESSIONE IMMAGINE
+  // ============================================================
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          let width = img.width;
+          let height = img.height;
+          const MAX = 1600;
+          if(width > MAX || height > MAX) {
+            const scale = MAX / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = function() {
+          reject(new Error('Immagine non valida'));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = function() {
+        reject(new Error('Lettura file fallita'));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ============================================================
+  // OTTIMIZZAZIONE "SCANNER": B/N, CONTRASTO E NITIDEZZA
+  // ============================================================
+  function enhanceDocumentCanvas(canvas) {
+    const ctx = canvas.getContext('2d', {willReadFrequently:true});
+    const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const d = img.data;
+    const gray = new Uint8ClampedArray(canvas.width*canvas.height);
+
+    // Scala di grigi + contrasto locale semplice
+    for(let i=0,p=0;i<d.length;i+=4,p++){
+      let g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+      g = (g - 128) * 1.35 + 128;
+      gray[p] = Math.max(0,Math.min(255,g));
+    }
+
+    // Soglia adattiva leggera: mantiene lettere nitide senza "bruciare" tutto
+    const w=canvas.width,h=canvas.height;
+    const radius=Math.max(8,Math.round(Math.min(w,h)*0.012));
+    const integral=new Float64Array((w+1)*(h+1));
+    for(let y=1;y<=h;y++){
+      let row=0;
+      for(let x=1;x<=w;x++){
+        row += gray[(y-1)*w+(x-1)];
+        integral[y*(w+1)+x] = integral[(y-1)*(w+1)+x] + row;
+      }
+    }
+
+    const out=ctx.createImageData(w,h);
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const x1=Math.max(0,x-radius), y1=Math.max(0,y-radius);
+        const x2=Math.min(w-1,x+radius), y2=Math.min(h-1,y+radius);
+        const A=integral[y1*(w+1)+x1];
+        const B=integral[y1*(w+1)+(x2+1)];
+        const C=integral[(y2+1)*(w+1)+x1];
+        const D=integral[(y2+1)*(w+1)+(x2+1)];
+        const mean=(D-B-C+A)/((x2-x1+1)*(y2-y1+1));
+        const g=gray[y*w+x];
+        // 10% sotto la media = nero, altrimenti bianco
+        const v = g < mean*0.88 ? 0 : 255;
+        const i=(y*w+x)*4;
+        out.data[i]=out.data[i+1]=out.data[i+2]=v;
+        out.data[i+3]=255;
+      }
+    }
+    ctx.putImageData(out,0,0);
+    return canvas.toDataURL('image/jpeg',0.93);
+  }
+
+  // ============================================================
+  // HANDLE FILES
+  // ============================================================
+  function isImageFile(f) {
+    if (f.type && f.type.startsWith('image/')) return true;
+    return /\.(jpe?g|png|gif|bmp|webp|heic|heif|tiff?|svg)$/i.test(f.name || '');
+  }
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(isImageFile);
+    if(files.length === 0) {
+      statusEl.textContent = '⚠️ Nessun file immagine valido';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    for(let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        statusEl.textContent = `📷 Elaborazione: ${file.name}...`;
+        statusEl.className = 'status';
+        debugInfo.textContent = `🔄 Elaborazione: ${file.name}`;
+
+        const compressed = await compressImage(file);
+        const label = files.length > 1 ? `(${i + 1}/${files.length})` : '';
+        const result = await openCropModal(compressed, label);
+
+        if (result === null) {
+          statusEl.textContent = `🗑️ ${file.name} scartata`;
+          statusEl.className = 'status';
+          debugInfo.textContent = `🗑️ ${file.name} scartata dall'utente`;
+          continue;
+        }
+
+        state.images.push({
+          id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          dataUrl: result.dataUrl,
+          isCropped: result.cropped,
+          enhanced: !!result.enhanced
+        });
+        
+        renderThumbs();
+        refreshGenerateState();
+        statusEl.textContent = `✅ ${file.name} ${result.cropped ? '✂️ bordi rilevati' : ''}${result.enhanced ? ' · B/N ottimizzato' : ''}`;
+        statusEl.className = 'status ok';
+        debugInfo.textContent = `✅ Caricata: ${file.name} (${result.cropped ? 'bordi rilevati' : 'intera'})${result.enhanced ? ' · B/N + contrasto' : ''}`;
+        
+      } catch(err) {
+        statusEl.textContent = `❌ Errore: ${file.name}`;
+        statusEl.className = 'status error';
+        debugInfo.textContent = `❌ Errore: ${file.name} - ${err.message}`;
+      }
+    }
+  }
+
+  // ============================================================
+  // EVENTI CAMERA/UPLOAD
+  // ============================================================
+  [btnCamera, btnUpload].forEach(label => {
+    label.setAttribute('tabindex', '0');
+    label.setAttribute('role', 'button');
+    label.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const input = this.querySelector('input[type="file"]');
+        if (input) input.click();
+      }
+    });
+  });
+
+  cameraInput.addEventListener('change', function() {
+    if(this.files && this.files.length > 0) {
+      handleFiles(this.files);
+    }
+    this.value = '';
+  });
+
+  fileInput.addEventListener('change', function() {
+    if(this.files && this.files.length > 0) {
+      handleFiles(this.files);
+    }
+    this.value = '';
+  });
+
+  // ============================================================
+  // TRASCINA E RILASCIA
+  // ============================================================
+  ['dragenter', 'dragover'].forEach(evt => {
+    thumbWrap.addEventListener(evt, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      thumbWrap.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    thumbWrap.addEventListener(evt, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      thumbWrap.classList.remove('drag-over');
+    });
+  });
+  thumbWrap.addEventListener('drop', function(e) {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFiles(files);
+    }
+  });
+
+  // ============================================================
+  // SANITIZZAZIONE
+  // ============================================================
+  function sanitize(str) {
+    return (str || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Z0-9 ]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function sanitizeWithSlash(str) {
+    return (str || '')
+      .toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Z0-9\/\-]+/g, '')
+      .trim();
+  }
+
+  function formatDate(isoStr) {
+    if(!isoStr) return null;
+    const [y,m,d] = isoStr.split('-');
+    return `${d}.${m}.${y}`;
+  }
+
+  function getDocType() {
+    for(const r of docTypeRadios) {
+      if(r.checked) return r.value;
+    }
+    return 'CO';
+  }
+
+  // ============================================================
+  // COSTRUZIONE NOME FILE
+  // ============================================================
+  function buildFilename() {
+    const docType = getDocType();
+    const c = sanitize(cliente.value);
+    const t = sanitize(tecnico.value);
+    const dOk = formatDate(data.value);
+    
+    let coVal = '';
+    let xxxVal = '';
+    let annoVal = '';
+    let prefix = 'VA';
+    let suffix = 'CO';
+
+    switch(docType) {
+      case 'CO':
+        prefix = 'VA';
+        coVal = sanitize(co.value);
+        suffix = 'CO';
+        break;
+      case 'ESC':
+        prefix = 'VM';
+        xxxVal = sanitizeWithSlash(xxx.value);
+        annoVal = sanitizeWithSlash(anno.value);
+        suffix = 'ESC';
+        break;
+      case 'EAD':
+        prefix = 'VM';
+        xxxVal = sanitizeWithSlash(xxx.value);
+        annoVal = sanitizeWithSlash(anno.value);
+        suffix = 'EAD';
+        break;
+      case 'LGS':
+        prefix = 'VM';
+        xxxVal = sanitizeWithSlash(xxx.value);
+        annoVal = sanitizeWithSlash(anno.value);
+        suffix = 'LGS';
+        break;
+      default:
+        prefix = 'VA';
+        coVal = sanitize(co.value);
+        suffix = 'CO';
+    }
+
+    // Validazione
+    const cValid = c.length > 0;
+    const tValid = t.length > 0;
+    const dValid = !!dOk;
+    let coValid = false;
+    let xxxValid = false;
+    let annoValid = false;
+
+    if (docType === 'CO') {
+      coValid = coVal.length > 0;
+    } else {
+      xxxValid = xxxVal.length > 0;
+      annoValid = annoVal.length > 0;
+    }
+
+    const allValid = cValid && tValid && dValid && 
+      (docType === 'CO' ? coValid : (xxxValid && annoValid));
+
+    // Costruzione anteprima con colori (nessun underscore automatico tra i segmenti:
+    // ogni segmento fisso include già il proprio separatore corretto)
+    const spanFixed = v => `<span class="fixed">${v}</span>`;
+    const spanVal = (v, valid, label) => valid
+      ? `<span class="val">${v}</span>`
+      : `<span class="miss">${label}</span>`;
+    const US = '<span class="seg">_</span>';
+
+    let html = '';
+    let newAuto = null;
+
+    if (docType === 'CO') {
+      html = spanFixed('VA') + US +
+             spanVal(c, cValid, 'CLIENTE') + US +
+             spanFixed('CO') + US +
+             spanVal(coVal, coValid, 'xxx') + US +
+             spanVal(t, tValid, 'TECNICO') + US +
+             spanVal(dOk, dValid, 'DATA');
+      newAuto = allValid ? `VA_${c}_CO_${coVal}_${t}_${dOk}.pdf` : null;
+    } else {
+      let mid;
+      if (docType === 'ESC') mid = '-PAS/';
+      else if (docType === 'EAD') mid = '/';
+      else mid = '-H/';
+
+      html = spanFixed('VM') + US +
+             spanVal(c, cValid, 'CLIENTE') + US +
+             spanFixed('c.m. ') +
+             spanVal(xxxVal, xxxValid, 'xxx') +
+             spanFixed(mid) +
+             spanVal(annoVal, annoValid, 'anno') + US +
+             spanVal(t, tValid, 'TECNICO') + US +
+             spanVal(dOk, dValid, 'DATA');
+      newAuto = allValid ? `VM_${c}_c.m. ${xxxVal}${mid}${annoVal}_${t}_${dOk}.pdf` : null;
+    }
+    html += '<span class="seg">.pdf</span>';
+
+    if (!isCustomFilename) {
+      filenameManual.value = newAuto || '';
+      lastAutoFilename = newAuto;
+    }
+
+    const finalFilename = filenameManual.value.trim() || null;
+
+    if (isCustomFilename && finalFilename) {
+      tagName.innerHTML = `<span class="custom">${finalFilename}</span>`;
+    } else {
+      tagName.innerHTML = html;
+    }
+
+    tagStatus.textContent = finalFilename ? '✅ PRONTO' : '⏳ INCOMPLETO';
+    tagStatus.style.color = finalFilename ? '#1e8e5a' : '#d1293b';
+
+    return { filename: finalFilename, allValid };
+  }
+
+  function refreshGenerateState() {
+    const { filename, allValid } = buildFilename();
+    const hasPhotos = state.images.length > 0;
+    btnGenerate.disabled = isGenerating || !(allValid && hasPhotos && filename);
+    return { filename, allValid, hasPhotos };
+  }
+
+  function onDataChange() {
+    refreshGenerateState();
+  }
+
+  // ============================================================
+  // EVENTI DATI
+  // ============================================================
+  [cliente, co, xxx, anno, tecnico, data].forEach(el => {
+    el.addEventListener('input', onDataChange);
+    el.addEventListener('change', onDataChange);
+  });
+
+  filenameManual.addEventListener('input', function() {
+    isCustomFilename = true;
+    refreshGenerateState();
+  });
+
+  filenameManual.addEventListener('blur', function() {
+    if (this.value.trim() === '') {
+      isCustomFilename = false;
+      refreshGenerateState();
+    }
+  });
+
+  // ============================================================
+  // RENDER MINIATURE
+  // ============================================================
+  function renderThumbs() {
+    if(state.images.length === 0) {
+      thumbWrap.innerHTML = '<div class="empty-note">Nessuna foto aggiunta<br><span style="font-size:11px;">(su PC puoi anche trascinare qui le immagini)</span></div>';
+      return;
+    }
+    
+    let html = '<div class="thumbs">';
+    state.images.forEach((img, i) => {
+      html += `
+        <div class="thumb">
+          <img src="${img.dataUrl}" alt="foto ${i+1}">
+          <span class="num">${i+1}</span>
+          ${img.isCropped ? '<span class="crop-badge">✂️</span>' : ''}
+          <span class="rm" data-id="${img.id}">&times;</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+    thumbWrap.innerHTML = html;
+
+    thumbWrap.querySelectorAll('.rm').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        state.images = state.images.filter(img => String(img.id) !== id);
+        renderThumbs();
+        refreshGenerateState();
+        statusEl.textContent = '🗑️ Foto rimossa';
+        statusEl.className = 'status';
+        debugInfo.textContent = `🗑️ Foto rimossa. ${state.images.length} rimanenti.`;
+      });
+    });
+  }
+
+  // ============================================================
+  // GENERAZIONE PDF
+  // ============================================================
+  btnGenerate.addEventListener('click', async function() {
+    if(isGenerating) return;
+    
+    const { filename, allValid } = buildFilename();
+    
+    if(!allValid) {
+      statusEl.textContent = '⚠️ Compila tutti i campi';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    if(state.images.length === 0) {
+      statusEl.textContent = '⚠️ Aggiungi almeno una foto';
+      statusEl.className = 'status error';
+      return;
+    }
+    
+    if(!filename) {
+      statusEl.textContent = '⚠️ Nome file non valido';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    isGenerating = true;
+    this.disabled = true;
+    statusEl.textContent = '📄 Generazione PDF...';
+    statusEl.className = 'status';
+    debugInfo.textContent = `📄 Generazione PDF: ${filename}`;
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+
+      for(let i = 0; i < state.images.length; i++) {
+        if(i > 0) pdf.addPage();
+        
+        const imgData = state.images[i].dataUrl;
+        
+        const dims = await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width, h: img.height });
+          img.src = imgData;
+        });
+        
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - margin * 2;
+        let w = maxW;
+        let h = (dims.h / dims.w) * w;
+        if(h > maxH) { h = maxH; w = (dims.w / dims.h) * h; }
+        
+        pdf.addImage(imgData, 'JPEG', (pageW - w)/2, (pageH - h)/2, w, h);
+      }
+
+      const pdfBlob = pdf.output('blob');
+      lastPdfBlob = pdfBlob;
+      lastPdfFilename = filename;
+      btnEmail.disabled = false;
+
+      // Salvataggio locale con la nomenclatura esatta
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+
+      statusEl.textContent = `✅ PDF salvato: ${filename}`;
+      statusEl.className = 'status ok';
+      debugInfo.textContent = `✅ PDF pronto per il salvataggio/invio: ${filename}`;
+
+    } catch(err) {
+      statusEl.textContent = `❌ Errore: ${err.message}`;
+      statusEl.className = 'status error';
+      debugInfo.textContent = `❌ Errore: ${err.message}`;
+    } finally {
+      isGenerating = false;
+      this.disabled = false;
+      refreshGenerateState();
+    }
+  });
+
+  // ============================================================
+  // INVIO PDF VIA EMAIL
+  // ============================================================
+  btnEmail.addEventListener('click', async function(){
+    if(!lastPdfBlob || !lastPdfFilename) return;
+
+    const subject = `Verbale fotografico - ${lastPdfFilename.replace(/\.pdf$/i,'')}`;
+    const body = `Buongiorno,\n\nin allegato il verbale fotografico ${lastPdfFilename}.\n\nCordiali saluti`;
+
+    try {
+      const pdfFile = new File([lastPdfBlob], lastPdfFilename, {type:'application/pdf'});
+
+      // Su smartphone/tablet e browser compatibili: apre il foglio di condivisione
+      // e consente di scegliere Mail/Outlook mantenendo il PDF come allegato.
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[pdfFile]})){
+        await navigator.share({
+          files:[pdfFile],
+          title:lastPdfFilename,
+          text:body
+        });
+        statusEl.textContent = `✅ PDF condiviso: ${lastPdfFilename}`;
+        statusEl.className = 'status ok';
+        return;
+      }
+
+      // Su PC i browser non possono allegare automaticamente un file a mailto:
+      // scarichiamo nuovamente il PDF e apriamo la nuova email.
+      const url=URL.createObjectURL(lastPdfBlob);
+      const a=document.createElement('a');
+      a.href=url; a.download=lastPdfFilename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+
+      window.location.href =
+        `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + '\n\nIl PDF è stato salvato con il nome indicato sopra: allegalo a questa email.')}`;
+
+      statusEl.textContent = '📧 Email aperta. Allega il PDF appena salvato.';
+      statusEl.className = 'status ok';
+      debugInfo.textContent = `📧 Allegato pronto: ${lastPdfFilename}`;
+    } catch(err) {
+      if(err.name === 'AbortError') return;
+      statusEl.textContent = `❌ Impossibile aprire l'invio email: ${err.message}`;
+      statusEl.className = 'status error';
+    }
+  });
+
+  // ============================================================
+  // INIZIALIZZAZIONE
+  // ============================================================
+  btnEmail.disabled = true;
+  updateDocTypeHints();
+  onDataChange();
+  statusEl.textContent = '✅ Pronto per iniziare';
+  statusEl.className = 'status ok';
+  debugInfo.textContent = '✅ Inizializzato. Carica una foto: i bordi verranno rilevati automaticamente.';
+
+})();
+</script>
 </body>
 </html>
