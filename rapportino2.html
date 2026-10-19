@@ -499,13 +499,6 @@
   <!-- GENERA / INVIA -->
   <div class="panel">
     <div class="panel-title">Genera e invia</div>
-    <div class="field">
-      <div class="field-label-with-example">
-        <label for="emailTo">Email destinatario</label>
-        <span class="example">salvata per le volte successive</span>
-      </div>
-      <input type="email" id="emailTo" multiple placeholder="nome@azienda.it" autocomplete="email" inputmode="email">
-    </div>
     <div class="gen-buttons">
       <button class="btn danger" id="btnGenerate" type="button" disabled>📄 Genera PDF</button>
       <button class="btn primary" id="btnEmail" type="button" disabled>✉️ Genera e invia via email</button>
@@ -630,7 +623,6 @@
   const annoExample = $('annoExample');
   const tecnico = $('tecnico');
   const data = $('data');
-  const emailTo = $('emailTo');
   const docTypeRadios = document.querySelectorAll('input[name="docType"]');
   const filenameManual = $('filenameManual');
   const tagName = $('tagName');
@@ -2004,25 +1996,6 @@
   });
 
   // ============================================================
-  // EMAIL: indirizzo salvato
-  // ============================================================
-  const EMAIL_KEY = 'verbaleEmailTo';
-  const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-
-  function parseEmails(raw){
-    const list = (raw || '').split(/[;,]/).map(s => s.trim()).filter(Boolean);
-    return { list, valid: list.length > 0 && list.every(isEmail) };
-  }
-  function saveEmail(){
-    const p = parseEmails(emailTo.value);
-    if (p.valid) lsSet(EMAIL_KEY, p.list.join(', '));
-    return p;
-  }
-  emailTo.value = lsGet(EMAIL_KEY) || '';
-  emailTo.addEventListener('change', saveEmail);
-  emailTo.addEventListener('blur', saveEmail);
-
-  // ============================================================
   // MINIATURE
   // ============================================================
   function renderThumbs(){
@@ -2146,7 +2119,14 @@
     }
   }
 
-  async function emailPdf(blob, filename, to){
+  function canShareFiles(){
+    try {
+      const f = new File([new Blob(['x'])], 'a.pdf', { type: 'application/pdf' });
+      return !!(navigator.canShare && navigator.canShare({ files: [f] }));
+    } catch(e) { return false; }
+  }
+
+  async function emailPdf(blob, filename, win){
     const subject = filename.replace(/\.pdf$/i, '');
     const body =
       `In allegato il verbale fotografico.\n\n` +
@@ -2155,15 +2135,11 @@
       `Data intervento: ${formatDate(data.value)}\n`;
     const file = new File([blob], filename, { type: 'application/pdf' });
 
-    // Mobile: foglio di condivisione con il PDF già allegato
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      let copied = false;
-      try { await navigator.clipboard.writeText(to.join(', ')); copied = true; } catch(e) {}
+    // Mobile: foglio di condivisione, scegli Gmail e trovi il PDF già allegato
+    if (canShareFiles()) {
       try {
         await navigator.share({ files: [file], title: subject, text: body });
-        setStatus(copied
-          ? '✅ Scegli la tua app di posta. Indirizzo copiato: incollalo nel campo "A"'
-          : '✅ Scegli la tua app di posta e inserisci il destinatario', 'ok');
+        setStatus('✅ Condivisione completata', 'ok');
       } catch(err) {
         if (err.name === 'AbortError') setStatus('↩️ Invio annullato');
         else throw err;
@@ -2171,13 +2147,12 @@
       return;
     }
 
-    // Desktop: scarica il PDF e apre la bozza email con destinatario e oggetto
+    // Desktop: scarica il PDF e apre la bozza Gmail (da lì trascina/allega il file scaricato)
     downloadBlob(blob, filename);
-    const mailBody = body + `\n(Allega il file scaricato: ${filename})`;
-    const href = 'mailto:' + encodeURIComponent(to.join(',')).replace(/%2C/g, ',').replace(/%40/g, '@') +
-      '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(mailBody);
-    setTimeout(() => { window.location.href = href; }, 500);
-    setStatus(`✅ PDF scaricato. Si apre la bozza email: allega "${filename}"`, 'ok');
+    const url = 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body + `\n(Allega il file scaricato: ${filename})`);
+    if (win && !win.closed) win.location.href = url; else window.open(url, '_blank');
+    setStatus(`✅ PDF scaricato. Si apre Gmail: allega "${filename}"`, 'ok');
   }
 
   async function runGenerate(mode){
@@ -2185,12 +2160,8 @@
     const filename = checkReady();
     if (!filename) return;
 
-    let recipients = null;
-    if (mode === 'email') {
-      const p = saveEmail();
-      if (!p.valid) { setStatus('⚠️ Inserisci un indirizzo email valido', 'error'); emailTo.focus(); return; }
-      recipients = p.list;
-    }
+    let win = null;
+    if (mode === 'email' && !canShareFiles()) win = window.open('', '_blank');
 
     isGenerating = true;
     refreshGenerateState();
@@ -2199,7 +2170,7 @@
 
     try {
       const blob = await buildPdfBlob();
-      if (mode === 'email') await emailPdf(blob, filename, recipients);
+      if (mode === 'email') await emailPdf(blob, filename, win);
       else await savePdf(blob, filename);
     } catch(err) {
       setStatus(`❌ Errore: ${err.message}`, 'error');
