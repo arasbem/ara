@@ -543,6 +543,7 @@
         <canvas id="cropCanvas"></canvas>
       </div>
       <div class="crop-hint">Trascina i 4 angoli sui bordi del foglio: verrà raddrizzato automaticamente. Trascina dentro il riquadro per spostarlo.</div>
+      <div class="crop-hint" id="cropMsg" style="font-weight:600; min-height:14px;"></div>
       <div class="crop-actions">
         <button type="button" class="btn danger" id="btnCropDiscard">🗑️ Scarta</button>
         <button type="button" class="btn" id="btnCropSkip">Usa intera</button>
@@ -642,6 +643,7 @@
   const cropCanvas = $('cropCanvas');
   const cropCounter = $('cropCounter');
   const editTitle = $('editTitle');
+  const cropMsg = $('cropMsg');
   const stageCrop = $('stageCrop');
   const stageEnhance = $('stageEnhance');
   const enhCanvas = $('enhCanvas');
@@ -835,112 +837,250 @@
   }
 
   // ============================================================
-  // RILEVAMENTO BORDI (OpenCV.js, caricato solo quando serve)
+  // RILEVAMENTO BORDI (JavaScript puro, nessuna libreria esterna)
   // ============================================================
-  let cvReady = false;
-  let cvPromise = null;
+  function blur3(g, w, h){
+    const o = new Uint8Array(g.length);
+    for (let y = 0; y < h; y++) {
+      const y0 = y > 0 ? y - 1 : 0, y1 = y < h - 1 ? y + 1 : h - 1;
+      for (let x = 0; x < w; x++) {
+        const x0 = x > 0 ? x - 1 : 0, x1 = x < w - 1 ? x + 1 : w - 1;
+        o[y*w + x] = (g[y0*w+x0] + g[y0*w+x] + g[y0*w+x1] +
+                      g[y*w+x0]  + g[y*w+x]  + g[y*w+x1] +
+                      g[y1*w+x0] + g[y1*w+x] + g[y1*w+x1]) / 9;
+      }
+    }
+    return o;
+  }
 
-  function ensureOpenCV(){
-    if (cvReady) return Promise.resolve(true);
-    if (cvPromise) return cvPromise;
-    cvPromise = new Promise(resolve => {
-      const s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://docs.opencv.org/4.x/opencv.js';
-      s.onerror = () => { cvPromise = null; resolve(false); };
-      s.onload = () => {
-        let tries = 0, thenned = false;
-        const t = setInterval(() => {
-          try {
-            if (window.cv && window.cv.Mat) {
-              clearInterval(t); cvReady = true; resolve(true); return;
-            }
-            if (window.cv && typeof window.cv.then === 'function' && !thenned) {
-              thenned = true;
-              window.cv.then(m => { window.cv = m; });
-            }
-          } catch(e) {}
-          if (++tries > 300) { clearInterval(t); cvPromise = null; resolve(false); }
-        }, 200);
-      };
-      document.head.appendChild(s);
+  function histPercentile(hist, total, p){
+    const target = total * p;
+    let acc = 0;
+    for (let i = 0; i < hist.length; i++) { acc += hist[i]; if (acc >= target) return i; }
+    return hist.length - 1;
+  }
+
+  function otsuThreshold(hist, total){
+    let sum = 0;
+    for (let i = 0; i < 256; i++) sum += i * hist[i];
+    let wB = 0, sumB = 0, best = -1, bestT = 127;
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t];
+      if (!wB) continue;
+      const wF = total - wB;
+      if (!wF) break;
+      sumB += t * hist[t];
+      const mB = sumB / wB, mF = (sum - sumB) / wF;
+      const v = wB * wF * (mB - mF) * (mB - mF);
+      if (v > best) { best = v; bestT = t; }
+    }
+    return bestT;
+  }
+
+  function dilateMask(m, w, h){
+    const o = new Uint8Array(m.length);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = y*w + x;
+        if (m[i] || (x > 0 && m[i-1]) || (x < w-1 && m[i+1]) || (y > 0 && m[i-w]) || (y < h-1 && m[i+w])) o[i] = 1;
+      }
+    }
+    return o;
+  }
+  function erodeMask(m, w, h){
+    const o = new Uint8Array(m.length);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = y*w + x;
+        if (m[i] && (x === 0 || m[i-1]) && (x === w-1 || m[i+1]) && (y === 0 || m[i-w]) && (y === h-1 || m[i+w])) o[i] = 1;
+      }
+    }
+    return o;
+  }
+
+  // riempie i "buchi" (testo scuro dentro il foglio): tutto ciò che non è raggiungibile dal bordo diventa pieno
+  function fillHoles(m, w, h){
+    const n = w * h;
+    const bg = new Uint8Array(n);
+    const st = new Int32Array(n);
+    let sp = 0;
+    const push = i => { if (!m[i] && !bg[i]) { bg[i] = 1; st[sp++] = i; } };
+    for (let x = 0; x < w; x++) { push(x); push((h-1)*w + x); }
+    for (let y = 0; y < h; y++) { push(y*w); push(y*w + w - 1); }
+    while (sp > 0) {
+      const i = st[--sp];
+      const x = i % w;
+      if (x > 0) push(i - 1);
+      if (x < w - 1) push(i + 1);
+      if (i >= w) push(i - w);
+      if (i < n - w) push(i + w);
+    }
+    const o = new Uint8Array(n);
+    for (let i = 0; i < n; i++) o[i] = bg[i] ? 0 : 1;
+    return o;
+  }
+
+  // componente connessa più grande + i 4 estremi diagonali (angoli del foglio)
+  function largestComponent(m, w, h){
+    const n = w * h;
+    const seen = new Uint8Array(n);
+    const st = new Int32Array(n);
+    let best = null;
+    for (let s = 0; s < n; s++) {
+      if (!m[s] || seen[s]) continue;
+      let sp = 0;
+      st[sp++] = s; seen[s] = 1;
+      let area = 0, minS = Infinity, maxS = -Infinity, minD = Infinity, maxD = -Infinity;
+      let pTL = null, pBR = null, pTR = null, pBL = null;
+      while (sp > 0) {
+        const i = st[--sp];
+        const x = i % w, y = (i - x) / w;
+        area++;
+        const sm = x + y, df = x - y;
+        if (sm < minS) { minS = sm; pTL = { x, y }; }
+        if (sm > maxS) { maxS = sm; pBR = { x, y }; }
+        if (df > maxD) { maxD = df; pTR = { x, y }; }
+        if (df < minD) { minD = df; pBL = { x, y }; }
+        if (x > 0 && m[i-1] && !seen[i-1]) { seen[i-1] = 1; st[sp++] = i - 1; }
+        if (x < w-1 && m[i+1] && !seen[i+1]) { seen[i+1] = 1; st[sp++] = i + 1; }
+        if (y > 0 && m[i-w] && !seen[i-w]) { seen[i-w] = 1; st[sp++] = i - w; }
+        if (y < h-1 && m[i+w] && !seen[i+w]) { seen[i+w] = 1; st[sp++] = i + w; }
+      }
+      if (!best || area > best.area) best = { area, quad: [pTL, pTR, pBR, pBL] };
+    }
+    return best;
+  }
+
+  function polyArea(q){
+    let a = 0;
+    for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; a += q[i].x * q[j].y - q[j].x * q[i].y; }
+    return Math.abs(a) / 2;
+  }
+  function isConvexQuad(q){
+    let sign = 0;
+    for (let i = 0; i < 4; i++) {
+      const a = q[i], b = q[(i+1)%4], c = q[(i+2)%4];
+      const cr = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+      if (Math.abs(cr) < 1e-9) return false;
+      const s = cr > 0 ? 1 : -1;
+      if (sign === 0) sign = s; else if (s !== sign) return false;
+    }
+    return true;
+  }
+
+  // frazione del perimetro del quadrilatero che cade su bordi netti dell'immagine
+  function edgeSupport(q, mag, w, h){
+    const N = 30, R = 3, TH = 45;
+    let hit = 0, tot = 0;
+    for (let i = 0; i < 4; i++) {
+      const a = q[i], b = q[(i+1)%4];
+      for (let k = 0; k < N; k++) {
+        const t = (k + 0.5) / N;
+        const px = Math.round(a.x + (b.x - a.x) * t);
+        const py = Math.round(a.y + (b.y - a.y) * t);
+        let mx = 0;
+        for (let dy = -R; dy <= R; dy++) {
+          const yy = py + dy;
+          if (yy < 0 || yy >= h) continue;
+          for (let dx = -R; dx <= R; dx++) {
+            const xx = px + dx;
+            if (xx < 0 || xx >= w) continue;
+            const v = mag[yy*w + xx];
+            if (v > mx) mx = v;
+          }
+        }
+        tot++;
+        if (mx > TH) hit++;
+      }
+    }
+    return hit / tot;
+  }
+
+  // valuta una maschera: ritorna {score, quad} se la forma più grande somiglia a un foglio
+  function scoreMask(mask, w, h, erodeAfter, mag){
+    let filled = fillHoles(mask, w, h);
+    for (let k = 0; k < (erodeAfter || 0); k++) filled = erodeMask(filled, w, h);
+    const comp = largestComponent(filled, w, h);
+    if (!comp || comp.quad.some(p => !p)) return null;
+    const qa = polyArea(comp.quad);
+    const frac = qa / (w * h);
+    if (frac < 0.10 || frac > 0.97) return null;
+    if (!isConvexQuad(comp.quad)) return null;
+    const ratio = Math.min(1, comp.area / qa);
+    if (ratio < 0.85) return null;
+    const minSide = 0.15 * Math.min(w, h);
+    for (let i = 0; i < 4; i++) {
+      const a = comp.quad[i], b = comp.quad[(i+1)%4];
+      if (Math.hypot(a.x - b.x, a.y - b.y) < minSide) return null;
+    }
+    const sup = edgeSupport(comp.quad, mag, w, h);
+    if (sup < 0.4) return null;
+    return { score: Math.pow(ratio, 3) * Math.sqrt(frac) * sup * sup, quad: comp.quad };
+  }
+
+  // g: immagine in grigi (Uint8Array w*h). Ritorna 4 punti [tl,tr,br,bl] in coordinate di g, o null
+  function detectQuadFromGray(g0, w, h){
+    const n = w * h;
+    const g = blur3(g0, w, h);
+    let best = null;
+    const consider = r => { if (r && (!best || r.score > best.score)) best = r; };
+
+    // gradiente (Sobel): serve sia per validare i candidati sia per il rilevamento dai contorni
+    const mag = new Uint16Array(n);
+    const mh = new Uint32Array(256);
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = y*w + x;
+        const gx = -g[i-w-1] - 2*g[i-1] - g[i+w-1] + g[i-w+1] + 2*g[i+1] + g[i+w+1];
+        const gy = -g[i-w-1] - 2*g[i-w] - g[i-w+1] + g[i+w-1] + 2*g[i+w] + g[i+w+1];
+        const m = Math.min(1020, Math.abs(gx) + Math.abs(gy));
+        mag[i] = m;
+        mh[m >> 2]++;
+      }
+    }
+    // 1) foglio più chiaro dello sfondo: varie soglie di luminosità
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < n; i++) hist[g[i]]++;
+    const ths = new Set([otsuThreshold(hist, n)]);
+    [0.30, 0.42, 0.54, 0.66, 0.78].forEach(p => ths.add(histPercentile(hist, n, p)));
+    const lo = histPercentile(hist, n, 0.03), hi = histPercentile(hist, n, 0.97);
+    if (hi - lo > 25) for (let k = 2; k <= 9; k++) ths.add(Math.round(lo + (hi - lo) * k / 11));
+    ths.forEach(t => {
+      const mask = new Uint8Array(n);
+      for (let i = 0; i < n; i++) mask[i] = g[i] > t ? 1 : 0;
+      consider(scoreMask(dilateMask(erodeMask(mask, w, h), w, h), w, h, 0, mag));
     });
-    return cvPromise;
+
+    // 2) contorno del foglio tramite i bordi (funziona anche con sfondi chiari)
+    [0.80, 0.87, 0.93].forEach(p => {
+      const t = Math.max(60, histPercentile(mh, n, p) << 2);
+      const mask = new Uint8Array(n);
+      for (let i = 0; i < n; i++) mask[i] = mag[i] > t ? 1 : 0;
+      consider(scoreMask(dilateMask(dilateMask(mask, w, h), w, h), w, h, 2, mag));
+    });
+
+    return best ? best.quad : null;
   }
 
   const detCanvas = document.createElement('canvas');
   const detCtx = detCanvas.getContext('2d', { willReadFrequently: true });
 
-  // cerca il quadrilatero più grande (il foglio). Ritorna 4 punti ordinati in coordinate sorgente, o null
+  // cerca il foglio in un'immagine/video. Ritorna 4 punti [tl,tr,br,bl] in coordinate sorgente, o null
   function detectQuad(srcEl, sw, sh){
-    if (!cvReady) return null;
-    const sc = Math.min(1, 420 / Math.max(sw, sh));
+    const sc = Math.min(1, 240 / Math.max(sw, sh));
     const w = Math.max(16, Math.round(sw * sc));
     const h = Math.max(16, Math.round(sh * sc));
     detCanvas.width = w; detCanvas.height = h;
     detCtx.drawImage(srcEl, 0, 0, w, h);
-
-    const minArea = w * h * 0.12;
-    const maxArea = w * h * 0.98;
-    let src = null, gray = null, blur = null, edges = null, thr = null, kernel = null;
-    let result = null;
-
-    function findQuad(mat){
-      const contours = new cv.MatVector();
-      const hier = new cv.Mat();
-      cv.findContours(mat, contours, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-      let bestArea = 0, bestPts = null;
-      for (let i = 0; i < contours.size(); i++) {
-        const cnt = contours.get(i);
-        const area = cv.contourArea(cnt);
-        if (area > minArea && area < maxArea && area > bestArea) {
-          const peri = cv.arcLength(cnt, true);
-          const approx = new cv.Mat();
-          cv.approxPolyDP(cnt, approx, 0.03 * peri, true);
-          if (approx.rows === 4 && cv.isContourConvex(approx)) {
-            const d = approx.data32S;
-            bestArea = area;
-            bestPts = [
-              { x: d[0], y: d[1] }, { x: d[2], y: d[3] },
-              { x: d[4], y: d[5] }, { x: d[6], y: d[7] }
-            ];
-          }
-          approx.delete();
-        }
-        cnt.delete();
-      }
-      contours.delete(); hier.delete();
-      return bestPts;
+    const d = detCtx.getImageData(0, 0, w, h).data;
+    const g = new Uint8Array(w * h);
+    for (let i = 0, p = 0; i < g.length; i++, p += 4) {
+      g[i] = (0.299 * d[p] + 0.587 * d[p+1] + 0.114 * d[p+2]) | 0;
     }
-
-    try {
-      src = cv.imread(detCanvas);
-      gray = new cv.Mat();
-      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-      blur = new cv.Mat();
-      cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
-      kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-
-      // 1° tentativo: bordi (Canny)
-      edges = new cv.Mat();
-      cv.Canny(blur, edges, 40, 120);
-      cv.dilate(edges, edges, kernel, new cv.Point(-1, -1), 2);
-      let pts = findQuad(edges);
-
-      // 2° tentativo: soglia di Otsu (foglio chiaro su fondo scuro)
-      if (!pts) {
-        thr = new cv.Mat();
-        cv.threshold(blur, thr, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
-        cv.morphologyEx(thr, thr, cv.MORPH_CLOSE, kernel, new cv.Point(-1, -1), 2);
-        pts = findQuad(thr);
-      }
-      if (pts) result = orderPts(pts).map(p => ({ x: p.x / sc, y: p.y / sc }));
-    } catch(e) {
-      result = null;
-    } finally {
-      [src, gray, blur, edges, thr, kernel].forEach(m => { try { if (m) m.delete(); } catch(e){} });
-    }
-    return result;
+    const q = detectQuadFromGray(g, w, h);
+    if (!q) return null;
+    const fx = sw / w, fy = sh / h;
+    return q.map(p => ({ x: (p.x + 0.5) * fx, y: (p.y + 0.5) * fy }));
   }
 
   // ============================================================
@@ -1236,8 +1376,15 @@
   }
 
   function runDetect(img){
-    const q = detectQuad(img, img.naturalWidth, img.naturalHeight);
-    if (q) { setQuadFromImage(q); drawQuad(); return true; }
+    let q = null;
+    try { q = detectQuad(img, img.naturalWidth, img.naturalHeight); } catch(e) { q = null; }
+    if (q) {
+      setQuadFromImage(q);
+      drawQuad();
+      cropMsg.textContent = '✅ Bordi rilevati: controlla gli angoli e conferma';
+      return true;
+    }
+    cropMsg.textContent = '⚠️ Bordi non trovati: trascina gli angoli a mano';
     return false;
   }
 
@@ -1251,6 +1398,7 @@
       edTouched = false;
       edFilter = lastFilter;
       cropCounter.textContent = label || '';
+      cropMsg.textContent = '';
       setupCropCanvas(img);
       showStage('crop');
 
@@ -1260,9 +1408,7 @@
       drawQuad();
 
       if (!initialQuad) {
-        const tryDetect = () => { if (edImg === img && !edTouched) runDetect(img); };
-        if (cvReady) tryDetect();
-        else ensureOpenCV().then(ok => { if (ok) tryDetect(); });
+        setTimeout(() => { if (edImg === img && !edTouched) runDetect(img); }, 30);
       }
     });
   }
@@ -1341,16 +1487,9 @@
 
   btnCropDetect.addEventListener('click', function(){
     if (!edImg) return;
+    cropMsg.textContent = '⏳ Ricerca bordi…';
     const img = edImg;
-    const old = btnCropDetect.textContent;
-    btnCropDetect.textContent = '⏳ Ricerca…';
-    ensureOpenCV().then(ok => {
-      btnCropDetect.textContent = old;
-      if (edImg !== img) return;
-      if (!ok) { setStatus('⚠️ Rilevamento automatico non disponibile (serve connessione)', 'error'); return; }
-      if (runDetect(img)) edTouched = false;
-      else setStatus('⚠️ Bordi non trovati: regola gli angoli a mano', 'error');
-    });
+    setTimeout(() => { if (edImg === img && runDetect(img)) edTouched = false; }, 20);
   });
 
   btnEnhBack.addEventListener('click', function(){
@@ -1428,7 +1567,7 @@
   function scanLoop(){
     if (!scan.active) return;
     const vw = scanVideo.videoWidth, vh = scanVideo.videoHeight;
-    if (!scan.paused && cvReady && vw) {
+    if (!scan.paused && vw) {
       try {
         const q = detectQuad(scanVideo, vw, vh);
         if (q) {
@@ -1479,17 +1618,7 @@
       scanTorch.style.display = caps && caps.torch ? '' : 'none';
     } catch(e) { scanTorch.style.display = 'none'; }
 
-    if (!cvReady) {
-      scanStatus.textContent = '⏳ Caricamento rilevamento bordi (solo la prima volta)…';
-      ensureOpenCV().then(ok => {
-        if (!scan.active) return;
-        scanStatus.textContent = ok
-          ? '📄 Inquadra il foglio intero'
-          : 'Rilevamento automatico non disponibile: potrai regolare i bordi a mano';
-      });
-    } else {
-      scanStatus.textContent = '📄 Inquadra il foglio intero';
-    }
+    scanStatus.textContent = '📄 Inquadra il foglio intero';
     scanLoop();
   }
 
@@ -1518,7 +1647,7 @@
     setTimeout(() => scanFlash.classList.remove('on'), 60);
 
     let q = null;
-    try { if (cvReady) q = detectQuad(c, vw, vh); } catch(e) {}
+    try { q = detectQuad(c, vw, vh); } catch(e) {}
     if (!q && scan.quad) q = scan.quad.map(p => ({ ...p }));
     const url = c.toDataURL('image/jpeg', 0.92);
 
