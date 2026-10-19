@@ -309,6 +309,10 @@
     padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; color:inherit;
   }
   .chip.active{background:#00549e; border-color:#00549e; color:#fff;}
+  .bw-box{display:none; align-items:center; gap:10px; width:100%; margin-top:12px; font-size:12px; font-weight:600;}
+  .bw-box input[type=range]{flex:1; accent-color:#00549e;}
+  .bw-box b{min-width:26px; text-align:right; font-family:monospace;}
+  body.dark-mode .bw-box input[type=range]{accent-color:#58a6ff;}
 
   /* ---------- Scanner live ---------- */
   .scan-overlay{
@@ -563,6 +567,11 @@
         <button type="button" class="chip" data-f="scan">Scansione</button>
         <button type="button" class="chip" data-f="bw">B/N documento</button>
       </div>
+      <div class="bw-box" id="bwBox">
+        <span>Intensità</span><span>chiaro</span>
+        <input type="range" id="bwRange" min="0" max="100" value="64">
+        <span>scuro</span><b id="bwVal">64</b>
+      </div>
       <div class="chips">
         <button type="button" class="chip" id="btnRotL">⟲ Ruota</button>
         <button type="button" class="chip" id="btnRotR">⟳ Ruota</button>
@@ -604,6 +613,8 @@
   let lastAutoFilename = null;
   let isCustomFilename = false;
   let lastFilter = lsGet('verbaleFilter') || 'color';
+  let lastBW = parseInt(lsGet('verbaleBW'), 10);
+  if (!(lastBW >= 0 && lastBW <= 100)) lastBW = 64;
   const FILTER_LABELS = { original:'ORIG', color:'COLORE', scan:'SCAN', bw:'B/N' };
 
   // ============================================================
@@ -656,6 +667,9 @@
   const btnEnhCancel = $('btnEnhCancel');
   const btnEnhSave = $('btnEnhSave');
   const chips = $('chips');
+  const bwBox = $('bwBox');
+  const bwRange = $('bwRange');
+  const bwVal = $('bwVal');
 
   const scanOverlay = $('scanOverlay');
   const scanStatus = $('scanStatus');
@@ -920,7 +934,52 @@
     return o;
   }
 
-  // componente connessa più grande + i 4 estremi diagonali (angoli del foglio)
+  // inviluppo convesso (monotone chain)
+  function convexHull(pts){
+    pts = pts.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    const cr = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lo = [], up = [];
+    for (const p of pts) {
+      while (lo.length > 1 && cr(lo[lo.length-2], lo[lo.length-1], p) <= 0) lo.pop();
+      lo.push(p);
+    }
+    for (let i = pts.length - 1; i >= 0; i--) {
+      const p = pts[i];
+      while (up.length > 1 && cr(up[up.length-2], up[up.length-1], p) <= 0) up.pop();
+      up.push(p);
+    }
+    lo.pop(); up.pop();
+    return lo.concat(up);
+  }
+
+  // riduce il poligono convesso a 4 lati: toglie ripetutamente il lato la cui rimozione
+  // (prolungando i due lati vicini fino a incontrarsi) aggiunge meno area
+  function hullToQuad(hull){
+    const p = hull.slice();
+    if (p.length < 4) return null;
+    while (p.length > 4) {
+      const n = p.length;
+      let bi = -1, bc = Infinity, bx = null;
+      for (let i = 0; i < n; i++) {
+        const a = p[(i + n - 1) % n], b = p[i], c = p[(i + 1) % n], d = p[(i + 2) % n];
+        const r1x = b.x - a.x, r1y = b.y - a.y, r2x = c.x - d.x, r2y = c.y - d.y;
+        const den = r1x * r2y - r1y * r2x;
+        if (Math.abs(den) < 1e-9) continue;
+        const t = ((d.x - a.x) * r2y - (d.y - a.y) * r2x) / den;
+        if (t < 1) continue;
+        const X = { x: a.x + r1x * t, y: a.y + r1y * t };
+        const cost = Math.abs((b.x - X.x) * (c.y - X.y) - (b.y - X.y) * (c.x - X.x)) / 2;
+        if (cost < bc) { bc = cost; bi = i; bx = X; }
+      }
+      if (bi < 0) return null;
+      const j = (bi + 1) % n;
+      p[bi] = bx;
+      p.splice(j, 1);
+    }
+    return p;
+  }
+
+  // componente connessa più grande + quadrilatero che la racchiude
   function largestComponent(m, w, h){
     const n = w * h;
     const seen = new Uint8Array(n);
@@ -928,27 +987,26 @@
     let best = null;
     for (let s = 0; s < n; s++) {
       if (!m[s] || seen[s]) continue;
-      let sp = 0;
+      let sp = 0, area = 0;
+      const bnd = [];
       st[sp++] = s; seen[s] = 1;
-      let area = 0, minS = Infinity, maxS = -Infinity, minD = Infinity, maxD = -Infinity;
-      let pTL = null, pBR = null, pTR = null, pBL = null;
       while (sp > 0) {
         const i = st[--sp];
         const x = i % w, y = (i - x) / w;
         area++;
-        const sm = x + y, df = x - y;
-        if (sm < minS) { minS = sm; pTL = { x, y }; }
-        if (sm > maxS) { maxS = sm; pBR = { x, y }; }
-        if (df > maxD) { maxD = df; pTR = { x, y }; }
-        if (df < minD) { minD = df; pBL = { x, y }; }
+        if (x === 0 || y === 0 || x === w-1 || y === h-1 || !m[i-1] || !m[i+1] || !m[i-w] || !m[i+w]) bnd.push({ x, y });
         if (x > 0 && m[i-1] && !seen[i-1]) { seen[i-1] = 1; st[sp++] = i - 1; }
         if (x < w-1 && m[i+1] && !seen[i+1]) { seen[i+1] = 1; st[sp++] = i + 1; }
         if (y > 0 && m[i-w] && !seen[i-w]) { seen[i-w] = 1; st[sp++] = i - w; }
         if (y < h-1 && m[i+w] && !seen[i+w]) { seen[i+w] = 1; st[sp++] = i + w; }
       }
-      if (!best || area > best.area) best = { area, quad: [pTL, pTR, pBR, pBL] };
+      if (!best || area > best.area) best = { area, bnd };
     }
-    return best;
+    if (!best || best.bnd.length < 4) return null;
+    let q = hullToQuad(convexHull(best.bnd));
+    if (!q) return null;
+    q = orderPts(q.map(p => ({ x: clamp(p.x, 0, w - 1), y: clamp(p.y, 0, h - 1) })));
+    return { area: best.area, quad: q };
   }
 
   function polyArea(q){
@@ -1001,13 +1059,13 @@
     let filled = fillHoles(mask, w, h);
     for (let k = 0; k < (erodeAfter || 0); k++) filled = erodeMask(filled, w, h);
     const comp = largestComponent(filled, w, h);
-    if (!comp || comp.quad.some(p => !p)) return null;
+    if (!comp || !comp.quad || comp.quad.some(p => !p)) return null;
     const qa = polyArea(comp.quad);
     const frac = qa / (w * h);
     if (frac < 0.10 || frac > 0.97) return null;
     if (!isConvexQuad(comp.quad)) return null;
     const ratio = Math.min(1, comp.area / qa);
-    if (ratio < 0.85) return null;
+    if (ratio < 0.82) return null;
     const minSide = 0.15 * Math.min(w, h);
     for (let i = 0; i < 4; i++) {
       const a = comp.quad[i], b = comp.quad[(i+1)%4];
@@ -1059,6 +1117,20 @@
       consider(scoreMask(dilateMask(dilateMask(mask, w, h), w, h), w, h, 2, mag));
     });
 
+    // 3) differenza dal colore di sfondo (stimato sui bordi della foto)
+    {
+      const bd = [];
+      for (let x = 0; x < w; x++) bd.push(g[x], g[(h-1)*w + x]);
+      for (let y = 0; y < h; y++) bd.push(g[y*w], g[y*w + w - 1]);
+      bd.sort((a, b) => a - b);
+      const bg = bd[bd.length >> 1];
+      [16, 26, 38, 52].forEach(t => {
+        const mask = new Uint8Array(n);
+        for (let i = 0; i < n; i++) mask[i] = Math.abs(g[i] - bg) > t ? 1 : 0;
+        consider(scoreMask(dilateMask(erodeMask(mask, w, h), w, h), w, h, 0, mag));
+      });
+    }
+
     return best ? best.quad : null;
   }
 
@@ -1066,8 +1138,8 @@
   const detCtx = detCanvas.getContext('2d', { willReadFrequently: true });
 
   // cerca il foglio in un'immagine/video. Ritorna 4 punti [tl,tr,br,bl] in coordinate sorgente, o null
-  function detectQuad(srcEl, sw, sh){
-    const sc = Math.min(1, 240 / Math.max(sw, sh));
+  function detectQuad(srcEl, sw, sh, maxDim){
+    const sc = Math.min(1, (maxDim || 360) / Math.max(sw, sh));
     const w = Math.max(16, Math.round(sw * sc));
     const h = Math.max(16, Math.round(sh * sc));
     detCanvas.width = w; detCanvas.height = h;
@@ -1173,30 +1245,33 @@
     }
   }
 
-  // bianco e nero "da fotocopia" (soglia adattiva locale)
-  function filterBW(id, w, h){
+  // bianco e nero "da fotocopia" (soglia adattiva locale), intensità k = 0..100
+  function filterBW(id, w, h, k){
     const d = id.data;
     const g = toGray(d, w, h);
     const I = integralOf(g, w, h);
     const r = Math.max(10, Math.round(Math.min(w, h) / 24));
+    const s = (k == null ? 64 : k);
+    const ratio = 0.74 + s * 0.0022;   // 0.74 (leggero) → 0.96 (molto scuro)
+    const floor = 30 + s * 0.4;
     for (let y = 0, p = 0; y < h; y++) {
       for (let x = 0; x < w; x++, p += 4) {
         const v = g[y*w + x];
         const m = boxMean(I, w, h, x, y, r);
-        const out = (v < m * 0.88 || v < 50) ? 0 : 255;
+        const out = (v < m * ratio || v < floor) ? 0 : 255;
         d[p] = d[p+1] = d[p+2] = out;
       }
     }
   }
 
-  function applyFilter(canvas, name){
+  function applyFilter(canvas, name, bw){
     if (name === 'original') return;
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
     const id = ctx.getImageData(0, 0, w, h);
     if (name === 'color') filterColor(id, w, h);
     else if (name === 'scan') filterScan(id, w, h);
-    else if (name === 'bw') filterBW(id, w, h);
+    else if (name === 'bw') filterBW(id, w, h, bw);
     ctx.putImageData(id, 0, 0);
   }
 
@@ -1211,6 +1286,7 @@
   let edResolve = null;
   let edBase = null;         // canvas raddrizzato (prima del filtro)
   let edFilter = 'color';
+  let edBW = lastBW;
   let edTouched = false;
   let edToken = 0;
   let dragMode = null, dragStart = null, quadStart = null;
@@ -1388,7 +1464,7 @@
     return false;
   }
 
-  // apre l'editor su una nuova immagine. Ritorna {base, dataUrl, filter} oppure null (scartata)
+  // apre l'editor su una nuova immagine. Ritorna {base, dataUrl, filter, bw} oppure null (scartata)
   async function editNew(dataUrl, label, initialQuad){
     const img = await loadImage(dataUrl);
     return new Promise(resolve => {
@@ -1397,6 +1473,7 @@
       edMode = 'new';
       edTouched = false;
       edFilter = lastFilter;
+      edBW = lastBW;
       cropCounter.textContent = label || '';
       cropMsg.textContent = '';
       setupCropCanvas(img);
@@ -1414,13 +1491,14 @@
   }
 
   // riapre solo la parte "leggibilità" su una foto già salvata
-  async function editRefine(baseUrl, filter){
+  async function editRefine(baseUrl, filter, bw){
     const img = await loadImage(baseUrl);
     return new Promise(resolve => {
       edResolve = resolve;
       edImg = null;
       edMode = 'refine';
       edFilter = filter || lastFilter;
+      edBW = (bw != null ? bw : lastBW);
       const c = document.createElement('canvas');
       c.width = img.naturalWidth; c.height = img.naturalHeight;
       c.getContext('2d').drawImage(img, 0, 0);
@@ -1440,9 +1518,12 @@
       enhCanvas.width = edBase.width;
       enhCanvas.height = edBase.height;
       enhCanvas.getContext('2d').drawImage(edBase, 0, 0);
-      try { applyFilter(enhCanvas, edFilter); } catch(e) {}
+      try { applyFilter(enhCanvas, edFilter, edBW); } catch(e) {}
       enhBusy.style.display = 'none';
       chips.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.f === edFilter));
+      bwBox.style.display = edFilter === 'bw' ? 'flex' : 'none';
+      bwRange.value = edBW;
+      bwVal.textContent = edBW;
     }, 30);
   }
 
@@ -1463,6 +1544,13 @@
     if (!b || !b.dataset.f) return;
     edFilter = b.dataset.f;
     renderEnhance();
+  });
+  let bwTimer = null;
+  bwRange.addEventListener('input', function(){
+    edBW = parseInt(this.value, 10);
+    bwVal.textContent = edBW;
+    clearTimeout(bwTimer);
+    bwTimer = setTimeout(renderEnhance, 60);
   });
   $('btnRotL').addEventListener('click', () => rotateBase(-1));
   $('btnRotR').addEventListener('click', () => rotateBase(1));
@@ -1509,8 +1597,10 @@
       ? baseUrl
       : enhCanvas.toDataURL('image/jpeg', edFilter === 'bw' ? 0.85 : 0.9);
     lastFilter = edFilter;
+    lastBW = edBW;
     lsSet('verbaleFilter', edFilter);
-    finishEditor({ base: baseUrl, dataUrl: finalUrl, filter: edFilter });
+    lsSet('verbaleBW', String(edBW));
+    finishEditor({ base: baseUrl, dataUrl: finalUrl, filter: edFilter, bw: edBW });
   });
 
   // ============================================================
@@ -1569,7 +1659,7 @@
     const vw = scanVideo.videoWidth, vh = scanVideo.videoHeight;
     if (!scan.paused && vw) {
       try {
-        const q = detectQuad(scanVideo, vw, vh);
+        const q = detectQuad(scanVideo, vw, vh, 220);
         if (q) {
           scan.quad = smoothQuad(scan.quad, q, Math.hypot(vw, vh));
           scan.miss = 0;
@@ -1724,7 +1814,8 @@
       id: Date.now() + '_' + Math.random().toString(36).slice(2, 8),
       base: res.base,
       dataUrl: res.dataUrl,
-      filter: res.filter
+      filter: res.filter,
+      bw: res.bw
     });
     renderThumbs();
     refreshGenerateState();
@@ -1968,11 +2059,12 @@
         const id = this.getAttribute('data-id');
         const item = state.images.find(im => String(im.id) === id);
         if (!item) return;
-        const res = await editRefine(item.base, item.filter);
+        const res = await editRefine(item.base, item.filter, item.bw);
         if (res) {
           item.base = res.base;
           item.dataUrl = res.dataUrl;
           item.filter = res.filter;
+          item.bw = res.bw;
           renderThumbs();
           setStatus('✅ Foto aggiornata', 'ok');
         }
