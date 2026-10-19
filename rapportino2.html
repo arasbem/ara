@@ -498,10 +498,9 @@
 
   <!-- GENERA / INVIA -->
   <div class="panel">
-    <div class="panel-title">Genera e invia</div>
+    <div class="panel-title">Genera PDF</div>
     <div class="gen-buttons">
       <button class="btn danger" id="btnGenerate" type="button" disabled>📄 Genera PDF</button>
-      <button class="btn primary" id="btnEmail" type="button" disabled>✉️ Genera e invia via email</button>
     </div>
     <div class="status" id="status">✅ Pronto per iniziare</div>
   </div>
@@ -629,7 +628,6 @@
   const tagStatus = $('tagStatus');
   const thumbWrap = $('thumbWrap');
   const btnGenerate = $('btnGenerate');
-  const btnEmail = $('btnEmail');
   const statusEl = $('status');
   const debugInfo = $('debugInfo');
   const btnCamera = $('btnCamera');
@@ -1020,7 +1018,7 @@
 
   // frazione del perimetro del quadrilatero che cade su bordi netti dell'immagine
   function edgeSupport(q, mag, w, h){
-    const N = 30, R = 3, TH = 45;
+    const N = 30, R = 3, TH = 36;
     let hit = 0, tot = 0;
     for (let i = 0; i < 4; i++) {
       const a = q[i], b = q[(i+1)%4];
@@ -1065,40 +1063,72 @@
     }
     const sup = edgeSupport(comp.quad, mag, w, h);
     if (sup < 0.4) return null;
-    return { score: Math.pow(ratio, 3) * Math.sqrt(frac) * sup * sup, quad: comp.quad };
+    // bonus lieve: proporzioni simili a un A4 e foglio vicino al centro
+    const q = comp.quad;
+    const qw = (dist(q[0], q[1]) + dist(q[3], q[2])) / 2, qh = (dist(q[0], q[3]) + dist(q[1], q[2])) / 2;
+    const ar = Math.max(qw, qh) / Math.max(1, Math.min(qw, qh));
+    const bonusAr = 1 - Math.min(0.25, Math.abs(Math.log(ar / 1.414)) * 0.3);
+    const cx = (q[0].x + q[1].x + q[2].x + q[3].x) / 4, cy = (q[0].y + q[1].y + q[2].y + q[3].y) / 4;
+    const bonusC = 1 - Math.min(0.2, Math.hypot(cx - w / 2, cy - h / 2) / Math.hypot(w, h) * 0.5);
+    return { score: Math.pow(ratio, 3) * Math.sqrt(frac) * sup * sup * bonusAr * bonusC, quad: q };
   }
 
   // g: immagine in grigi (Uint8Array w*h). Ritorna 4 punti [tl,tr,br,bl] in coordinate di g, o null
-  function detectQuadFromGray(g0, w, h){
-    const n = w * h;
-    const g = blur3(g0, w, h);
-    let best = null;
-    const consider = r => { if (r && (!best || r.score > best.score)) best = r; };
-
-    // gradiente (Sobel): serve sia per validare i candidati sia per il rilevamento dai contorni
-    const mag = new Uint16Array(n);
-    const mh = new Uint32Array(256);
+  function sobelMag(a, w, h, out){
     for (let y = 1; y < h - 1; y++) {
       for (let x = 1; x < w - 1; x++) {
         const i = y*w + x;
-        const gx = -g[i-w-1] - 2*g[i-1] - g[i+w-1] + g[i-w+1] + 2*g[i+1] + g[i+w+1];
-        const gy = -g[i-w-1] - 2*g[i-w] - g[i-w+1] + g[i+w-1] + 2*g[i+w] + g[i+w+1];
+        const gx = -a[i-w-1] - 2*a[i-1] - a[i+w-1] + a[i-w+1] + 2*a[i+1] + a[i+w+1];
+        const gy = -a[i-w-1] - 2*a[i-w] - a[i-w+1] + a[i+w-1] + 2*a[i+w] + a[i+w+1];
         const m = Math.min(1020, Math.abs(gx) + Math.abs(gy));
-        mag[i] = m;
-        mh[m >> 2]++;
+        if (m > out[i]) out[i] = m;
       }
     }
-    // 1) foglio più chiaro dello sfondo: varie soglie di luminosità
-    const hist = new Uint32Array(256);
-    for (let i = 0; i < n; i++) hist[g[i]]++;
-    const ths = new Set([otsuThreshold(hist, n)]);
-    [0.30, 0.42, 0.54, 0.66, 0.78].forEach(p => ths.add(histPercentile(hist, n, p)));
-    const lo = histPercentile(hist, n, 0.03), hi = histPercentile(hist, n, 0.97);
-    if (hi - lo > 25) for (let k = 2; k <= 9; k++) ths.add(Math.round(lo + (hi - lo) * k / 11));
-    ths.forEach(t => {
+  }
+
+  // g0: grigi (Uint8Array w*h), rgba: pixel a colori. Ritorna 4 punti [tl,tr,br,bl] in coordinate di g, o null
+  function detectQuadFromGray(g0, w, h, rgba){
+    const n = w * h;
+    const g = blur3(g0, w, h);
+    const R = new Uint8Array(n), G = new Uint8Array(n), B = new Uint8Array(n);
+    for (let i = 0, p = 0; i < n; i++, p += 4) { R[i] = rgba[p]; G[i] = rgba[p+1]; B[i] = rgba[p+2]; }
+    const r = blur3(R, w, h), gc = blur3(G, w, h), bc = blur3(B, w, h);
+    const mn = new Uint8Array(n);      // canale minimo: alto solo per il bianco vero
+    const gr = new Int16Array(n);      // "verdezza": G meno il maggiore tra R e B
+    for (let i = 0; i < n; i++) { mn[i] = Math.min(r[i], gc[i], bc[i]); gr[i] = gc[i] - Math.max(r[i], bc[i]); }
+
+    let best = null;
+    const consider = x => { if (x && (!best || x.score > best.score)) best = x; };
+    const tryMask = mask => consider(scoreMask(dilateMask(erodeMask(mask, w, h), w, h), w, h, 0, mag));
+
+    // gradiente su tutti e tre i canali colore (un foglio verde su fondo grigio ha bordo netto solo nel colore)
+    const mag = new Uint16Array(n);
+    sobelMag(g, w, h, mag); sobelMag(r, w, h, mag); sobelMag(gc, w, h, mag); sobelMag(bc, w, h, mag);
+    const mh = new Uint32Array(256);
+    for (let i = 0; i < n; i++) mh[mag[i] >> 2]++;
+
+    // 1) foglio più chiaro dello sfondo: soglie sulla luminosità e sul canale minimo (bianco)
+    const lumTry = arr => {
+      const hist = new Uint32Array(256);
+      for (let i = 0; i < n; i++) hist[arr[i]]++;
+      const ths = new Set([otsuThreshold(hist, n)]);
+      [0.30, 0.42, 0.54, 0.66, 0.78].forEach(q => ths.add(histPercentile(hist, n, q)));
+      const lo = histPercentile(hist, n, 0.03), hi = histPercentile(hist, n, 0.97);
+      if (hi - lo > 25) for (let k = 2; k <= 9; k++) ths.add(Math.round(lo + (hi - lo) * k / 11));
+      ths.forEach(t => {
+        const mask = new Uint8Array(n);
+        for (let i = 0; i < n; i++) mask[i] = arr[i] > t ? 1 : 0;
+        tryMask(mask);
+      });
+    };
+    lumTry(g);
+    lumTry(mn);
+
+    // 1b) foglio verde: predominanza del verde sui canali rosso e blu
+    [5, 9, 14, 20, 28, 38].forEach(t => {
       const mask = new Uint8Array(n);
-      for (let i = 0; i < n; i++) mask[i] = g[i] > t ? 1 : 0;
-      consider(scoreMask(dilateMask(erodeMask(mask, w, h), w, h), w, h, 0, mag));
+      for (let i = 0; i < n; i++) mask[i] = gr[i] > t ? 1 : 0;
+      tryMask(mask);
     });
 
     // 2) contorno del foglio tramite i bordi (funziona anche con sfondi chiari)
@@ -1109,17 +1139,20 @@
       consider(scoreMask(dilateMask(dilateMask(mask, w, h), w, h), w, h, 2, mag));
     });
 
-    // 3) differenza dal colore di sfondo (stimato sui bordi della foto)
+    // 3) distanza dal colore di sfondo (mediana dei pixel sul bordo della foto, per ogni canale)
     {
-      const bd = [];
-      for (let x = 0; x < w; x++) bd.push(g[x], g[(h-1)*w + x]);
-      for (let y = 0; y < h; y++) bd.push(g[y*w], g[y*w + w - 1]);
-      bd.sort((a, b) => a - b);
-      const bg = bd[bd.length >> 1];
-      [16, 26, 38, 52].forEach(t => {
+      const med = a => {
+        const v = [];
+        for (let x = 0; x < w; x++) v.push(a[x], a[(h-1)*w + x]);
+        for (let y = 0; y < h; y++) v.push(a[y*w], a[y*w + w - 1]);
+        v.sort((p, q) => p - q);
+        return v[v.length >> 1];
+      };
+      const mr = med(r), mg = med(gc), mb = med(bc);
+      [26, 40, 58, 80].forEach(t => {
         const mask = new Uint8Array(n);
-        for (let i = 0; i < n; i++) mask[i] = Math.abs(g[i] - bg) > t ? 1 : 0;
-        consider(scoreMask(dilateMask(erodeMask(mask, w, h), w, h), w, h, 0, mag));
+        for (let i = 0; i < n; i++) mask[i] = (Math.abs(r[i] - mr) + Math.abs(gc[i] - mg) + Math.abs(bc[i] - mb)) > t ? 1 : 0;
+        tryMask(mask);
       });
     }
 
@@ -1131,7 +1164,7 @@
 
   // cerca il foglio in un'immagine/video. Ritorna 4 punti [tl,tr,br,bl] in coordinate sorgente, o null
   function detectQuad(srcEl, sw, sh, maxDim){
-    const sc = Math.min(1, (maxDim || 360) / Math.max(sw, sh));
+    const sc = Math.min(1, (maxDim || 420) / Math.max(sw, sh));
     const w = Math.max(16, Math.round(sw * sc));
     const h = Math.max(16, Math.round(sh * sc));
     detCanvas.width = w; detCanvas.height = h;
@@ -1141,7 +1174,7 @@
     for (let i = 0, p = 0; i < g.length; i++, p += 4) {
       g[i] = (0.299 * d[p] + 0.587 * d[p+1] + 0.114 * d[p+2]) | 0;
     }
-    const q = detectQuadFromGray(g, w, h);
+    const q = detectQuadFromGray(g, w, h, d);
     if (!q) return null;
     const fx = sw / w, fy = sh / h;
     return q.map(p => ({ x: (p.x + 0.5) * fx, y: (p.y + 0.5) * fy }));
@@ -1974,7 +2007,6 @@
     const hasPhotos = state.images.length > 0;
     const off = isGenerating || !(allValid && hasPhotos && filename);
     btnGenerate.disabled = off;
-    btnEmail.disabled = off;
     return { filename, allValid, hasPhotos };
   }
   function onDataChange(){ refreshGenerateState(); }
@@ -2094,6 +2126,7 @@
   }
 
   async function savePdf(blob, filename){
+    filename = safeFilename(filename);
     let saved = false;
     if (isIOS() && navigator.canShare) {
       try {
@@ -2119,49 +2152,13 @@
     }
   }
 
-  function canShareFiles(){
-    try {
-      const f = new File([new Blob(['x'])], 'a.pdf', { type: 'application/pdf' });
-      return !!(navigator.canShare && navigator.canShare({ files: [f] }));
-    } catch(e) { return false; }
-  }
-
-  async function emailPdf(blob, filename, win){
-    const subject = filename.replace(/\.pdf$/i, '');
-    const body =
-      `In allegato il verbale fotografico.\n\n` +
-      `Cliente: ${cliente.value.trim()}\n` +
-      `Tecnico: ${tecnico.value.trim()}\n` +
-      `Data intervento: ${formatDate(data.value)}\n`;
-    const file = new File([blob], filename, { type: 'application/pdf' });
-
-    // Mobile: foglio di condivisione, scegli Gmail e trovi il PDF già allegato
-    if (canShareFiles()) {
-      try {
-        await navigator.share({ files: [file], title: subject, text: body });
-        setStatus('✅ Condivisione completata', 'ok');
-      } catch(err) {
-        if (err.name === 'AbortError') setStatus('↩️ Invio annullato');
-        else throw err;
-      }
-      return;
-    }
-
-    // Desktop: scarica il PDF e apre la bozza Gmail (da lì trascina/allega il file scaricato)
-    downloadBlob(blob, filename);
-    const url = 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(subject) +
-      '&body=' + encodeURIComponent(body + `\n(Allega il file scaricato: ${filename})`);
-    if (win && !win.closed) win.location.href = url; else window.open(url, '_blank');
-    setStatus(`✅ PDF scaricato. Si apre Gmail: allega "${filename}"`, 'ok');
-  }
+  // nei nomi file lo slash e altri caratteri non sono ammessi: Android/iOS/Gmail altrimenti rinominano o scartano il nome
+  function safeFilename(n){ return n.replace(/[\\\/:*?"<>|]+/g, '-'); }
 
   async function runGenerate(mode){
     if (isGenerating) return;
     const filename = checkReady();
     if (!filename) return;
-
-    let win = null;
-    if (mode === 'email' && !canShareFiles()) win = window.open('', '_blank');
 
     isGenerating = true;
     refreshGenerateState();
@@ -2170,8 +2167,7 @@
 
     try {
       const blob = await buildPdfBlob();
-      if (mode === 'email') await emailPdf(blob, filename, win);
-      else await savePdf(blob, filename);
+      await savePdf(blob, filename);
     } catch(err) {
       setStatus(`❌ Errore: ${err.message}`, 'error');
       debugInfo.textContent = `❌ Errore: ${err.message}`;
@@ -2182,7 +2178,6 @@
   }
 
   btnGenerate.addEventListener('click', () => runGenerate('save'));
-  btnEmail.addEventListener('click', () => runGenerate('email'));
 
   // ============================================================
   // INIZIALIZZAZIONE
